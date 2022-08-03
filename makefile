@@ -5,9 +5,13 @@
 # Exports all variables defined in the makefile available to scripts
 .EXPORT_ALL_VARIABLES:
 
+# Includes environment variables from the .env file
+include .env
+
 install-poetry:
 	@echo "Installing poetry..."
 	@curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
+	@$(eval include ${HOME}/.poetry/env)
 
 uninstall-poetry:
 	@echo "Uninstalling poetry..."
@@ -16,42 +20,43 @@ uninstall-poetry:
 install:
 	@echo "Installing..."
 	@if [ "$(shell which poetry)" = "" ]; then \
-		make install-poetry; \
+		$(MAKE) install-poetry; \
 	fi
 	@if [ "$(shell which gpg)" = "" ]; then \
 		echo "GPG not installed, so an error will occur. Install GPG on MacOS with "\
 			 "`brew install gnupg` or on Ubuntu with `apt install gnupg` and run "\
 			 "`make install` again."; \
 	fi
+	@$(MAKE) setup-poetry
+	@$(MAKE) setup-git
+
+setup-poetry:
 	@poetry env use python3
 	@poetry run python3 -m src.scripts.fix_dot_env_file
-	@git init
-	@. .env; \
-		git config --local user.name "$${GIT_NAME}"; \
-		git config --local user.email "$${GIT_EMAIL}"
-	@. .env; \
-		if [ "$${GPG_KEY_ID}" = "" ]; then \
-			echo "No GPG key ID specified. Skipping GPG signing."; \
-			git config --local commit.gpgsign false; \
-		else \
-			echo "Signing with GPG key ID $${GPG_KEY_ID}..."; \
-			git config --local commit.gpgsign true; \
-			git config --local user.signingkey "$${GPG_KEY_ID}"; \
-		fi
 	@poetry install
 	@poetry run pre-commit install
 
-remove-env:
-	@poetry env remove python3
-	@echo "Removed virtual environment."
+setup-git:
+	@git init
+	@git config --local user.name ${GIT_NAME}
+	@git config --local user.email ${GIT_EMAIL}
+	@if [ ${GPG_KEY_ID} = "" ]; then \
+		echo "No GPG key ID specified. Skipping GPG signing."; \
+		git config --local commit.gpgsign false; \
+	else \
+		echo "Signing with GPG key ID ${GPG_KEY_ID}..."; \
+		echo 'If you get the "failed to sign the data" error when committing, try running `export GPG_TTY=$$(tty)`.'; \
+		git config --local commit.gpgsign true; \
+		git config --local user.signingkey ${GPG_KEY_ID}; \
+	fi
 
 docs:
-	@poetry run pdoc --docformat google src/aiai_eval -o docs
+	@poetry run pdoc --docformat google src/{{cookiecutter.package_name}} -o docs
 	@echo "Saved documentation."
 
 view-docs:
 	@echo "Viewing API documentation..."
-	@open docs/aiai_eval.html
+	@open docs/{{cookiecutter.package_name}}.html
 
 clean:
 	@find . -type f -name "*.py[co]" -delete
@@ -72,15 +77,15 @@ bump-patch:
 	@echo "Bumped patch version."
 
 publish:
-	@. .env; \
-		printf "Preparing to publish to PyPI. Have you ensured to change the package version with 'make bump-X' for 'X' being 'major', 'minor' or 'patch'? [y/n] : "; \
+	@$(eval include .env)
+	@printf "Preparing to publish to PyPI. Have you ensured to change the package version with 'make bump-X' for 'X' being 'major', 'minor' or 'patch'? [y/n] : "; \
 		read -r answer; \
 		if [ "$${answer}" = "y" ]; then \
-			if [ "$${PYPI_API_TOKEN}" = "" ]; then \
+			if [ "${PYPI_API_TOKEN}" = "" ]; then \
 				echo "No PyPI API token specified in the '.env' file, so cannot publish."; \
 			else \
 				echo "Publishing to PyPI..."; \
-				poetry publish --build --username "__token__" --password "$${PYPI_API_TOKEN}"; \
+				poetry publish --build --username "__token__" --password "${PYPI_API_TOKEN}"; \
 				echo "Published!"; \
 			fi \
 		else \
