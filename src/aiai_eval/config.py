@@ -69,8 +69,7 @@ class EvaluationConfig:
     """General benchmarking configuration, across datasets and models.
     Attributes:
         model_tasks (None or sequence of str):
-            The tasks of the models to benchmark. If None then models will not be
-            filtered according to their language.
+            The tasks of the models to benchmark.
         dataset_tasks (sequence of DatasetTask):
             The tasks to benchmark.
         raise_error_on_invalid_model (bool):
