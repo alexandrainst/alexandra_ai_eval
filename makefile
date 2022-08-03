@@ -51,18 +51,12 @@ setup-git:
 	fi
 
 docs:
-	@poetry run pdoc --docformat google src/{{cookiecutter.package_name}} -o docs
+	@poetry run pdoc --docformat google src/aiai_eval -o docs
 	@echo "Saved documentation."
 
 view-docs:
 	@echo "Viewing API documentation..."
-	@open docs/{{cookiecutter.package_name}}.html
-
-clean:
-	@find . -type f -name "*.py[co]" -delete
-	@find . -type d -name "__pycache__" -delete
-	@rm -rf .pytest_cache
-	@echo "Cleaned repository."
+	@open docs/aiai_eval.html
 
 bump-major:
 	@poetry run python -m src.scripts.versioning --major
