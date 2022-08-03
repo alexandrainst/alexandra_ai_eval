@@ -53,7 +53,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Build documentation
-        run: poetry run pdoc --docformat google src/{{ cookiecutter.package_name }} -o docs
+        run: poetry run pdoc --docformat google src/aiai_eval -o docs
 
       - name: Compress documentation
         run: tar --directory docs/ -hcf artifact.tar .
