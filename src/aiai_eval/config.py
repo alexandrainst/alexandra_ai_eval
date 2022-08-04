@@ -87,7 +87,7 @@ class EvaluationConfig:
             Whether to show a progress bar.
         save_results (bool):
             Whether to save the benchmark results to
-            'scandeval_benchmark_results.json'.
+            'evaluation_results.json'.
         verbose (bool):
             Whether to print verbose output.
         testing (bool, optional):
