@@ -99,9 +99,9 @@ class Evaluator:
             model_id (str, list of str or None, optional):
                 The model ID(s) of the models to benchmark. If None then all relevant
                 model IDs will be benchmarked. Defaults to None.
-            dataset (str, list of str or None, optional):
-                The datasets to benchmark on. If None then all datasets will be
-                benchmarked. Defaults to None.
+            dataset (str or list of str):
+                The dataset(s) to evaluate the model(s) on.
+                
         Returns:
             dict:
                 A nested dictionary of the benchmark results. The keys are the names of
