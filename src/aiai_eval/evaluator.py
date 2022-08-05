@@ -89,7 +89,7 @@ class Evaluator:
         # Initialise a task factory
         self.task_factory = TaskFactory(evaluation_config=self.evaluation_config)
 
-    def benchmark(
+    def evaluate(
         self,
         model_id: Optional[Union[Sequence[str], str]] = None,
         dataset: Optional[Union[Sequence[str], str]] = None,
