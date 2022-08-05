@@ -94,7 +94,8 @@ class Evaluator:
         model_id: Optional[Union[Sequence[str], str]] = None,
         dataset: Optional[Union[Sequence[str], str]] = None,
     ) -> Dict[str, Dict[str, dict]]:
-        """Benchmarks models on datasets.
+        """Evaluates models on datasets.
+        
         Args:
             model_id (str, list of str or None, optional):
                 The model ID(s) of the models to benchmark. If None then all relevant
