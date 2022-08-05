@@ -86,8 +86,8 @@ class Evaluator:
         logging_level = logging.DEBUG if verbose else logging.INFO
         logger.setLevel(logging_level)
 
-        # Initialise a dataset factory
-        self.dataset_factory = TaskFactory(evaluation_config=self.evaluation_config)
+        # Initialise a task factory
+        self.task_factory = TaskFactory(evaluation_config=self.evaluation_config)
 
     def benchmark(
         self,
