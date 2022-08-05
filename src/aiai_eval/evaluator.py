@@ -31,7 +31,7 @@ class Evaluator:
         raise_error_on_invalid_model (bool, optional):
             Whether to raise an error if a model is invalid. Defaults to False.
         cache_dir (str, optional):
-            Directory to store cached models. Defaults to '.scandeval_cache'.
+            Directory to store cached models. Defaults to '.aiai_eval_cache'.
         use_auth_token (bool or str, optional):
             The authentication token for the Hugging Face Hub. If a boolean value is
             specified then the token will be fetched from the Hugging Face CLI, where
