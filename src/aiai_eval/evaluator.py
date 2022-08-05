@@ -97,9 +97,8 @@ class Evaluator:
         """Evaluates models on datasets.
         
         Args:
-            model_id (str, list of str or None, optional):
-                The model ID(s) of the models to benchmark. If None then all relevant
-                model IDs will be benchmarked. Defaults to None.
+            model_id (str or list of str):
+                The model ID(s) of the models to be evaluated.
             dataset (str or list of str):
                 The dataset(s) to evaluate the model(s) on.
                 
