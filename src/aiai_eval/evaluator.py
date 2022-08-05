@@ -197,3 +197,17 @@ class Evaluator:
             dataset_tasks = [dataset_task_mapping[task] for task in dataset_task]
 
         return dataset_tasks
+
+    def _prepare_model_tasks(
+        self, model_task: Optional[Union[str, Sequence[str]]]
+    ) -> Optional[Sequence[str]]:
+        """Prepare model task(s) for benchmarking.
+        Args:
+            model_task (str or list of str):
+                The tasks to include for models. If "all" then models will not be
+                filtered based on the task they were trained on.
+        Returns:
+            None or sequence of str:
+                The prepared model tasks.
+        """
+        return [model_task] if isinstance(model_task, str) else model_task
