@@ -10,9 +10,6 @@ def get_model_lists(
 ) -> Dict[str, Sequence[str]]:
     """Fetches up-to-date model lists.
     Args:
-        languages (None or sequence of Language objects):
-            The language codes of the language to consider. If None then the models
-            will not be filtered on language.
         tasks (None or sequence of str):
             The task to consider. If None then the models will not be filtered on task.
         use_auth_token (bool or str):
@@ -22,8 +19,7 @@ def get_model_lists(
             specified then it will be used as the token. Defaults to False.
     Returns:
         dict:
-            The keys are filterings of the list, which includes all language codes,
-            including 'multilingual', all tasks, as well as 'all'. The values are lists
+            The keys are filterings of the list, all tasks, as well as 'all'. The values are lists
             of model IDs.
     """
     pass
