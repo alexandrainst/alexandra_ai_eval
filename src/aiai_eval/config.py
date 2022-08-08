@@ -34,6 +34,7 @@ class MetricConfig:
 @dataclass
 class Label:
     """A label in a dataset task.
+    
     Attributes:
         name (str):
             The name of the label.
