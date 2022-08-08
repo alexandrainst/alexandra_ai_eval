@@ -15,37 +15,6 @@ def get_all_dataset_tasks() -> Dict[str, DatasetTask]:
     return {cfg.name: cfg for cfg in globals().values() if isinstance(cfg, DatasetTask)}
 
 
-LA = DatasetTask(
-    name="la",
-    supertask="text-classification",
-    metrics=[
-        MetricConfig(
-            name="mcc",
-            pretty_name="Matthew's Correlation Coefficient",
-            huggingface_id="matthews_correlation",
-            results_key="matthews_correlation",
-        ),
-        MetricConfig(
-            name="macro_f1",
-            pretty_name="Macro-average F1-score",
-            huggingface_id="f1",
-            results_key="f1",
-            compute_kwargs=dict(average="macro"),
-        ),
-    ],
-    labels=[
-        Label(
-            name="INCORRECT",
-            synonyms=["LABEL_0"],
-        ),
-        Label(
-            name="CORRECT",
-            synonyms=["LABEL_1"],
-        ),
-    ],
-)
-
-
 NER = DatasetTask(
     name="ner",
     supertask="token-classification",
