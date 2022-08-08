@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Sequence, Union
 @dataclass
 class MetricConfig:
     """Configuration for a metric.
-    
+
     Attributes:
         name (str):
             The name of the metric.
@@ -34,7 +34,7 @@ class MetricConfig:
 @dataclass
 class Label:
     """A label in a dataset task.
-    
+
     Attributes:
         name (str):
             The name of the label.
@@ -49,7 +49,7 @@ class Label:
 @dataclass
 class DatasetTask:
     """A dataset task.
-    
+
     Attributes:
         name (str):
             The name of the task.
@@ -70,7 +70,7 @@ class DatasetTask:
 @dataclass
 class EvaluationConfig:
     """General benchmarking configuration, across datasets and models.
-    
+
     Attributes:
         model_tasks (None or sequence of str):
             The tasks of the models to benchmark.
@@ -112,7 +112,7 @@ class EvaluationConfig:
 @dataclass
 class DatasetConfig:
     """Configuration for a dataset.
-    
+
     Attributes:
         name (str):
             The name of the dataset. Must be lower case with no spaces.

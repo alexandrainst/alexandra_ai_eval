@@ -117,11 +117,11 @@ class Evaluator:
         model_id: Optional[Union[Sequence[str], str]],
     ) -> Sequence[str]:
         """Prepare the model ID(s) to be benchmarked.
-        
+
         Args:
             model_id (str or list of str):
                 The model ID(s) of the models to be evaluated.
-                
+
         Returns:
             sequence of str:
                 The prepared list of model IDs.
@@ -133,11 +133,11 @@ class Evaluator:
         dataset: Optional[Union[Sequence[str], str]],
     ) -> Sequence[DatasetConfig]:
         """Prepare the task configuration(s) to be benchmarked.
-        
+
         Args:
             task (str or list of str):
                 The tasks to evaluate.
-                
+
         Returns:
             sequence of TaskConfig:
                 The prepared list of task configurations.
@@ -150,7 +150,7 @@ class Evaluator:
         model_id: str,
     ):
         """Benchmark a single model on a single dataset.
-        
+
         Args:
             dataset_config (DatasetConfig):
                 The dataset configuration to use.
@@ -167,12 +167,12 @@ class Evaluator:
         tasks: Optional[Sequence[str]],
     ) -> list:
         """Get list of model IDs from the Hugging Face Hub.
-        
+
         Args:
             tasks (None or sequence of str):
                 The tasks of the models to fetch. If None then the models will not be
                 filtered on tasks.
-                
+
         Returns:
             list:
                 List of model IDs.
@@ -183,12 +183,12 @@ class Evaluator:
         self, dataset_task: Optional[Union[str, Sequence[str]]]
     ) -> Sequence[DatasetTask]:
         """Prepare dataset task(s) for benchmarking.
-        
+
         Args:
             dataset_task (str or sequence of str, optional):
                 The tasks to include for dataset. If "all" then datasets will not be
                 filtered based on their task. Defaults to "all".
-                
+
         Returns:
             sequence of DatasetTask:
                 The prepared dataset tasks.
@@ -211,12 +211,12 @@ class Evaluator:
         self, model_task: Optional[Union[str, Sequence[str]]]
     ) -> Optional[Sequence[str]]:
         """Prepare model task(s) for benchmarking.
-        
+
         Args:
             model_task (str or list of str):
                 The tasks to include for models. If "all" then models will not be
                 filtered based on the task they were trained on.
-                
+
         Returns:
             None or sequence of str:
                 The prepared model tasks.
