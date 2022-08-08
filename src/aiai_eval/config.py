@@ -69,6 +69,7 @@ class DatasetTask:
 @dataclass
 class EvaluationConfig:
     """General benchmarking configuration, across datasets and models.
+    
     Attributes:
         model_tasks (None or sequence of str):
             The tasks of the models to benchmark.
