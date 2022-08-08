@@ -7,6 +7,7 @@ from typing import Any, Dict, List, Optional, Sequence, Union
 @dataclass
 class MetricConfig:
     """Configuration for a metric.
+    
     Attributes:
         name (str):
             The name of the metric.
