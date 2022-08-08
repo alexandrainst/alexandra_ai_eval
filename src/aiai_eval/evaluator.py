@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class Evaluator:
     """Evaluating provided Danish language models.
-    
+
     Args:
         progress_bar (bool, optional):
             Whether progress bars should be shown. Defaults to True.
@@ -40,7 +40,7 @@ class Evaluator:
             specified then it will be used as the token. Defaults to False.
         verbose (bool, optional):
             Whether to output additional output. Defaults to False.
-            
+
     Attributes:
         progress_bar (bool): Whether progress bars should be shown.
         save_results (bool): Whether to save the benchmark results.
@@ -97,13 +97,13 @@ class Evaluator:
         dataset: Union[Sequence[str], str],
     ) -> Dict[str, Dict[str, dict]]:
         """Evaluates models on datasets.
-        
+
         Args:
             model_id (str or list of str):
                 The model ID(s) of the models to be evaluated.
             dataset (str or list of str):
                 The dataset(s) to evaluate the model(s) on.
-                
+
         Returns:
             dict:
                 A nested dictionary of the benchmark results. The keys are the names of
