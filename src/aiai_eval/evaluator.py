@@ -22,7 +22,7 @@ class Evaluator:
             Whether progress bars should be shown. Defaults to True.
         save_results (bool, optional):
             Whether to save the benchmark results to
-            'scandeval_benchmark_results.json'. Defaults to False.
+            'aiai_eval_results.json'. Defaults to False.
         model_task (str or sequence of str, optional):
             The tasks to include for models. If "all" then models will not be filtered
             based on the task they were trained on. Defaults to "all".
