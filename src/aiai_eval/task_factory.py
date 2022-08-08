@@ -21,14 +21,14 @@ class TaskFactory:
     def __init__(self, evaluation_config: EvaluationConfig):
         self.evaluation_config = evaluation_config
 
-    def build_dataset(self, dataset_task: Union[str, DatasetTask]) -> None:
+    def build_dataset(self, dataset_task: Union[str, DatasetTask]) -> list:
         """Build a dataset from a configuration or a name.
         Args:
             dataset (str or DatasetConfig):
                 The name of the dataset, or the dataset configuration.
         Returns:
-            Implement BenchmarkDataset:
+            dataset (BenchmarkDataset):
                 The benchmark dataset.
         """
         # TODO: implement BenchmarkDataset analog
-        return None
+        return []
