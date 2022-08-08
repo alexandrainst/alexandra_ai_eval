@@ -91,8 +91,8 @@ class Evaluator:
 
     def evaluate(
         self,
-        model_id: Optional[Union[Sequence[str], str]] = None,
-        dataset: Optional[Union[Sequence[str], str]] = None,
+        model_id: Union[Sequence[str], str],
+        dataset: Union[Sequence[str], str],
     ) -> Dict[str, Dict[str, dict]]:
         """Evaluates models on datasets.
         
