@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 
 class Evaluator:
     """Evaluating provided Danish language models.
+    
     Args:
         progress_bar (bool, optional):
             Whether progress bars should be shown. Defaults to True.
