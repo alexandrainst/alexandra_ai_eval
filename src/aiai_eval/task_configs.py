@@ -7,6 +7,7 @@ from .config import DatasetTask, Label, MetricConfig
 
 def get_all_dataset_tasks() -> Dict[str, DatasetTask]:
     """Get a list of all the dataset tasks.
+    
     Returns:
         dict:
             A mapping between names of dataset tasks and their configurations.
