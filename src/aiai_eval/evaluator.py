@@ -7,7 +7,9 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Union
 
-from .config import DatasetConfig, DatasetTask, EvaluationConfig
+from .config import DatasetTask, EvaluationConfig
+from .exceptions import InvalidEvaluation
+from .hf_hub import get_model_lists
 from .task_configs import get_all_dataset_tasks
 from .task_factory import TaskFactory
 
@@ -16,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 class Evaluator:
     """Evaluating provided Danish language models.
-    
+
     Args:
         progress_bar (bool, optional):
             Whether progress bars should be shown. Defaults to True.
@@ -40,7 +42,7 @@ class Evaluator:
             specified then it will be used as the token. Defaults to False.
         verbose (bool, optional):
             Whether to output additional output. Defaults to False.
-            
+
     Attributes:
         progress_bar (bool): Whether progress bars should be shown.
         save_results (bool): Whether to save the benchmark results.
@@ -81,7 +83,7 @@ class Evaluator:
         self._model_lists: Union[Dict[str, Sequence[str]], None] = None
 
         # Initialise variable storing all evaluation results, which will be
-        # updated as more models are benchmarked
+        # updated as more models are evaluated
         self.evaluation_results: Dict[str, dict] = defaultdict(dict)
 
         # Set logging level based on verbosity
@@ -94,70 +96,107 @@ class Evaluator:
     def evaluate(
         self,
         model_id: Union[Sequence[str], str],
-        dataset: Union[Sequence[str], str],
     ) -> Dict[str, Dict[str, dict]]:
         """Evaluates models on datasets.
-        
+
         Args:
             model_id (str or list of str):
                 The model ID(s) of the models to be evaluated.
             dataset (str or list of str):
                 The dataset(s) to evaluate the model(s) on.
-                
+
         Returns:
             dict:
-                A nested dictionary of the benchmark results. The keys are the names of
+                A nested dictionary of the evaluation results. The keys are the names of
                 the datasets, with values being new dictionaries having the model IDs
                 as keys.
         """
-        pass
+        # Prepare the model IDs
+        model_ids = self._prepare_model_ids(model_id)
+
+        # Evaluate all the models in `model_ids` on all the datasets in `dataset_tasks`
+        dataset_tasks = self.evaluation_config.dataset_tasks
+        for dataset_task in dataset_tasks:
+            for m_id in model_ids:
+                self._evaluate_single(
+                    dataset_task=dataset_task,
+                    model_id=m_id,
+                )
+
+        # Save the evaluation results
+        if self.evaluation_config.save_results:
+            output_path = Path.cwd() / "aiai_eval_results.json"
+            with output_path.open("w") as f:
+                json.dump(self.evaluation_results, f)
+
+        return self.evaluation_results
 
     def _prepare_model_ids(
         self,
         model_id: Optional[Union[Sequence[str], str]],
     ) -> Sequence[str]:
-        """Prepare the model ID(s) to be benchmarked.
+        """Prepare the model ID(s) to be evaluated.
         Args:
             model_id (str, list of str or None):
-                The model ID(s) of the models to benchmark. If None then all model IDs
+                The model ID(s) of the models to evaluate. If None then all model IDs
                 will be retrieved.
         Returns:
             sequence of str:
                 The prepared list of model IDs.
         """
-        pass
+        model_ids: Sequence[str]
+        if model_id is None:
+            model_ids = self._get_fresh_model_ids(
+                tasks=self.evaluation_config.model_tasks,
+            )
+        elif isinstance(model_id, str):
+            model_ids = [model_id]
+        else:
+            model_ids = model_id
 
-    def _prepare_dataset_configs(
-        self,
-        dataset: Optional[Union[Sequence[str], str]],
-    ) -> Sequence[DatasetConfig]:
-        """Prepare the dataset configuration(s) to be benchmarked.
-        Args:
-            dataset (str, list of str or None, optional):
-                The datasets to benchmark on. If None then all datasets will be
-                benchmarked. Defaults to None.
-        Returns:
-            sequence of str:
-                The prepared list of model IDs.
-        """
-        pass
+        return model_ids
 
-    def _benchmark_single(
+    def _evaluate_single(
         self,
-        dataset_config: DatasetConfig,
+        dataset_task: DatasetTask,
         model_id: str,
     ):
-        """Benchmark a single model on a single dataset.
+        """Evaluate a single model on a single task.
         Args:
-            dataset_config (DatasetConfig):
-                The dataset configuration to use.
+            dataset_config (DatasetTask):
+                The dataset task configuration to use.
             model_id (str):
                 The model ID to use.
         """
-        pass
+        logger.info(f"Evaluating {model_id} on {dataset_task.pretty_dataset_name}")
+        try:
+            # dataset_obj = self.task_factory.build_dataset(dataset_task)
+            results = (
+                "NA"  # dataset_obj(model_id) # NB NEED TO IMPLEMENT `build_dataset`
+            )
+            self.evaluation_results[dataset_task.name][model_id] = results
+            logger.debug(f"Results:\n{results}")
+
+        except InvalidEvaluation as e:
+
+            # If the model ID is not valid then raise an error, if specified
+            model_err_msg = "does not exist on the Hugging Face Hub"
+            if (
+                self.evaluation_config.raise_error_on_invalid_model
+                and model_err_msg in str(e)
+            ):
+                raise e
+
+            # Otherwise, log the error
+            else:
+                logger.info(
+                    f"{model_id} could not be evaluated on "
+                    f"{dataset_task.pretty_dataset_name}. Skipping."
+                )
+                logger.debug(f'The error message was "{e}".')
 
     def __call__(self, *args, **kwargs):
-        pass
+        return self.evaluate(*args, **kwargs)
 
     def _get_fresh_model_ids(
         self,
@@ -172,12 +211,36 @@ class Evaluator:
             list:
                 List of model IDs.
         """
-        pass
+        # Specify boolean variables determining whether the input variables are new
+        new_tasks = (
+            self._model_lists is not None
+            and tasks is not None
+            and any(task not in self._model_lists for task in tasks)
+        )
+
+        # If the model lists have not been fetched already, then do it
+        if self._model_lists is None or new_tasks:
+            self._model_lists = get_model_lists(
+                tasks=tasks,
+                use_auth_token=self.evaluation_config.use_auth_token,
+            )
+
+        # Extract all the model IDs from the model lists
+        model_ids: List[str] = list()
+        if tasks is not None:
+            for task in tasks:
+                model_ids.extend(self._model_lists[task])  # type: ignore
+        model_ids.extend(self._model_lists["multilingual"])  # type: ignore
+
+        # Remove duplicate model IDs
+        model_ids = list(set(model_ids))
+
+        return model_ids
 
     def _prepare_dataset_tasks(
         self, dataset_task: Optional[Union[str, Sequence[str]]]
     ) -> Sequence[DatasetTask]:
-        """Prepare dataset task(s) for benchmarking.
+        """Prepare dataset task(s) for evaluation.
         Args:
             dataset_task (str or sequence of str, optional):
                 The tasks to include for dataset. If "all" then datasets will not be
@@ -186,7 +249,7 @@ class Evaluator:
             sequence of DatasetTask:
                 The prepared dataset tasks.
         """
-        # Create a dictionary that maps benchmark tasks to their associated benchmark
+        # Create a dictionary that maps evaluation tasks to their associated evaluation
         # task objects
         dataset_task_mapping = get_all_dataset_tasks()
 
@@ -203,7 +266,7 @@ class Evaluator:
     def _prepare_model_tasks(
         self, model_task: Optional[Union[str, Sequence[str]]]
     ) -> Optional[Sequence[str]]:
-        """Prepare model task(s) for benchmarking.
+        """Prepare model task(s) for evaluation.
         Args:
             model_task (str or list of str):
                 The tasks to include for models. If "all" then models will not be
