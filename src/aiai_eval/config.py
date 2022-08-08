@@ -112,6 +112,7 @@ class EvaluationConfig:
 @dataclass
 class DatasetConfig:
     """Configuration for a dataset.
+    
     Attributes:
         name (str):
             The name of the dataset. Must be lower case with no spaces.
