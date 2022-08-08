@@ -7,9 +7,11 @@ from .config import EvaluationConfig
 
 class TaskFactory:
     """Factory which produces tasks from a configuration.
+    
     Args:
         evaluation_config (EvaluationConfig):
             The benchmark configuration to be used in all tasks constructed.
+            
     Attributes:
         evaluation_config (EvaluationConfig):
             The benchmark configuration to be used in all tasks constructed.
