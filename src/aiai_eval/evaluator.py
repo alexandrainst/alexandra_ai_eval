@@ -40,6 +40,7 @@ class Evaluator:
             specified then it will be used as the token. Defaults to False.
         verbose (bool, optional):
             Whether to output additional output. Defaults to False.
+            
     Attributes:
         progress_bar (bool): Whether progress bars should be shown.
         save_results (bool): Whether to save the benchmark results.
