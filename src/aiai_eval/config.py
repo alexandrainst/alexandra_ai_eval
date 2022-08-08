@@ -48,6 +48,7 @@ class Label:
 @dataclass
 class DatasetTask:
     """A dataset task.
+    
     Attributes:
         name (str):
             The name of the task.
