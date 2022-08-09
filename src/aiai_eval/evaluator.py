@@ -8,8 +8,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Union
 
 from .config import DatasetTask, EvaluationConfig
-from .exceptions import InvalidEvaluation
-from .hf_hub import get_model_lists
+from .exceptions import InvalidEvaluation, ModelDoesNotExistOnHuggingFaceHubException
+from .hf_hub import model_exists_on_hf_hub
 from .task_configs import get_all_dataset_tasks
 from .task_factory import TaskFactory
 
@@ -164,6 +164,10 @@ class Evaluator:
                 The model ID to use.
         """
         logger.info(f"Evaluating {model_id} on {dataset_task.pretty_dataset_name}")
+
+        if not model_exists_on_hf_hub(model_id=model_id):
+            raise ModelDoesNotExistOnHuggingFaceHubException(model_id)
+
         try:
             # dataset_obj = self.task_factory.build_dataset(dataset_task)
             results = (
@@ -171,24 +175,12 @@ class Evaluator:
             )
             self.evaluation_results[dataset_task.name][model_id] = results
             logger.debug(f"Results:\n{results}")
-
         except InvalidEvaluation as e:
-
-            # If the model ID is not valid then raise an error, if specified
-            model_err_msg = "does not exist on the Hugging Face Hub"
-            if (
-                self.evaluation_config.raise_error_on_invalid_model
-                and model_err_msg in str(e)
-            ):
-                raise e
-
-            # Otherwise, log the error
-            else:
-                logger.info(
-                    f"{model_id} could not be evaluated on "
-                    f"{dataset_task.pretty_dataset_name}. Skipping."
-                )
-                logger.debug(f'The error message was "{e}".')
+            logger.info(
+                f"{model_id} could not be evaluated on "
+                f"{dataset_task.pretty_dataset_name}. Skipping."
+            )
+            logger.debug(f'The error message was "{e}".')
 
     def __call__(self, model_id: Union[Sequence[str], str]):
         return self.evaluate(model_id)
