@@ -158,7 +158,7 @@ class Evaluator:
     ):
         """Evaluate a single model on a single task.
         Args:
-            dataset_config (DatasetTask):
+            dataset_task (DatasetTask):
                 The dataset task configuration to use.
             model_id (str):
                 The model ID to use.
