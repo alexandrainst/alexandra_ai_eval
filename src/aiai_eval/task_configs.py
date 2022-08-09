@@ -18,8 +18,8 @@ def get_all_dataset_tasks() -> Dict[str, DatasetTask]:
 NER = DatasetTask(
     name="ner",
     dataset_name="dane",
-    pretty_dataset_name="the truncated version of DaNE",
-    huggingface_id="ScandEval/dane-mini",
+    pretty_dataset_name="The Danish Dependency Treebank",
+    huggingface_id="dane",
     supertask="token-classification",
     metrics=[
         MetricConfig(
@@ -165,8 +165,8 @@ NER = DatasetTask(
 SENT = DatasetTask(
     name="sent",
     dataset_name="angry-tweets",
-    pretty_dataset_name="the truncated version of AngryTweets",
-    huggingface_id="ScandEval/angry-tweets-mini",
+    pretty_dataset_name="Angry Tweets, Danish Twitter data",
+    huggingface_id="DDSC/angry-tweets",
     supertask="text-classification",
     metrics=[
         MetricConfig(
