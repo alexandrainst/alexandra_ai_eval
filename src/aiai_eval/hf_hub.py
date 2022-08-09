@@ -1,4 +1,5 @@
 """Functions related to the Hugging Face Hub."""
+
 from huggingface_hub import HfApi
 from huggingface_hub.utils import RepositoryNotFoundError
 
