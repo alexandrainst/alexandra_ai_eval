@@ -57,7 +57,7 @@ class TaskFactory:
         else:
             raise ValueError(f"Unknown dataset task: {dataset_task.supertask}")
 
-        # Create the dataset
+        # Create the task
         task_obj = evaluation_cls(
             dataset_task=dataset_task, evaluation_config=self.evaluation_config
         )
