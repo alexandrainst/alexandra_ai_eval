@@ -18,7 +18,7 @@ class SentimentAnalysis(EvaluationDataset):
 
 
 class OffensiveSpeechClassification(EvaluationDataset):
-    """Sentiment analysis evaluation dataset.
+    """Offensive Speech classification evaluation dataset.
     Args:
         dataset_task (DatasetTask):
             The configuration of the dataset task.

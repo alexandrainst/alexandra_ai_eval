@@ -4,7 +4,7 @@ from .task import EvaluationDataset
 
 
 class NEREvaluation(EvaluationDataset):
-    """Token classification benchmark dataset.
+    """NER dataset.
     Args:
         dataset_config (DatasetConfig):
             The dataset configuration.
