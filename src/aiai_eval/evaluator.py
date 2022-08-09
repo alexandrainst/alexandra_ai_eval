@@ -133,23 +133,18 @@ class Evaluator:
 
     def _prepare_model_ids(
         self,
-        model_id: Optional[Union[Sequence[str], str]],
+        model_id: Union[Sequence[str], str],
     ) -> Sequence[str]:
         """Prepare the model ID(s) to be evaluated.
         Args:
-            model_id (str, list of str or None):
-                The model ID(s) of the models to evaluate. If None then all model IDs
-                will be retrieved.
+            model_id (str, list of str):
+                The model ID(s) of the models to evaluate.
         Returns:
             sequence of str:
                 The prepared list of model IDs.
         """
         model_ids: Sequence[str]
-        if model_id is None:
-            model_ids = self._get_fresh_model_ids(
-                tasks=self.evaluation_config.model_tasks,
-            )
-        elif isinstance(model_id, str):
+        if isinstance(model_id, str):
             model_ids = [model_id]
         else:
             model_ids = model_id
@@ -195,49 +190,8 @@ class Evaluator:
                 )
                 logger.debug(f'The error message was "{e}".')
 
-    def __call__(self, *args, **kwargs):
-        return self.evaluate(*args, **kwargs)
-
-    def _get_fresh_model_ids(
-        self,
-        tasks: Optional[Sequence[str]],
-    ) -> list:
-        """Get list of model IDs from the Hugging Face Hub.
-
-        Args:
-            tasks (None or sequence of str):
-                The tasks of the models to fetch. If None then the models will not be
-                filtered on tasks.
-
-        Returns:
-            list:
-                List of model IDs.
-        """
-        # Specify boolean variables determining whether the input variables are new
-        new_tasks = (
-            self._model_lists is not None
-            and tasks is not None
-            and any(task not in self._model_lists for task in tasks)
-        )
-
-        # If the model lists have not been fetched already, then do it
-        if self._model_lists is None or new_tasks:
-            self._model_lists = get_model_lists(
-                tasks=tasks,
-                use_auth_token=self.evaluation_config.use_auth_token,
-            )
-
-        # Extract all the model IDs from the model lists
-        model_ids: List[str] = list()
-        if tasks is not None:
-            for task in tasks:
-                model_ids.extend(self._model_lists[task])  # type: ignore
-        model_ids.extend(self._model_lists["multilingual"])  # type: ignore
-
-        # Remove duplicate model IDs
-        model_ids = list(set(model_ids))
-
-        return model_ids
+    def __call__(self, model_id: Union[Sequence[str], str]):
+        return self.evaluate(model_id)
 
     def _prepare_dataset_tasks(
         self, dataset_task: Optional[Union[str, Sequence[str]]]
