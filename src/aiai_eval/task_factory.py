@@ -50,7 +50,7 @@ class TaskFactory:
                 evaluation_cls = OffensiveSpeechClassification
 
         elif dataset_task.supertask == "token-classification":
-            if dataset_task.supertask == "ner":
+            if dataset_task.name == "ner":
                 evaluation_cls = NEREvaluation
         else:
             raise ValueError(f"Unknown dataset task: {dataset_task.supertask}")
