@@ -169,10 +169,8 @@ class Evaluator:
             raise ModelDoesNotExistOnHuggingFaceHubException(model_id)
 
         try:
-            # dataset_obj = self.task_factory.build_dataset(dataset_task)
-            results = (
-                "NA"  # dataset_obj(model_id) # NB NEED TO IMPLEMENT `build_dataset`
-            )
+            dataset_obj = self.task_factory.build_dataset_task(dataset_task)
+            results = dataset_obj(model_id)
             self.evaluation_results[dataset_task.name][model_id] = results
             logger.debug(f"Results:\n{results}")
         except InvalidEvaluation as e:
