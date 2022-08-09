@@ -52,4 +52,4 @@ class EvaluationDataset(ABC):
         return {model_id: {"foo": "bar"}}
 
     def __call__(self, *args, **kwargs):
-        return self.benchmark(*args, **kwargs)
+        return self.evaluate(*args, **kwargs)
