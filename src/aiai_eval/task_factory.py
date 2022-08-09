@@ -1,6 +1,5 @@
 """Factory that produces tasks from a task configuration."""
 
-from ast import Return
 from typing import Type, Union
 
 from .config import DatasetTask, EvaluationConfig
