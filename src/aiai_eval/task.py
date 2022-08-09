@@ -1,6 +1,7 @@
 """Abstract Task class."""
 
 from abc import ABC
+from typing import Dict
 
 from datasets import load_metric
 
@@ -35,3 +36,6 @@ class EvaluationDataset(ABC):
             metric_cfg.name: load_metric(metric_cfg.huggingface_id)
             for metric_cfg in dataset_task.metrics
         }
+
+    def benchmark(self, model_id: str) -> Dict[str, dict]:
+        return {model_id: {"foo": "bar"}}
