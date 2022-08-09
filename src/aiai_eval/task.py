@@ -8,13 +8,15 @@ from datasets import load_metric
 from .config import DatasetTask, EvaluationConfig
 
 
-class EvaluationDataset(ABC):
-    """Abstract evaluation dataset class.
+class EvaluationTask(ABC):
+    """Abstract evaluation task class.
+
     Args:
         dataset_task (DatasetTask):
             The configuration of the dataset task.
         evaluation_config (EvaluationConfig):
             The configuration of the evaluation.
+
     Attributes:
         dataset_task (DatasetTask):
             The configuration of the dataset task.
@@ -24,6 +26,7 @@ class EvaluationDataset(ABC):
 
     def __init__(self, dataset_task: DatasetTask, evaluation_config: EvaluationConfig):
         """Initialise the dataset.
+
         Args:
             dataset_task (DatasetTask):
                 The configuration for the dataset.
@@ -39,11 +42,13 @@ class EvaluationDataset(ABC):
 
     def evaluate(self, model_id: str) -> Dict[str, dict]:
         """Evaluate a model.
+
         Args:
             model_id (str):
                 The full Hugging Face Hub path to the pretrained transformer model. The
                 specific model version to use can be added after the suffix '@':
                 "model_id@v1.0.0". It can be a branch name, a tag name, or a commit id.
+
         Returns:
             dict:
                 The keys in the dict are 'raw' and 'total', with all the raw scores in
