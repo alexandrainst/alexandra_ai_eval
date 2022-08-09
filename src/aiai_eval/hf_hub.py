@@ -1,25 +1,12 @@
 """Functions related to the Hugging Face Hub."""
+from huggingface_hub import HfApi
+from huggingface_hub.utils import RepositoryNotFoundError
 
-from typing import Dict, Optional, Sequence, Union
 
-
-# TODO: port this from ScandEval
-def get_model_lists(
-    tasks: Optional[Sequence[str]],
-    use_auth_token: Union[bool, str],
-) -> Dict[str, Sequence[str]]:
-    """Fetches up-to-date model lists.
-    Args:
-        tasks (None or sequence of str):
-            The task to consider. If None then the models will not be filtered on task.
-        use_auth_token (bool or str):
-            The authentication token for the Hugging Face Hub. If a boolean value is
-            specified then the token will be fetched from the Hugging Face CLI, where
-            the user has logged in through `huggingface-cli login`. If a string is
-            specified then it will be used as the token. Defaults to False.
-    Returns:
-        dict:
-            The keys are filterings of the list, all tasks, as well as 'all'. The values are lists
-            of model IDs.
-    """
-    pass
+def model_exists_on_hf_hub(model_id: str) -> bool:
+    hf_api = HfApi()
+    try:
+        hf_api.model_info(model_id)
+        return True
+    except RepositoryNotFoundError:
+        return False
