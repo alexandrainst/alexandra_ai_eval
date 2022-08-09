@@ -3,6 +3,10 @@
 from typing import Type, Union
 
 from .config import DatasetTask, EvaluationConfig
+from .named_entity_recognition import NEREvaluation
+from .task import EvaluationDataset
+from .task_configs import get_all_dataset_tasks
+from .text_classification import OffensiveSpeechClassification, SentimentAnalysis
 
 
 class TaskFactory:
@@ -20,14 +24,40 @@ class TaskFactory:
     def __init__(self, evaluation_config: EvaluationConfig):
         self.evaluation_config = evaluation_config
 
-    def build_dataset(self, dataset_task: Union[str, DatasetTask]) -> list:
+    def build_dataset_task(self, dataset: Union[str, DatasetTask]) -> EvaluationDataset:
         """Build a dataset from a configuration or a name.
         Args:
-            dataset (str or DatasetConfig):
+            dataset (str or DatasetTask):
                 The name of the dataset, or the dataset configuration.
         Returns:
-            dataset (BenchmarkDataset):
-                The benchmark dataset.
+            dataset (EvaluationDataset):
+                The evaluation dataset.
         """
-        # TODO: implement BenchmarkDataset analog
-        return []
+        # Get the dataset configuration
+        dataset_task: DatasetTask
+        if isinstance(dataset, str):
+            name_to_dataset_task = get_all_dataset_tasks()
+            dataset_task = name_to_dataset_task[dataset]
+        else:
+            dataset_task = dataset
+
+        # Get the benchmark class based on the task
+        evaluation_cls: Type[EvaluationDataset]
+        if dataset_task.supertask == "text-classification":
+            if dataset_task.name == "sent":
+                evaluation_cls = SentimentAnalysis
+            elif dataset_task.name == "offensive":
+                evaluation_cls = OffensiveSpeechClassification
+
+        elif dataset_task.supertask == "token-classification":
+            if dataset_task.supertask == "ner":
+                evaluation_cls = NEREvaluation
+        else:
+            raise ValueError(f"Unknown dataset task: {dataset_task.supertask}")
+
+        # Create the dataset
+        dataset_obj = evaluation_cls(
+            dataset_task=dataset_task, evaluation_config=self.evaluation_config
+        )
+
+        return dataset_obj

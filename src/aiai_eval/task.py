@@ -24,9 +24,9 @@ class EvaluationDataset(ABC):
     def __init__(self, dataset_task: DatasetTask, evaluation_config: EvaluationConfig):
         """Initialise the dataset.
         Args:
-            dataset_config (DatasetConfig):
+            dataset_task (DatasetTask):
                 The configuration for the dataset.
-            evaluation_config (BenchmarkConfig):
+            evaluation_config (EvaluationConfig):
                 The configuration for the benchmark.
         """
         self.dataset_task = dataset_task

@@ -1,23 +1,8 @@
 """Class for text classification tasks."""
-from .task import DatasetTask
+from .task import EvaluationDataset
 
 
-class TextClassificationEvaluation(DatasetTask):
-    """Text classification benchmark dataset.
-    Args:
-        dataset_task (DatasetTask):
-            The configuration of the dataset task.
-        evaluation_config (EvaluationConfig):
-            The configuration of the evaluation.
-    Attributes:
-        dataset_task (DatasetTask):
-            The configuration of the dataset task.
-        evaluation_config (EvaluationConfig):
-            The configuration of the evaluation.
-    """
-
-
-class SentimentAnalysis(TextClassificationEvaluation):
+class SentimentAnalysis(EvaluationDataset):
     """Sentiment analysis evaluation dataset.
     Args:
         dataset_task (DatasetTask):
@@ -32,7 +17,7 @@ class SentimentAnalysis(TextClassificationEvaluation):
     """
 
 
-class OffensiveSpeechClassification(TextClassificationEvaluation):
+class OffensiveSpeechClassification(EvaluationDataset):
     """Sentiment analysis evaluation dataset.
     Args:
         dataset_task (DatasetTask):
