@@ -32,7 +32,7 @@ class TaskFactory:
                 The name of the dataset, or the dataset configuration.
 
         Returns:
-            dataset (EvaluationTask):
+            task (EvaluationTask):
                 The evaluation task.
         """
         # Get the dataset configuration
@@ -58,8 +58,8 @@ class TaskFactory:
             raise ValueError(f"Unknown dataset task: {dataset_task.supertask}")
 
         # Create the dataset
-        dataset_obj = evaluation_cls(
+        task_obj = evaluation_cls(
             dataset_task=dataset_task, evaluation_config=self.evaluation_config
         )
 
-        return dataset_obj
+        return task_obj
