@@ -48,23 +48,60 @@ class Label:
 
 @dataclass
 class DatasetTask:
-    """A dataset task.
-
+    """Configuration for a task dataset.
     Attributes:
         name (str):
-            The name of the task.
+            The name of the task. Must be lower case with no spaces.
+        dataset_name (str):
+            The name of the task dataset. Must be lower case with no spaces.
+        pretty_dataset_name (str):
+            A longer prettier name for the dataset, which allows cases and spaces. Used
+            for logging.
+        huggingface_id (str):
+            The Hugging Face ID of the dataset.
         supertask (str):
             The supertask of the task, describing the overall type of task.
         metrics (sequence of MetricConfig objects):
             The metrics used to evaluate the task.
         labels (sequence of Label objects):
             The labels used in the task.
+        id2label (list of str):
+            The mapping from ID to label.
+        label2id (dict of str to int):
+            The mapping from label to ID. This includes all label synonyms as well.
+        num_labels (int):
+            The number of labels in the dataset.
+        label_synonyms (list of list of str):
+            The synonyms of all the labels, including the main label.
     """
 
     name: str
+    dataset_name: str
+    pretty_dataset_name: str
+    huggingface_id: str
     supertask: str
     metrics: Sequence[MetricConfig]
     labels: Sequence[Label]
+
+    @property
+    def id2label(self) -> List[str]:
+        return [label.name for label in self.labels]
+
+    @property
+    def label2id(self) -> Dict[str, int]:
+        return {
+            syn: idx
+            for idx, label in enumerate(self.labels)
+            for syn in [label.name] + label.synonyms
+        }
+
+    @property
+    def num_labels(self) -> int:
+        return len(self.labels)
+
+    @property
+    def label_synonyms(self) -> List[List[str]]:
+        return [[label.name] + label.synonyms for label in self.labels]
 
 
 @dataclass
@@ -107,53 +144,3 @@ class EvaluationConfig:
     save_results: bool
     verbose: bool
     testing: bool = False
-
-
-@dataclass
-class DatasetConfig:
-    """Configuration for a dataset.
-
-    Attributes:
-        name (str):
-            The name of the dataset. Must be lower case with no spaces.
-        pretty_name (str):
-            A longer prettier name for the dataset, which allows cases and spaces. Used
-            for logging.
-        huggingface_id (str):
-            The Hugging Face ID of the dataset.
-        task (DatasetTask):
-            The task of the dataset.
-        id2label (list of str):
-            The mapping from ID to label.
-        label2id (dict of str to int):
-            The mapping from label to ID. This includes all label synonyms as well.
-        num_labels (int):
-            The number of labels in the dataset.
-        label_synonyms (list of list of str):
-            The synonyms of all the labels, including the main label.
-    """
-
-    name: str
-    pretty_name: str
-    huggingface_id: str
-    task: DatasetTask
-
-    @property
-    def id2label(self) -> List[str]:
-        return [label.name for label in self.task.labels]
-
-    @property
-    def label2id(self) -> Dict[str, int]:
-        return {
-            syn: idx
-            for idx, label in enumerate(self.task.labels)
-            for syn in [label.name] + label.synonyms
-        }
-
-    @property
-    def num_labels(self) -> int:
-        return len(self.task.labels)
-
-    @property
-    def label_synonyms(self) -> List[List[str]]:
-        return [[label.name] + label.synonyms for label in self.task.labels]

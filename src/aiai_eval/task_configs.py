@@ -17,6 +17,9 @@ def get_all_dataset_tasks() -> Dict[str, DatasetTask]:
 
 NER = DatasetTask(
     name="ner",
+    dataset_name="dane",
+    pretty_dataset_name="DaNE",
+    huggingface_id="dane",
     supertask="token-classification",
     metrics=[
         MetricConfig(
@@ -159,29 +162,11 @@ NER = DatasetTask(
 )
 
 
-QA = DatasetTask(
-    name="qa",
-    supertask="question-answering",
-    metrics=[
-        MetricConfig(
-            name="em",
-            pretty_name="Exact Match",
-            huggingface_id="exact_match",
-            results_key="exact_match",
-        ),
-        MetricConfig(
-            name="f1",
-            pretty_name="F1-score of the positive class",
-            huggingface_id="f1",
-            results_key="f1",
-        ),
-    ],
-    labels=[],
-)
-
-
 SENT = DatasetTask(
     name="sent",
+    dataset_name="angry-tweets",
+    pretty_dataset_name="Angry Tweets",
+    huggingface_id="DDSC/angry-tweets",
     supertask="text-classification",
     metrics=[
         MetricConfig(

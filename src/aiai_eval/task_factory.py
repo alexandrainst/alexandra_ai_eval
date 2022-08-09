@@ -2,7 +2,7 @@
 
 from typing import Type, Union
 
-from .config import EvaluationConfig
+from .config import DatasetTask, EvaluationConfig
 
 
 class TaskFactory:
@@ -20,4 +20,14 @@ class TaskFactory:
     def __init__(self, evaluation_config: EvaluationConfig):
         self.evaluation_config = evaluation_config
 
-    # TODO build_dataset(DatasetConfig)
+    def build_dataset(self, dataset_task: Union[str, DatasetTask]) -> list:
+        """Build a dataset from a configuration or a name.
+        Args:
+            dataset (str or DatasetConfig):
+                The name of the dataset, or the dataset configuration.
+        Returns:
+            dataset (BenchmarkDataset):
+                The benchmark dataset.
+        """
+        # TODO: implement BenchmarkDataset analog
+        return []
