@@ -4,7 +4,7 @@ from .task import EvaluationTask
 
 
 class NEREvaluation(EvaluationTask):
-    """NER dataset.
+    """NER task.
 
     Args:
         dataset_task (DatasetTask):
