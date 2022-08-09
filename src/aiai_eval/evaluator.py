@@ -137,7 +137,7 @@ class Evaluator:
     ) -> Sequence[str]:
         """Prepare the model ID(s) to be evaluated.
         Args:
-            model_id (str, list of str):
+            model_id (str or list of str):
                 The model ID(s) of the models to evaluate.
         Returns:
             sequence of str:
