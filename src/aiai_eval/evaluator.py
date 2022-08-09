@@ -24,7 +24,7 @@ class Evaluator:
             Whether progress bars should be shown. Defaults to True.
         save_results (bool, optional):
             Whether to save the benchmark results to
-            'scandeval_benchmark_results.json'. Defaults to False.
+            'aiai_eval_results.json'. Defaults to False.
         model_task (str or sequence of str, optional):
             The tasks to include for models. If "all" then models will not be filtered
             based on the task they were trained on. Defaults to "all".
@@ -203,10 +203,12 @@ class Evaluator:
         tasks: Optional[Sequence[str]],
     ) -> list:
         """Get list of model IDs from the Hugging Face Hub.
+
         Args:
             tasks (None or sequence of str):
                 The tasks of the models to fetch. If None then the models will not be
                 filtered on tasks.
+
         Returns:
             list:
                 List of model IDs.
@@ -245,6 +247,7 @@ class Evaluator:
             dataset_task (str or sequence of str, optional):
                 The tasks to include for dataset. If "all" then datasets will not be
                 filtered based on their task. Defaults to "all".
+
         Returns:
             sequence of DatasetTask:
                 The prepared dataset tasks.
@@ -271,6 +274,7 @@ class Evaluator:
             model_task (str or list of str):
                 The tasks to include for models. If "all" then models will not be
                 filtered based on the task they were trained on.
+
         Returns:
             None or sequence of str:
                 The prepared model tasks.
