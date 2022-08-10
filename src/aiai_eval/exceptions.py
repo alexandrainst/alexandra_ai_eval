@@ -15,7 +15,7 @@ class ModelDoesNotExistOnHuggingFaceHubException(Exception):
         model_id: str,
     ):
         self.model_id = model_id
-        self.message = f"The model {model_id} does not exist on the Hugging Face Hub"
+        self.message = f"The model {model_id} does not exist on the Hugging Face Hub."
         super().__init__(self.message)
 
 
