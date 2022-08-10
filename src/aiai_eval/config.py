@@ -144,3 +144,24 @@ class EvaluationConfig:
     save_results: bool
     verbose: bool
     testing: bool = False
+
+
+@dataclass
+class ModelConfig:
+    """Configuration for a model.
+
+    Attributes:
+        model_id (str):
+            The ID of the model.
+        revision (str):
+            The revision of the model.
+        framework (str):
+            The framework of the model.
+        task (str):
+            The task that the model was trained on.
+    """
+
+    model_id: str
+    revision: str
+    framework: str
+    task: str
