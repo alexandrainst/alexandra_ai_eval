@@ -2,8 +2,10 @@
 
 import os
 import random
+import re
 
 import numpy as np
+import pkg_resources
 import torch
 
 
@@ -28,3 +30,30 @@ def enforce_reproducibility(framework: str, seed: int = 703):
         torch.backends.cudnn.deterministic = True
         torch.use_deterministic_algorithms(True)
     return rng
+
+
+def is_module_installed(module: str) -> bool:
+    """Check if a module is installed.
+    This is used when dealing with spaCy models, as these are installed as separate
+    Python packages.
+
+    Args:
+        module (str):
+            The name of the module.
+
+    Returns:
+        bool:
+            Whether the module is installed or not.
+    """
+    # Get list of all modules, including their versions
+    installed_modules_with_versions = list(pkg_resources.working_set)
+
+    # Strip the module versions from the list of modules. Also make the modules lower
+    # case and replace dashes with underscores
+    installed_modules = [
+        re.sub("[0-9. ]", "", str(module)).lower().replace("-", "_")
+        for module in installed_modules_with_versions
+    ]
+
+    # Check if the module is installed by checking if the module name is in the list
+    return module.lower() in installed_modules
