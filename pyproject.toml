@@ -20,6 +20,7 @@ protobuf = "^4.21.4"
 tqdm = "^4.64.0"
 seqeval = "^1.2.2"
 huggingface-hub = ">=0.8.1,<1.0.0"
+datasets = "^2.4.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
