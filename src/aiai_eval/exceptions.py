@@ -24,7 +24,7 @@ class ModelFetchFailed(Exception):
         self.model_id = model_id
         self.error_msg = error_msg
         self.message = f"Download of {model_id} from the Hugging Face Hub failed, with "
-        "the following error message: {self.error_msg}."
+        f"the following error message: {self.error_msg}."
         super().__init__(self.message)
 
 
