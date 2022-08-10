@@ -49,17 +49,6 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
     Raises:
         RuntimeError: If the extracted framework is not recognized.
     """
-    # If the model ID specifies a random ID, then return a hardcoded metadata
-    # dictionary
-    if model_id.startswith("random"):
-        model_config = ModelConfig(
-            model_id=model_id,
-            framework="pytorch",
-            task="fill-mask",
-            revision="main",
-        )
-        return model_config
-
     # Extract the revision from the model ID, if it is specified
     if "@" in model_id:
         model_id_without_revision, revision = model_id.split("@", 1)
