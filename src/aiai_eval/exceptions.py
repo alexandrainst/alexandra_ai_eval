@@ -20,12 +20,11 @@ class ModelDoesNotExistOnHuggingFaceHubException(Exception):
 
 
 class ModelFetchFailed(Exception):
-    def __init__(
-        self,
-        model_id: str,
-    ):
+    def __init__(self, model_id: str, error_msg: str):
         self.model_id = model_id
-        self.message = f"Download of {model_id} from the Hugging Face Hub failed."
+        self.error_msg = error_msg
+        self.message = f"Download of {model_id} from the Hugging Face Hub failed, with "
+        "the following error message: {self.error_msg}."
         super().__init__(self.message)
 
 
