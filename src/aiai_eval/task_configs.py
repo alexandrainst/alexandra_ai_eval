@@ -159,6 +159,7 @@ NER = DatasetTask(
             synonyms=["I-MISCELLANEOUS"],
         ),
     ],
+    split_names={"train": "train", "test": "test", "val": "validation"},
 )
 
 
@@ -197,4 +198,5 @@ SENT = DatasetTask(
             synonyms=["POS", "POSITIV", "LABEL_2"],
         ),
     ],
+    split_names={"train": "train", "test": "test", "val": None},
 )

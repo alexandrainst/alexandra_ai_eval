@@ -82,6 +82,7 @@ class DatasetTask:
     supertask: str
     metrics: Sequence[MetricConfig]
     labels: Sequence[Label]
+    split_names: Dict[str, Optional[str]]
 
     @property
     def id2label(self) -> List[str]:
