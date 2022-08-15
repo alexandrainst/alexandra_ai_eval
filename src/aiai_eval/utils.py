@@ -136,6 +136,7 @@ def aggregate_scores(
     scores: Sequence[Dict[str, float]], metric_config: MetricConfig
 ) -> Dict[str, Tuple[float, float]]:
     """Helper function to compute the mean with confidence intervals.
+    
     Args:
         scores (list):
             List of dictionaries with the names of the metrics as keys, of the form
@@ -143,6 +144,7 @@ def aggregate_scores(
         metric_config (MetricConfig):
             The configuration of the metric, which is used to collect the correct
             metric from `scores`.
+            
     Returns:
         dict:
             Dictionary with key 'test', with values being a pair of floats, containing
