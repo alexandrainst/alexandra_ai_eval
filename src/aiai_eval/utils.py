@@ -86,6 +86,7 @@ def log_scores(
     model_id: str,
 ) -> dict:
     """Log the scores.
+    
     Args:
         dataset_name (str):
             Name of the dataset.
@@ -95,6 +96,7 @@ def log_scores(
             The scores that are to be logged.
         model_id (str):
             The full Hugging Face Hub path to the pretrained transformer model.
+            
     Returns:
         dict:
             A dictionary with keys 'raw_scores' and 'total', with 'raw_scores' being
