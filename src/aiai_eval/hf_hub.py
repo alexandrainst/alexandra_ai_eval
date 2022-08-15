@@ -107,19 +107,10 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
         elif "tf" in tags or "tensorflow" in tags or "keras" in tags:
             raise InvalidFramework("tensorflow")
 
-        # Extract the model task, which defaults to 'fill-mask'
-        model_task = models[0].pipeline_tag
-        if model_task is None or model_task in [
-            "sentence-similarity",
-            "feature-extraction",
-        ]:
-            model_task = "fill-mask"
-
         # Construct the model config
         model_config = ModelConfig(
             model_id=models[0].modelId,
             framework=framework,
-            task=model_task,
             revision=revision,
         )
 
