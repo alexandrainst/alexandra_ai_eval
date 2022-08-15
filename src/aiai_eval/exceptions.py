@@ -1,5 +1,7 @@
 """Custom exceptions used in the project."""
 
+from typing import Dict
+
 
 class InvalidEvaluation(Exception):
     def __init__(
@@ -44,6 +46,17 @@ class PreprocessingFailed(Exception):
         self, message: str = "Preprocessing of the dataset could not be done."
     ):
         self.message = message
+        super().__init__(self.message)
+
+
+class MissingLabel(Exception):
+    def __init__(self, label: str, label2id: Dict[str, int]):
+        self.label = label
+        self.label2id = label2id
+        self.message = (
+            f"One of the labels in the dataset, {self.label}, does "
+            f"not occur in the label2id dictionary {self.label2id}."
+        )
         super().__init__(self.message)
 
 

@@ -6,7 +6,7 @@ from typing import Optional
 from datasets import Dataset
 from transformers import DataCollatorWithPadding, PreTrainedTokenizerBase
 
-from .exceptions import InvalidEvaluation
+from .exceptions import InvalidEvaluation, MissingLabel
 from .task import EvaluationTask
 
 
@@ -68,10 +68,7 @@ class SentimentAnalysis(EvaluationTask):
         try:
             examples["label"] = [label2id[lbl.upper()] for lbl in examples["label"]]
         except KeyError:
-            raise InvalidEvaluation(
-                f"One of the labels in the dataset, {examples['label'].upper()}, does "
-                f"not occur in the label2id dictionary {label2id}."
-            )
+            raise MissingLabel(label=examples["label"].upper(), label2id=label2id)
         return examples
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
