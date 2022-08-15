@@ -47,7 +47,15 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
             The model configuration.
 
     Raises:
-        RuntimeError: If the extracted framework is not recognized.
+        ModelDoesNotExistOnHuggingFaceHubException:
+            If the model id does not exist on the Hugging Face Hub.
+        InvalidFramework:
+            If the specified framework is not implemented.
+        HuggingFaceHubDown:
+            If the model id exists, we are able to request other adresses,
+            but we failed to fetch the desired model.
+        NoInternetConnection:
+            We are not able to request other adresses.
     """
     # Extract the revision from the model ID, if it is specified
     if "@" in model_id:
