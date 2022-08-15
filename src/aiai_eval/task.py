@@ -598,9 +598,14 @@ class EvaluationTask(ABC):
         # Load the model
         try:
             model = spacy.load(local_model_id)
-        except OSError:
-            raise InvalidEvaluation(
-                f"The model {model_config.model_id} could not be installed from spaCy."
+        except OSError as e:
+            raise ModelFetchFailed(
+                model_id=model_config.model_id,
+                error_msg=str(e),
+                message=(
+                    f"Download of {model_config.model_id} failed, with "
+                    f"the following error message: {str(e)}."
+                ),
             )
         return dict(model=model)
 
