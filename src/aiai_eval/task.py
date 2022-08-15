@@ -348,14 +348,14 @@ class EvaluationTask(ABC):
         self, predictions_and_labels: tuple, id2label: Optional[list] = None
     ) -> Dict[str, float]:
         """Compute the metrics needed for evaluation.
-        
+
         Args:
             predictions_and_labels (pair of arrays):
                 The first array contains the probability predictions and the second
                 array contains the true labels.
             id2label (list or None, optional):
                 Conversion of indices to labels. Defaults to None.
-                
+
         Returns:
             dict:
                 A dictionary with the names of the metrics as keys and the metric
@@ -408,7 +408,7 @@ class EvaluationTask(ABC):
                 f"`split_names`: {list(self.dataset_task.split_names.values())}, does not correspond "
                 f"to found splits: {list(dataset_dict.keys())}"
             )
-            raise ValueError(message)
+            raise InvalidEvaluation(message)
 
         # Return the dataset dictionary
         return dataset_dict
