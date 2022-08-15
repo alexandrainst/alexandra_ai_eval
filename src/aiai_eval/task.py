@@ -135,9 +135,7 @@ class EvaluationTask(ABC):
             )
 
         else:
-            raise RuntimeError(
-                f'The framework "{model_config.framework}" is not supported!'
-            )
+            raise InvalidFramework(model_config.framework)
 
     def _evaluate_pytorch_jax(
         self,
