@@ -1,4 +1,5 @@
 """Abstract Task class."""
+
 import logging
 import random
 import subprocess
