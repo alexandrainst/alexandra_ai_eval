@@ -622,7 +622,7 @@ class EvaluationTask(ABC):
         """Adjust the label ids of the model to match the dataset.
 
         Args:
-            model (PyTorch Model):
+            model (PyTorch Module):
                 The model to adjust the label ids of.
             model_config (ModelConfig):
                 The model configuration.
@@ -631,18 +631,20 @@ class EvaluationTask(ABC):
             PyTorch Model:
                 The model with adjusted label ids.
         """
-        # Placeholder for now.
+        # TODO: Only a placeholder for now
         return model
 
     @abstractmethod
     def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
         """Preprocess a dataset by tokenizing and aligning the labels.
+        
         Args:
             dataset (Hugging Face dataset):
                 The dataset to preprocess.
             kwargs:
                 Extra keyword arguments containing objects used in preprocessing the
                 dataset.
+                
         Returns:
             Hugging Face dataset: The preprocessed dataset.
         """
@@ -651,10 +653,12 @@ class EvaluationTask(ABC):
     @abstractmethod
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
         """Load the data collator used to prepare samples during finetuning.
+        
         Args:
             tokenizer (Hugging Face tokenizer or None, optional):
                 A pretrained tokenizer. Can be None if the tokenizer is not used in the
                 initialisation of the data collator. Defaults to None.
+                
         Returns:
             Hugging Face data collator:
                 The data collator.
