@@ -54,6 +54,7 @@ def enforce_reproducibility(framework: str, seed: int = 703):
 
 def is_module_installed(module: str) -> bool:
     """Check if a module is installed.
+    
     This is used when dealing with spaCy models, as these are installed as separate
     Python packages.
 
