@@ -92,11 +92,13 @@ class SentimentAnalysis(EvaluationTask):
 
     def _get_spacy_predictions_and_labels(self, model, dataset: Dataset) -> tuple:
         """Get predictions from SpaCy model on dataset.
+        
         Args:
             model (SpaCy model):
                 The model.
             dataset (Hugging Face dataset):
                 The dataset.
+                
         Returns:
             A pair of arrays:
                 The first array contains the probability predictions and the second
