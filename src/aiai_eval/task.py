@@ -643,10 +643,12 @@ class EvaluationTask(ABC):
     @abstractmethod
     def _load_data_collator(self, tokenizer: Optional[PreTrainedTokenizerBase] = None):
         """Load the data collator used to prepare samples during finetuning.
+        
         Args:
             tokenizer (Hugging Face tokenizer or None, optional):
                 A pretrained tokenizer. Can be None if the tokenizer is not used in the
                 initialisation of the data collator. Defaults to None.
+                
         Returns:
             Hugging Face data collator:
                 The data collator.
