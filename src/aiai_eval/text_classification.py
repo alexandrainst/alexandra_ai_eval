@@ -103,8 +103,8 @@ class SentimentAnalysis(EvaluationTask):
         )
 
 
-class OffensiveSpeechClassification(EvaluationTask):
-    """Offensive Speech classification evaluation task.
+class OffensiveTextClassification(EvaluationTask):
+    """Offensive Text classification evaluation task.
 
     Args:
         dataset_task (DatasetTask):
