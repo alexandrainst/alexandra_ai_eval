@@ -78,10 +78,12 @@ class SentimentAnalysis(EvaluationTask):
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
         """Load the data collator used to prepare samples during evaluation.
+        
         Args:
             tokenizer (Hugging Face tokenizer or None, optional):
                 A pretrained tokenizer. Can be None if the tokenizer is not used in the
                 initialisation of the data collator. Defaults to None.
+                
         Returns:
             Hugging Face data collator:
                 The data collator.
