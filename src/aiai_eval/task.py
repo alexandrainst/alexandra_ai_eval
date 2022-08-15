@@ -26,7 +26,12 @@ from transformers import (
 )
 
 from .config import DatasetTask, EvaluationConfig, ModelConfig
-from .exceptions import InvalidEvaluation, InvalidFramework, ModelFetchFailed
+from .exceptions import (
+    InvalidEvaluation,
+    InvalidFramework,
+    ModelFetchFailed,
+    PreprocessingFailed,
+)
 from .hf_hub import get_model_config
 from .utils import (
     clear_memory,
@@ -185,7 +190,7 @@ class EvaluationTask(ABC):
             )
             test = self._preprocess_data(test, **params)
         except ValueError:
-            raise InvalidEvaluation("Preprocessing of the dataset could not be done.")
+            raise PreprocessingFailed()
 
         # If we are testing then truncate the test set
         if self.evaluation_config.testing:

@@ -39,6 +39,14 @@ class InvalidFramework(Exception):
         super().__init__(self.message)
 
 
+class PreprocessingFailed(Exception):
+    def __init__(
+        self, message: str = "Preprocessing of the dataset could not be done."
+    ):
+        self.message = message
+        super().__init__(self.message)
+
+
 class HuggingFaceHubDown(Exception):
     def __init__(self, message: str = "The Hugging Face Hub is currently down."):
         self.message = message
