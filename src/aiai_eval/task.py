@@ -1,4 +1,5 @@
 """Abstract Task class."""
+
 import logging
 import random
 import subprocess
@@ -14,7 +15,7 @@ import torch
 import torch.nn as nn
 from datasets import Dataset, DatasetDict, load_dataset, load_metric
 from torch.utils.data import DataLoader
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from transformers import (
     AutoConfig,
     AutoModelForSequenceClassification,
@@ -340,18 +341,21 @@ class EvaluationTask(ABC):
                 The keys in the dict are 'raw' and 'total', with all the raw scores in
                 the first dictionary and the aggregated scores in the second.
         """
+        # TODO: Needs implementation
         return {"foo": {"bar": 1.0}}
 
     def _compute_metrics(
         self, predictions_and_labels: tuple, id2label: Optional[list] = None
     ) -> Dict[str, float]:
         """Compute the metrics needed for evaluation.
+        
         Args:
             predictions_and_labels (pair of arrays):
                 The first array contains the probability predictions and the second
                 array contains the true labels.
             id2label (list or None, optional):
                 Conversion of indices to labels. Defaults to None.
+                
         Returns:
             dict:
                 A dictionary with the names of the metrics as keys and the metric

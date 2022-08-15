@@ -1,4 +1,4 @@
-"""Class for named entity recognition tasks."""
+"""Class for the named entity recognition task."""
 
 from datasets import Dataset
 
