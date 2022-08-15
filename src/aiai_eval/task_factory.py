@@ -6,7 +6,7 @@ from .config import DatasetTask, EvaluationConfig
 from .named_entity_recognition import NEREvaluation
 from .task import EvaluationTask
 from .task_configs import get_all_dataset_tasks
-from .text_classification import OffensiveSpeechClassification, SentimentAnalysis
+from .text_classification import OffensiveTextClassification, SentimentAnalysis
 
 
 class TaskFactory:
@@ -47,13 +47,13 @@ class TaskFactory:
         evaluation_cls: Type[EvaluationTask]
         if dataset_task.supertask == "text-classification":
             if dataset_task.name == "sent":
-                evaluation_cls = SentimentAnalysis
+                evaluation_cls = SentimentAnalysis  # type: ignore
             elif dataset_task.name == "offensive":
-                evaluation_cls = OffensiveSpeechClassification
+                evaluation_cls = OffensiveTextClassification  # type: ignore
 
         elif dataset_task.supertask == "token-classification":
             if dataset_task.name == "ner":
-                evaluation_cls = NEREvaluation
+                evaluation_cls = NEREvaluation  # type: ignore
         else:
             raise ValueError(f"Unknown dataset task: {dataset_task.supertask}")
 
