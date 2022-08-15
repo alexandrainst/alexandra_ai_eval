@@ -9,6 +9,7 @@ from subprocess import CalledProcessError
 from typing import Any, Dict, Optional, Sequence, Union
 
 import numpy as np
+import spacy
 import torch
 import torch.nn as nn
 from datasets import Dataset, DatasetDict, load_dataset, load_metric
@@ -569,8 +570,6 @@ class EvaluationTask(ABC):
                 the model. Can contain other objects related to the model, such as its
                 tokenizer.
         """
-        import spacy
-
         # Ignore warnings from spaCy. This has to be called after the import, as the
         # __init__.py file of spaCy sets the warning levels of spaCy warning W036
         warnings.filterwarnings("ignore", module="spacy*")
