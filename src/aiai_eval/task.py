@@ -627,12 +627,14 @@ class EvaluationTask(ABC):
     @abstractmethod
     def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
         """Preprocess a dataset by tokenizing and aligning the labels.
+        
         Args:
             dataset (Hugging Face dataset):
                 The dataset to preprocess.
             kwargs:
                 Extra keyword arguments containing objects used in preprocessing the
                 dataset.
+                
         Returns:
             Hugging Face dataset: The preprocessed dataset.
         """
