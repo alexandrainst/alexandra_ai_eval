@@ -14,7 +14,7 @@ import torch
 import torch.nn as nn
 from datasets import Dataset, DatasetDict, load_dataset, load_metric
 from torch.utils.data import DataLoader
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from transformers import (
     AutoConfig,
     AutoModelForSequenceClassification,
