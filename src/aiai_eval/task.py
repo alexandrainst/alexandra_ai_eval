@@ -386,6 +386,9 @@ class EvaluationTask(ABC):
             DatasetDict:
                 A dictionary containing the 'train', 'val' and 'test' splits of the
                 dataset.
+
+        Raises:
+            InvalidEvaluation: If the split names specified are incorrect.
         """
         # Download dataset from the HF Hub
         dataset_dict: DatasetDict
