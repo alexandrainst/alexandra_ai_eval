@@ -612,7 +612,7 @@ class EvaluationTask(ABC):
         """Adjust the label ids of the model to match the dataset.
 
         Args:
-            model (PyTorch Model):
+            model (PyTorch Module):
                 The model to adjust the label ids of.
             model_config (ModelConfig):
                 The model configuration.
