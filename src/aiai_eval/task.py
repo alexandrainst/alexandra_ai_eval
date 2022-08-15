@@ -342,6 +342,7 @@ class EvaluationTask(ABC):
                 The keys in the dict are 'raw' and 'total', with all the raw scores in
                 the first dictionary and the aggregated scores in the second.
         """
+        # TODO: Needs implementation
         return {"foo": {"bar": 1.0}}
 
     def _compute_metrics(
