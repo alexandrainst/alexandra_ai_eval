@@ -621,7 +621,7 @@ class EvaluationTask(ABC):
             PyTorch Model:
                 The model with adjusted label ids.
         """
-        # Placeholder for now.
+        # TODO: Only a placeholder for now
         return model
 
     @abstractmethod
