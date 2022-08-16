@@ -35,12 +35,8 @@ from .exceptions import (
     UnsupportedModelType,
 )
 from .hf_hub import get_model_config
-from .utils import (
-    clear_memory,
-    enforce_reproducibility,
-    is_module_installed,
-    log_scores,
-)
+from .scoring import log_scores
+from .utils import clear_memory, enforce_reproducibility, is_module_installed
 
 logger = logging.getLogger(__name__)
 
