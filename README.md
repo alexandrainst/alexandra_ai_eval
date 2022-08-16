@@ -59,34 +59,39 @@ $ make view-docs
 ├── .flake8
 ├── .github
 │   └── workflows
-│       └── ci.yml
+│       ├── ci.yaml
+│       └── docs.yaml
 ├── .gitignore
 ├── .pre-commit-config.yaml
 ├── LICENSE
 ├── README.md
-├── config
-│   ├── __init__.py
-│   ├── config.yaml
-│   ├── model
-│   │   └── model1.yaml
-│   └── process
-│       └── process1.yaml
-├── data
-│   ├── final
-│   ├── processed
-│   └── raw
+├── gfx
+│   └── logo.png
 ├── makefile
 ├── models
 ├── notebooks
 ├── poetry.toml
 ├── pyproject.toml
 ├── src
-│   ├── scripts
-│   │   ├── fix_dot_env_file.py
-│   │   └── versioning.py
-│   └── aiai_eval
-│       ├── __init__.py
-│       └── demo.py
+│   ├── aiai_eval
+│   │   ├── __init__.py
+│   │   ├── automatic_speech_recognition.py
+│   │   ├── cli.py
+│   │   ├── config.py
+│   │   ├── evaluator.py
+│   │   ├── exceptions.py
+│   │   ├── hf_hub.py
+│   │   ├── image_to_text.py
+│   │   ├── named_entity_recognition.py
+│   │   ├── question_answering.py
+│   │   ├── task.py
+│   │   ├── task_configs.py
+│   │   ├── task_factory.py
+│   │   ├── text_classification.py
+│   │   └── utils.py
+│   └── scripts
+│       ├── fix_dot_env_file.py
+│       └── versioning.py
 └── tests
     └── __init__.py
 ```
