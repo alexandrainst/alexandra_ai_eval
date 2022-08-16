@@ -17,8 +17,7 @@ def get_all_task_configs() -> Dict[str, TaskConfig]:
 
 NER = TaskConfig(
     name="ner",
-    dataset_name="dane",
-    pretty_dataset_name="DaNE",
+    pretty_name="named entity recognition",
     huggingface_id="dane",
     supertask="token-classification",
     metrics=[
@@ -159,14 +158,15 @@ NER = TaskConfig(
             synonyms=["I-MISCELLANEOUS"],
         ),
     ],
-    split_names={"train": "train", "test": "test", "val": "validation"},
+    train_name="train",
+    val_name="validation",
+    test_name="test",
 )
 
 
 SENT = TaskConfig(
     name="sent",
-    dataset_name="angry-tweets",
-    pretty_dataset_name="Angry Tweets",
+    pretty_name="sentiment classification",
     huggingface_id="DDSC/angry-tweets",
     supertask="text-classification",
     metrics=[
@@ -198,5 +198,7 @@ SENT = TaskConfig(
             synonyms=["POS", "POSITIV", "LABEL_2"],
         ),
     ],
-    split_names={"train": "train", "test": "test", "val": None},
+    train_name="train",
+    val_name=None,
+    test_name="test",
 )

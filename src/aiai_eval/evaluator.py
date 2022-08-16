@@ -177,7 +177,7 @@ class Evaluator:
             task_config (TaskConfig):
                 The dataset task configuration to use.
         """
-        logger.info(f"Evaluating {model_id} on {task_config.pretty_dataset_name}")
+        logger.info(f"Evaluating {model_id} on {task_config.pretty_name}")
 
         if not model_exists_on_hf_hub(model_id=model_id):
             raise ModelDoesNotExistOnHuggingFaceHubException(model_id)
@@ -190,7 +190,7 @@ class Evaluator:
         except InvalidEvaluation as e:
             logger.info(
                 f"{model_id} could not be evaluated on "
-                f"{task_config.pretty_dataset_name}. Skipping."
+                f"{task_config.pretty_name}. Skipping."
             )
             logger.debug(f'The error message was "{e}".')
 

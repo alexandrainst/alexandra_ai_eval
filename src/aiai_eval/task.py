@@ -111,8 +111,7 @@ class Task(ABC):
             try:
                 test = test.filter(lambda x: len(x["doc"]) > 0)
             except KeyError:
-                message = "Removal of empty examples was attempted, but failed."
-                warnings.warn(message)
+                warnings.warn("Removal of empty examples was attempted, but failed.")
 
         # Set variable with number of iterations
         num_iter = 10 if not self.evaluation_config.testing else 2
@@ -225,17 +224,17 @@ class Task(ABC):
 
                 # Otherwise we encountered an error
                 else:
-                    message = (
-                        f"An unknown error occurred during the evaluation of the {idx}"
-                        f" iteration. The error message returned was: {str(test_itr_scores)}"
+                    raise InvalidEvaluation(
+                        "An unknown error occurred during the evaluation of the "
+                        f"{idx} iteration. The error message returned was: "
+                        f"{str(test_itr_scores)}"
                     )
-                    raise InvalidEvaluation(message=message)
 
             scores.append(test_itr_scores)
 
         # Log scores
         all_scores = log_scores(
-            dataset_name=self.task_config.pretty_dataset_name,
+            task_name=self.task_config.pretty_name,
             metric_configs=self.task_config.metrics,
             scores=scores,
             model_id=model_config.model_id,
@@ -400,7 +399,8 @@ class Task(ABC):
                 dataset.
 
         Raises:
-            InvalidEvaluation: If the split names specified are incorrect.
+            InvalidEvaluation:
+                If the split names specified are incorrect.
         """
         # Download dataset from the HF Hub
         dataset_dict: DatasetDict
@@ -411,19 +411,23 @@ class Task(ABC):
         )
 
         # Remove all other keys than 'train', 'test', 'val'
+        train_name = self.task_config.train_name
+        val_name = self.task_config.val_name
+        test_name = self.task_config.test_name
         try:
             dataset_dict = DatasetDict(
-                {
-                    key: dataset_dict.get(self.task_config.split_names[key])
-                    for key in ["train", "val", "test"]
-                }
+                dict(
+                    train=dataset_dict.get(train_name),
+                    val=dataset_dict.get(val_name),
+                    test=dataset_dict.get(test_name),
+                )
             )
         except KeyError:
-            message = (
-                f"`split_names`: {list(self.task_config.split_names.values())}, "
-                f"does not correspond to found splits: {list(dataset_dict.keys())}"
+            raise InvalidEvaluation(
+                f'The split names "{train_name}", "{val_name}", and '
+                f'"{test_name}" for the train, validation and test split are '
+                "incorrect."
             )
-            raise InvalidEvaluation(message)
 
         # Return the dataset dictionary
         return dataset_dict
