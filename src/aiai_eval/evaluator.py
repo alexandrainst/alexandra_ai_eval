@@ -42,6 +42,11 @@ class Evaluator:
             specified then it will be used as the token. Defaults to False.
         verbose (bool, optional):
             Whether to output additional output. Defaults to False.
+        track_carbon_emissions (bool):
+            Whether to track carbon usage.
+        country_iso_code (str):
+            The 3-letter alphabet ISO Code of the country where the compute infrastructure
+            is hosted. This is used when tracking carbon usage.
 
     Attributes:
         progress_bar (bool): Whether progress bars should be shown.
@@ -63,6 +68,8 @@ class Evaluator:
         cache_dir: str = ".aiai_eval_cache",
         use_auth_token: Union[bool, str] = False,
         verbose: bool = False,
+        track_carbon_emissions: bool = False,
+        country_iso_code: str = "DNK",
     ):
         # Build dataset tasks
         dataset_tasks = self._prepare_dataset_tasks(dataset_task)
@@ -77,6 +84,8 @@ class Evaluator:
             progress_bar=progress_bar,
             save_results=save_results,
             verbose=verbose,
+            track_carbon_emissions=track_carbon_emissions,
+            country_iso_code=country_iso_code,
         )
 
         # Initialise variable storing model lists, so we only have to fetch it once

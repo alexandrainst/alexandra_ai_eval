@@ -138,6 +138,12 @@ class EvaluationConfig:
             Whether to print verbose output.
         testing (bool, optional):
             Whether a unit test is being run. Defaults to False.
+        track_carbon_usage (bool):
+            Whether to track carbon usage.
+        country_iso_code (str):
+            The 3-letter alphabet ISO Code of the country where the compute infrastructure
+            is hosted. This is used when tracking carbon usage.
+
     """
 
     model_tasks: Optional[Sequence[str]]
@@ -149,6 +155,8 @@ class EvaluationConfig:
     save_results: bool
     verbose: bool
     testing: bool = False
+    track_carbon_emissions: bool = False
+    country_iso_code: str = "DNK"
 
 
 @dataclass
