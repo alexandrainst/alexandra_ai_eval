@@ -73,6 +73,10 @@ class DatasetTask:
             The number of labels in the dataset.
         label_synonyms (list of list of str):
             The synonyms of all the labels, including the main label.
+        split_names (dict of str to str or None)
+            A dictionary where keys are 'train', 'val', 'test', and the values are
+            the corresponding names of the dataset splits, if the split does not exist
+            None is used.
     """
 
     name: str
@@ -82,6 +86,7 @@ class DatasetTask:
     supertask: str
     metrics: Sequence[MetricConfig]
     labels: Sequence[Label]
+    split_names: Dict[str, Optional[str]]
 
     @property
     def id2label(self) -> List[str]:
@@ -144,3 +149,21 @@ class EvaluationConfig:
     save_results: bool
     verbose: bool
     testing: bool = False
+
+
+@dataclass
+class ModelConfig:
+    """Configuration for a model.
+
+    Attributes:
+        model_id (str):
+            The ID of the model.
+        revision (str):
+            The revision of the model.
+        framework (str):
+            The framework of the model.
+    """
+
+    model_id: str
+    revision: str
+    framework: str

@@ -1,4 +1,6 @@
-"""Class for named entity recognition tasks."""
+"""Class for the named entity recognition task."""
+
+from datasets import Dataset
 
 from .task import EvaluationTask
 
@@ -18,3 +20,41 @@ class NEREvaluation(EvaluationTask):
         evaluation_config (EvaluationConfig):
             The configuration of the evaluation.
     """
+
+    def _preprocess_data_transformer(
+        self, dataset: Dataset, framework: str, **kwargs
+    ) -> Dataset:
+        """Preprocess a dataset by tokenizing and aligning the labels.
+        For use by a transformer model.
+        Args:
+            dataset (Hugging Face dataset):
+                The dataset to preprocess.
+            framework (str):
+                Specification of which framework the model is created in.
+            kwargs:
+                Extra keyword arguments containing objects used in preprocessing the
+                dataset.
+
+        Returns:
+            Hugging Face dataset: The preprocessed dataset.
+        """
+        return dataset
+
+    def _preprocess_data_pytorch(
+        self, dataset: Dataset, framework: str, **kwargs
+    ) -> list:
+        """Preprocess a dataset by tokenizing and aligning the labels.
+        For use by a pytorch model.
+        Args:
+            dataset (Hugging Face dataset):
+                The dataset to preprocess.
+            framework (str):
+                Specification of which framework the model is created in.
+            kwargs:
+                Extra keyword arguments containing objects used in preprocessing the
+                dataset.
+
+        Returns:
+            Hugging Face dataset: The preprocessed dataset.
+        """
+        return list(dataset)
