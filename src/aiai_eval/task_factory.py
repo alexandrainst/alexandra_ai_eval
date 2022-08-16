@@ -2,11 +2,11 @@
 
 from typing import Type, Union
 
-from .config import DatasetTask, EvaluationConfig
+from .config import EvaluationConfig, TaskConfig
 from .named_entity_recognition import NEREvaluation
-from .task import EvaluationTask
-from .task_configs import get_all_dataset_tasks
-from .text_classification import OffensiveSpeechClassification, SentimentAnalysis
+from .task import Task
+from .task_configs import get_all_task_configs
+from .text_classification import TextClassification
 
 
 class TaskFactory:
@@ -24,42 +24,36 @@ class TaskFactory:
     def __init__(self, evaluation_config: EvaluationConfig):
         self.evaluation_config = evaluation_config
 
-    def build_task(self, dataset: Union[str, DatasetTask]) -> EvaluationTask:
+    def build_task(self, task: Union[str, TaskConfig]) -> Task:
         """Build a evaluation task from a configuration or a name.
 
         Args:
-            dataset (str or DatasetTask):
+            task (str or TaskConfig):
                 The name of the dataset, or the dataset configuration.
 
         Returns:
-            task (EvaluationTask):
+            task (Task):
                 The evaluation task.
         """
         # Get the dataset configuration
-        dataset_task: DatasetTask
-        if isinstance(dataset, str):
-            name_to_dataset_task = get_all_dataset_tasks()
-            dataset_task = name_to_dataset_task[dataset]
+        task_config: TaskConfig
+        if isinstance(task, str):
+            task_config = get_all_task_configs()[task]
         else:
-            dataset_task = dataset
+            task_config = task
 
-        # Get the benchmark class based on the task
-        evaluation_cls: Type[EvaluationTask]
-        if dataset_task.supertask == "text-classification":
-            if dataset_task.name == "sent":
-                evaluation_cls = SentimentAnalysis
-            elif dataset_task.name == "offensive":
-                evaluation_cls = OffensiveSpeechClassification
-
-        elif dataset_task.supertask == "token-classification":
-            if dataset_task.name == "ner":
-                evaluation_cls = NEREvaluation
+        # Get the evaluation class based on the task
+        evaluation_cls: Type[Task]
+        if task_config.supertask == "text-classification":
+            evaluation_cls = TextClassification
+        elif task_config.name == "ner":
+            evaluation_cls = NEREvaluation
         else:
-            raise ValueError(f"Unknown dataset task: {dataset_task.supertask}")
+            raise ValueError(f"Unknown dataset task: {task_config.supertask}")
 
         # Create the task
         task_obj = evaluation_cls(
-            dataset_task=dataset_task, evaluation_config=self.evaluation_config
+            task_config=task_config, evaluation_config=self.evaluation_config
         )
 
         return task_obj

@@ -24,7 +24,7 @@ from transformers import (
     PreTrainedTokenizerBase,
 )
 
-from .config import DatasetTask, EvaluationConfig, ModelConfig
+from .config import EvaluationConfig, ModelConfig, TaskConfig
 from .exceptions import InvalidEvaluation, InvalidFramework, ModelFetchFailed
 from .hf_hub import get_model_config
 from .utils import (
@@ -37,36 +37,28 @@ from .utils import (
 logger = logging.getLogger(__name__)
 
 
-class EvaluationTask(ABC):
+class Task(ABC):
     """Abstract evaluation task class.
 
     Args:
-        dataset_task (DatasetTask):
-            The configuration of the dataset task.
+        task_config (TaskConfig):
+            The configuration of the task.
         evaluation_config (EvaluationConfig):
             The configuration of the evaluation.
 
     Attributes:
-        dataset_task (DatasetTask):
-            The configuration of the dataset task.
+        task_config (TaskConfig):
+            The configuration of the task.
         evaluation_config (EvaluationConfig):
             The configuration of the evaluation.
     """
 
-    def __init__(self, dataset_task: DatasetTask, evaluation_config: EvaluationConfig):
-        """Initialise the dataset.
-
-        Args:
-            dataset_task (DatasetTask):
-                The configuration for the dataset.
-            evaluation_config (EvaluationConfig):
-                The configuration for the benchmark.
-        """
-        self.dataset_task = dataset_task
+    def __init__(self, task_config: TaskConfig, evaluation_config: EvaluationConfig):
+        self.task_config = task_config
         self.evaluation_config = evaluation_config
         self._metrics = {
             metric_cfg.name: load_metric(metric_cfg.huggingface_id)
-            for metric_cfg in dataset_task.metrics
+            for metric_cfg in task_config.metrics
         }
 
     def evaluate(self, model_id: str) -> Dict[str, Dict[str, float]]:
@@ -182,7 +174,7 @@ class EvaluationTask(ABC):
                 framework="pytorch",
                 config=model.config,
                 tokenizer=tokenizer,
-                dataset_task=self.dataset_task,
+                task_config=self.task_config,
             )
             test = self._preprocess_data(test, **params)
         except ValueError:
@@ -228,8 +220,8 @@ class EvaluationTask(ABC):
 
         # Log scores
         all_scores = log_scores(
-            dataset_name=self.dataset_task.pretty_dataset_name,
-            metric_configs=self.dataset_task.metrics,
+            dataset_name=self.task_config.pretty_dataset_name,
+            metric_configs=self.task_config.metrics,
             scores=scores,
             model_id=model_config.model_id,
         )
@@ -295,7 +287,7 @@ class EvaluationTask(ABC):
 
             # Aggregate scores from batches
             return_scores = {}
-            for metric in self.dataset_task.metrics:
+            for metric in self.task_config.metrics:
                 if len(scores):
                     return_scores[metric.name] = np.average(
                         [score[metric.name] for score in scores]
@@ -349,14 +341,14 @@ class EvaluationTask(ABC):
         self, predictions_and_labels: tuple, id2label: Optional[list] = None
     ) -> Dict[str, float]:
         """Compute the metrics needed for evaluation.
-        
+
         Args:
             predictions_and_labels (pair of arrays):
                 The first array contains the probability predictions and the second
                 array contains the true labels.
             id2label (list or None, optional):
                 Conversion of indices to labels. Defaults to None.
-                
+
         Returns:
             dict:
                 A dictionary with the names of the metrics as keys and the metric
@@ -365,7 +357,7 @@ class EvaluationTask(ABC):
         predictions, labels = predictions_and_labels
         predictions = predictions.argmax(axis=-1)
         results = dict()
-        for cfg in self.dataset_task.metrics:
+        for cfg in self.task_config.metrics:
             metric = self._metrics[cfg.name]
             score_dict = metric.compute(
                 predictions=predictions,
@@ -391,7 +383,7 @@ class EvaluationTask(ABC):
         # Download dataset from the HF Hub
         dataset_dict: DatasetDict
         dataset_dict = load_dataset(  # type: ignore
-            path=self.dataset_task.huggingface_id,
+            path=self.task_config.huggingface_id,
             use_auth_token=self.evaluation_config.use_auth_token,
             cache_dir=self.evaluation_config.cache_dir,
         )
@@ -400,14 +392,14 @@ class EvaluationTask(ABC):
         try:
             dataset_dict = DatasetDict(
                 {
-                    key: dataset_dict.get(self.dataset_task.split_names[key])
+                    key: dataset_dict.get(self.task_config.split_names[key])
                     for key in ["train", "val", "test"]
                 }
             )
         except KeyError:
             message = (
-                f"`split_names`: {list(self.dataset_task.split_names.values())}, does not correspond "
-                f"to found splits: {list(dataset_dict.keys())}"
+                f"`split_names`: {list(self.task_config.split_names.values())}, "
+                f"does not correspond to found splits: {list(dataset_dict.keys())}"
             )
             raise ValueError(message)
 
@@ -500,7 +492,7 @@ class EvaluationTask(ABC):
                 use_auth_token=self.evaluation_config.use_auth_token,
             )
 
-            supertask = self.dataset_task.supertask
+            supertask = self.task_config.supertask
             if supertask == "token-classification":
                 model_cls = AutoModelForTokenClassification  # type: ignore
             elif supertask == "text-classification":
@@ -627,14 +619,14 @@ class EvaluationTask(ABC):
     @abstractmethod
     def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
         """Preprocess a dataset by tokenizing and aligning the labels.
-        
+
         Args:
             dataset (Hugging Face dataset):
                 The dataset to preprocess.
             kwargs:
                 Extra keyword arguments containing objects used in preprocessing the
                 dataset.
-                
+
         Returns:
             Hugging Face dataset: The preprocessed dataset.
         """
@@ -643,12 +635,12 @@ class EvaluationTask(ABC):
     @abstractmethod
     def _load_data_collator(self, tokenizer: Optional[PreTrainedTokenizerBase] = None):
         """Load the data collator used to prepare samples during finetuning.
-        
+
         Args:
             tokenizer (Hugging Face tokenizer or None, optional):
                 A pretrained tokenizer. Can be None if the tokenizer is not used in the
                 initialisation of the data collator. Defaults to None.
-                
+
         Returns:
             Hugging Face data collator:
                 The data collator.

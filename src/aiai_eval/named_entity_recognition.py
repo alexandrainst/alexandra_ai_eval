@@ -1,22 +1,25 @@
 """Class for the named entity recognition task."""
 
+from typing import Optional
+
 from datasets import Dataset
+from transformers import PreTrainedTokenizerBase
 
-from .task import EvaluationTask
+from .task import Task
 
 
-class NEREvaluation(EvaluationTask):
+class NEREvaluation(Task):
     """NER task.
 
     Args:
-        dataset_task (DatasetTask):
-            The configuration of the dataset task.
+        task_config (TaskConfig):
+            The configuration of the task.
         evaluation_config (EvaluationConfig):
             The configuration of the evaluation.
 
     Attributes:
-        dataset_task (DatasetTask):
-            The configuration of the dataset task.
+        task_config (TaskConfig):
+            The configuration of the task.
         evaluation_config (EvaluationConfig):
             The configuration of the evaluation.
     """
@@ -33,3 +36,17 @@ class NEREvaluation(EvaluationTask):
             Hugging Face dataset: The preprocessed dataset.
         """
         return dataset
+
+    def _load_data_collator(self, tokenizer: Optional[PreTrainedTokenizerBase] = None):
+        """Load the data collator used to prepare samples during finetuning.
+
+        Args:
+            tokenizer (Hugging Face tokenizer or None, optional):
+                A pretrained tokenizer. Can be None if the tokenizer is not used in the
+                initialisation of the data collator. Defaults to None.
+
+        Returns:
+            Hugging Face data collator:
+                The data collator.
+        """
+        pass

@@ -7,35 +7,35 @@ from datasets import Dataset
 from transformers import DataCollatorWithPadding, PreTrainedTokenizerBase
 
 from .exceptions import InvalidEvaluation
-from .task import EvaluationTask
+from .task import Task
 
 
-class SentimentAnalysis(EvaluationTask):
-    """Sentiment analysis evaluation task.
+class TextClassification(Task):
+    """Text classification task.
 
     Args:
-        dataset_task (DatasetTask):
-            The configuration of the dataset task.
+        task_config (TaskConfig):
+            The configuration of the task.
         evaluation_config (EvaluationConfig):
             The configuration of the evaluation.
 
     Attributes:
-        dataset_task (DatasetTask):
-            The configuration of the dataset task.
+        task_config (TaskConfig):
+            The configuration of the task.
         evaluation_config (EvaluationConfig):
             The configuration of the evaluation.
     """
 
     def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
         """Preprocess a dataset by tokenizing and aligning the labels.
-        
+
         Args:
             dataset (Hugging Face dataset):
                 The dataset to preprocess.
             kwargs:
                 Extra keyword arguments containing objects used in preprocessing the
                 dataset.
-                
+
         Returns:
             Hugging Face dataset: The preprocessed dataset.
         """
@@ -76,14 +76,14 @@ class SentimentAnalysis(EvaluationTask):
             )
         return examples
 
-    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
+    def _load_data_collator(self, tokenizer: Optional[PreTrainedTokenizerBase] = None):
         """Load the data collator used to prepare samples during evaluation.
-        
+
         Args:
             tokenizer (Hugging Face tokenizer or None, optional):
                 A pretrained tokenizer. Can be None if the tokenizer is not used in the
                 initialisation of the data collator. Defaults to None.
-                
+
         Returns:
             Hugging Face data collator:
                 The data collator.
@@ -92,13 +92,13 @@ class SentimentAnalysis(EvaluationTask):
 
     def _get_spacy_predictions_and_labels(self, model, dataset: Dataset) -> tuple:
         """Get predictions from SpaCy model on dataset.
-        
+
         Args:
             model (SpaCy model):
                 The model.
             dataset (Hugging Face dataset):
                 The dataset.
-                
+
         Returns:
             A pair of arrays:
                 The first array contains the probability predictions and the second
@@ -107,20 +107,3 @@ class SentimentAnalysis(EvaluationTask):
         raise InvalidEvaluation(
             "Evaluation of text classification tasks for SpaCy models is not possible."
         )
-
-
-class OffensiveSpeechClassification(EvaluationTask):
-    """Offensive Speech classification evaluation task.
-
-    Args:
-        dataset_task (DatasetTask):
-            The configuration of the dataset task.
-        evaluation_config (EvaluationConfig):
-            The configuration of the evaluation.
-
-    Attributes:
-        dataset_task (DatasetTask):
-            The configuration of the dataset task.
-        evaluation_config (EvaluationConfig):
-            The configuration of the evaluation.
-    """

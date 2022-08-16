@@ -47,8 +47,9 @@ class Label:
 
 
 @dataclass
-class DatasetTask:
+class TaskConfig:
     """Configuration for a task dataset.
+
     Attributes:
         name (str):
             The name of the task. Must be lower case with no spaces.
@@ -110,10 +111,6 @@ class EvaluationConfig:
     """General benchmarking configuration, across datasets and models.
 
     Attributes:
-        model_tasks (None or sequence of str):
-            The tasks of the models to benchmark.
-        dataset_tasks (sequence of DatasetTask):
-            The tasks to benchmark.
         raise_error_on_invalid_model (bool):
             Whether to raise an error if a model is invalid.
         cache_dir (str):
@@ -136,8 +133,6 @@ class EvaluationConfig:
             Whether a unit test is being run. Defaults to False.
     """
 
-    model_tasks: Optional[Sequence[str]]
-    dataset_tasks: Sequence[DatasetTask]
     raise_error_on_invalid_model: bool
     cache_dir: str
     use_auth_token: Union[bool, str]
