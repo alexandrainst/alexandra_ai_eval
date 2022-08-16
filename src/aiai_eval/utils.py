@@ -5,10 +5,12 @@ import logging
 import os
 import random
 import re
+import warnings
 
 import numpy as np
 import pkg_resources
 import torch
+from datasets.utils import disable_progress_bar
 
 logger = logging.getLogger(__name__)
 
@@ -74,3 +76,28 @@ def is_module_installed(module: str) -> bool:
 
     # Check if the module is installed by checking if the module name is in the list
     return module.lower() in installed_modules
+
+
+def block_terminal_output():
+    """Blocks libraries from writing output to the terminal.
+
+    This filters warnings from some libraries, sets the logging level to ERROR for some
+    libraries and disables tokeniser progress bars when using Hugging Face tokenisers.
+    """
+
+    # Ignore miscellaneous warnings
+    warnings.filterwarnings(
+        "ignore",
+        module="torch.nn.parallel*",
+        message="Was asked to gather along dimension 0, but all input tensors were "
+        "scalars; will instead unsqueeze and return a vector.",
+    )
+    warnings.filterwarnings("ignore", module="seqeval*")
+
+    # Up the logging level, to disable outputs
+    logging.getLogger("filelock").setLevel(logging.ERROR)
+    logging.getLogger("absl").setLevel(logging.ERROR)
+    logging.getLogger("datasets").setLevel(logging.ERROR)
+
+    # Disable the tokeniser progress bars
+    disable_progress_bar()
