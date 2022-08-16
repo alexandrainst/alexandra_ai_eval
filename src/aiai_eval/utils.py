@@ -10,7 +10,9 @@ from typing import Dict, Sequence, Tuple
 
 import numpy as np
 import pkg_resources
+import requests
 import torch
+from requests import RequestException
 
 from .config import MetricConfig
 
@@ -164,3 +166,12 @@ def aggregate_scores(
         results["test"] = (test_score, 1.96 * test_se)
 
         return results
+
+
+def internet_connection_available() -> bool:
+    try:
+        # Check if internet connection is available.
+        requests.get("https://www.google.com")
+        return True
+    except RequestException:
+        return False
