@@ -38,11 +38,16 @@ class Evaluator:
             Whether to output additional output. Defaults to False.
 
     Attributes:
-        progress_bar (bool): Whether progress bars should be shown.
-        save_results (bool): Whether to save the benchmark results.
-        verbose (bool): Whether to output additional output.
-        use_auth_token (str or bool): The authentication token for the Hugging Face Hub.
-        evaluation_results (dict): The benchmark results.
+        progress_bar (bool):
+            Whether progress bars should be shown.
+        save_results (bool):
+            Whether to save the benchmark results.
+        verbose (bool):
+            Whether to output additional output.
+        use_auth_token (str or bool):
+            The authentication token for the Hugging Face Hub.
+        evaluation_results (dict):
+            The benchmark results.
     """
 
     def __init__(
@@ -93,9 +98,9 @@ class Evaluator:
 
         Returns:
             dict:
-                A nested dictionary of the evaluation results. The keys are the names of
-                the datasets, with values being new dictionaries having the model IDs
-                as keys.
+                A nested dictionary of the evaluation results. The keys are the names
+                of the datasets, with values being new dictionaries having the model
+                IDs as keys.
         """
         # Prepare the model IDs and tasks
         model_ids = self._prepare_model_ids(model_id)

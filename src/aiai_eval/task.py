@@ -459,7 +459,8 @@ class Task(ABC):
                 tokenizer.
 
         Raises:
-            RuntimeError: If the framework is not recognized.
+            RuntimeError:
+                If the framework is not recognized.
         """
         # Ensure that the framework is installed
         from_flax = model_config.framework == "jax"
@@ -536,14 +537,12 @@ class Task(ABC):
             )
 
         except (OSError, ValueError):
-            msg = (
-                f"The model {model_config.model_id} either does not have a "
-                "frameworks registered, or it is a private model. If it is a "
-                "private model then enable the `--use-auth-token` flag and "
-                "make  sure that you are logged in to the Hub via the "
-                "`huggingface-cli login` command."
+            raise InvalidEvaluation(
+                f"The model {model_config.model_id} either does not have a frameworks "
+                "registered, or it is a private model. If it is a private model then "
+                "enable the `--use-auth-token` flag and make  sure that you are "
+                "logged in to the Hub via the `huggingface-cli login` command."
             )
-            raise InvalidEvaluation(msg)
 
         # Ensure that the labels of the model are consistent with the labels of the
         # dataset

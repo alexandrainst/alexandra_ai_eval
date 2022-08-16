@@ -20,10 +20,12 @@ def model_exists_on_hf_hub(model_id: str) -> bool:
     """Function checks if `model_id` exists on Huggingface Hub.
 
     Args:
-        model_id (str): The model ID to check.
+        model_id (str):
+            The model ID to check.
 
     Returns:
-        bool: If model exists on Hugginface Hub or not.
+        bool:
+            If model exists on Hugginface Hub or not.
     """
     hf_api = HfApi()
     try:
