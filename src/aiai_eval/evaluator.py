@@ -24,11 +24,11 @@ class Evaluator:
             Whether progress bars should be shown. Defaults to True.
         save_results (bool, optional):
             Whether to save the benchmark results to
-            'aiai_eval_results.json'. Defaults to False.
+            'aiai_evaluation_results.json'. Defaults to False.
         raise_error_on_invalid_model (bool, optional):
             Whether to raise an error if a model is invalid. Defaults to False.
         cache_dir (str, optional):
-            Directory to store cached models. Defaults to '.aiai_eval_cache'.
+            Directory to store cached models. Defaults to '.aiai_cache'.
         use_auth_token (bool or str, optional):
             The authentication token for the Hugging Face Hub. If a boolean value is
             specified then the token will be fetched from the Hugging Face CLI, where
@@ -50,7 +50,7 @@ class Evaluator:
         progress_bar: bool = True,
         save_results: bool = False,
         raise_error_on_invalid_model: bool = False,
-        cache_dir: str = ".aiai_eval_cache",
+        cache_dir: str = ".aiai_cache",
         use_auth_token: Union[bool, str] = False,
         verbose: bool = False,
     ):
@@ -111,7 +111,7 @@ class Evaluator:
 
         # Save the evaluation results
         if self.evaluation_config.save_results:
-            output_path = Path.cwd() / "aiai_eval_results.json"
+            output_path = Path.cwd() / "aiai_evaluation_results.json"
             with output_path.open("w") as f:
                 json.dump(self.evaluation_results, f)
 

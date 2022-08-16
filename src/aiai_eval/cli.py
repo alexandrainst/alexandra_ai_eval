@@ -65,7 +65,7 @@ from .task_configs import get_all_task_configs
 @click.option(
     "--cache-dir",
     "-c",
-    default=".scandeval_cache",
+    default=".aiai_cache",
     show_default=True,
     help="The directory where models are datasets are cached.",
 )
