@@ -9,7 +9,7 @@ from .task_configs import get_all_task_configs
 
 
 @click.command()
-@click.argument(
+@click.option(
     "--model-id",
     "-m",
     multiple=True,
@@ -18,7 +18,7 @@ from .task_configs import get_all_task_configs
     be a branch name, a tag name, or a commit id (currently only supported for Hugging
     Face models, and it defaults to "main" for latest).""",
 )
-@click.argument(
+@click.option(
     "--task",
     "-t",
     multiple=True,
@@ -88,6 +88,12 @@ def evaluate(
     verbose: bool = False,
 ):
     """Benchmark finetuned models."""
+
+    # Raise error if `model_id` or `task` is not specified
+    if len(model_id) == 0 or len(task) == 0:
+        raise click.UsageError(
+            "Please specify at least one model and one task to evaluate."
+        )
 
     # Set up variables
     model_ids = list(model_id)
