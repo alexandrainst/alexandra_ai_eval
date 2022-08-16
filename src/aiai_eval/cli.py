@@ -23,7 +23,7 @@ from .task_configs import get_all_task_configs
     "-t",
     multiple=True,
     type=click.Choice(list(get_all_task_configs().keys())),
-    help="""The name of the task to evaluate.""",
+    help="""The name(s) of the task(s) to evaluate.""",
 )
 @click.option(
     "--auth-token",
