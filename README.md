@@ -2,7 +2,6 @@
 <img src="https://raw.githubusercontent.com/alexandrainst/AIAI-eval/feat/add-logo/gfx/logo.png" width="258" height="224">
 </div>
 
-# AIAI-Eval
 ### Evaluation of finetuned models.
 
 ______________________________________________________________________
@@ -10,7 +9,7 @@ ______________________________________________________________________
 [![Documentation](https://img.shields.io/badge/docs-passing-green)](https://alexandrainst.github.io/AIAI-eval/aiai_eval.html)
 [![License](https://img.shields.io/github/license/alexandrainst/AIAI-eval)](https://github.com/alexandrainst/AIAI-eval/blob/main/LICENSE)
 [![LastCommit](https://img.shields.io/github/last-commit/alexandrainst/AIAI-eval)](https://github.com/alexandrainst/AIAI-eval/commits/main)
-[![Code Coverage](https://img.shields.io/badge/Coverage-68%25-yellow.svg)](https://github.com/alexandrainst/AIAI-eval/tree/dev/tests)
+[![Code Coverage](https://img.shields.io/badge/Coverage-0%0-red.svg)](https://github.com/alexandrainst/AIAI-eval/tree/dev/tests)
 
 
 Developers:
