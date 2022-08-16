@@ -32,6 +32,9 @@ black = "^22.6.0"
 isort = "^5.10.1"
 readme-coverage-badger = ">=0.1.2,<1.0.0"
 
+[tool.poetry.scripts]
+evaluate = "src.aiai_eval.cli:evaluate"
+
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = [
