@@ -1,5 +1,5 @@
 <div align='center'>
-<img src="https://raw.githubusercontent.com/alexandrainst/AIAI-eval/feat/add-logo/gfx/logo.png" width="517" height="217">
+<img src="https://raw.githubusercontent.com/alexandrainst/AIAI-eval/feat/add-logo/gfx/logo.png">
 </div>
 
 ### Evaluation of finetuned models.
