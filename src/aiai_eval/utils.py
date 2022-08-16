@@ -54,7 +54,7 @@ def enforce_reproducibility(framework: str, seed: int = 703):
 
 def is_module_installed(module: str) -> bool:
     """Check if a module is installed.
-    
+
     This is used when dealing with spaCy models, as these are installed as separate
     Python packages.
 
@@ -87,7 +87,7 @@ def log_scores(
     model_id: str,
 ) -> dict:
     """Log the scores.
-    
+
     Args:
         dataset_name (str):
             Name of the dataset.
@@ -97,7 +97,7 @@ def log_scores(
             The scores that are to be logged.
         model_id (str):
             The full Hugging Face Hub path to the pretrained transformer model.
-            
+
     Returns:
         dict:
             A dictionary with keys 'raw_scores' and 'total', with 'raw_scores' being
@@ -137,7 +137,7 @@ def aggregate_scores(
     scores: Sequence[Dict[str, float]], metric_config: MetricConfig
 ) -> Dict[str, Tuple[float, float]]:
     """Helper function to compute the mean with confidence intervals.
-    
+
     Args:
         scores (list):
             List of dictionaries with the names of the metrics as keys, of the form
@@ -145,7 +145,7 @@ def aggregate_scores(
         metric_config (MetricConfig):
             The configuration of the metric, which is used to collect the correct
             metric from `scores`.
-            
+
     Returns:
         dict:
             Dictionary with key 'test', with values being a pair of floats, containing

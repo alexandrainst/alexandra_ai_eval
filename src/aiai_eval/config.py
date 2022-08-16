@@ -74,6 +74,10 @@ class TaskConfig:
             The number of labels in the dataset.
         label_synonyms (list of list of str):
             The synonyms of all the labels, including the main label.
+        split_names (dict of str to str or None)
+            A dictionary where keys are 'train', 'val', 'test', and the values are
+            the corresponding names of the dataset splits, if the split does not exist
+            None is used.
     """
 
     name: str
@@ -153,11 +157,8 @@ class ModelConfig:
             The revision of the model.
         framework (str):
             The framework of the model.
-        task (str):
-            The task that the model was trained on.
     """
 
     model_id: str
     revision: str
     framework: str
-    task: str

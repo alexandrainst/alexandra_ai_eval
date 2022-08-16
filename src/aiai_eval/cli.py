@@ -76,7 +76,7 @@ from .task_configs import get_all_task_configs
     show_default=True,
     help="Whether extra input should be outputted during benchmarking",
 )
-def benchmark(
+def evaluate(
     model_id: Tuple[str],
     task: Tuple[str],
     auth_token: str,

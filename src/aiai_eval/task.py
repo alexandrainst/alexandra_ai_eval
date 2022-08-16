@@ -10,6 +10,7 @@ from subprocess import CalledProcessError
 from typing import Any, Dict, Optional, Sequence, Union
 
 import numpy as np
+import spacy
 import torch
 import torch.nn as nn
 from datasets import Dataset, DatasetDict, load_dataset, load_metric
@@ -21,11 +22,18 @@ from transformers import (
     AutoModelForTokenClassification,
     AutoTokenizer,
     DataCollator,
+    PreTrainedModel,
     PreTrainedTokenizerBase,
 )
 
 from .config import EvaluationConfig, ModelConfig, TaskConfig
-from .exceptions import InvalidEvaluation, InvalidFramework, ModelFetchFailed
+from .exceptions import (
+    InvalidEvaluation,
+    InvalidFramework,
+    ModelFetchFailed,
+    PreprocessingFailed,
+    UnsupportedModelType,
+)
 from .hf_hub import get_model_config
 from .utils import (
     clear_memory,
@@ -128,9 +136,7 @@ class Task(ABC):
             )
 
         else:
-            raise RuntimeError(
-                f'The framework "{model_config.framework}" is not supported!'
-            )
+            raise InvalidFramework(model_config.framework)
 
     def _evaluate_pytorch_jax(
         self,
@@ -176,9 +182,14 @@ class Task(ABC):
                 tokenizer=tokenizer,
                 task_config=self.task_config,
             )
-            test = self._preprocess_data(test, **params)
+            # Do framework specific preprocessing
+            if isinstance(model, PreTrainedModel):
+                test = self._preprocess_data_transformer(test, **params)
+            elif isinstance(model, nn.Module):
+                test = self._preprocess_data_pytorch(test, **params)  # type: ignore
+
         except ValueError:
-            raise InvalidEvaluation("Preprocessing of the dataset could not be done.")
+            raise PreprocessingFailed()
 
         # If we are testing then truncate the test set
         if self.evaluation_config.testing:
@@ -214,7 +225,11 @@ class Task(ABC):
 
                 # Otherwise we encountered an error
                 else:
-                    raise InvalidEvaluation(str(test_itr_scores))
+                    message = (
+                        f"An unknown error occurred during the evaluation of the {idx}"
+                        f" iteration. The error message returned was: {str(test_itr_scores)}"
+                    )
+                    raise InvalidEvaluation(message=message)
 
             scores.append(test_itr_scores)
 
@@ -279,11 +294,15 @@ class Task(ABC):
 
             # Get model predictions
             for batch in dataloader:
-                model_predictions = model(**batch).logits
+                if isinstance(model, PreTrainedModel):
+                    model_predictions = model(**batch).logits
+                elif isinstance(model, nn.Module):
+                    model_predictions = model(batch)
+                else:
+                    raise UnsupportedModelType(str(type(model)))
 
                 # Compute metrics
                 scores.append(compute_metrics((model_predictions, batch["labels"])))
-                break
 
             # Aggregate scores from batches
             return_scores = {}
@@ -379,6 +398,9 @@ class Task(ABC):
             DatasetDict:
                 A dictionary containing the 'train', 'val' and 'test' splits of the
                 dataset.
+
+        Raises:
+            InvalidEvaluation: If the split names specified are incorrect.
         """
         # Download dataset from the HF Hub
         dataset_dict: DatasetDict
@@ -401,7 +423,7 @@ class Task(ABC):
                 f"`split_names`: {list(self.task_config.split_names.values())}, "
                 f"does not correspond to found splits: {list(dataset_dict.keys())}"
             )
-            raise ValueError(message)
+            raise InvalidEvaluation(message)
 
         # Return the dataset dictionary
         return dataset_dict
@@ -567,8 +589,6 @@ class Task(ABC):
                 the model. Can contain other objects related to the model, such as its
                 tokenizer.
         """
-        import spacy
-
         # Ignore warnings from spaCy. This has to be called after the import, as the
         # __init__.py file of spaCy sets the warning levels of spaCy warning W036
         warnings.filterwarnings("ignore", module="spacy*")
@@ -590,9 +610,14 @@ class Task(ABC):
         # Load the model
         try:
             model = spacy.load(local_model_id)
-        except OSError:
-            raise InvalidEvaluation(
-                f"The model {model_config.model_id} could not be installed from spaCy."
+        except OSError as e:
+            raise ModelFetchFailed(
+                model_id=model_config.model_id,
+                error_msg=str(e),
+                message=(
+                    f"Download of {model_config.model_id} failed, with "
+                    f"the following error message: {str(e)}."
+                ),
             )
         return dict(model=model)
 
@@ -617,8 +642,12 @@ class Task(ABC):
         return model
 
     @abstractmethod
-    def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
+    def _preprocess_data_pytorch(
+        self, dataset: Dataset, framework: str, **kwargs
+    ) -> list:
         """Preprocess a dataset by tokenizing and aligning the labels.
+
+        For use by a pytorch model.
 
         Args:
             dataset (Hugging Face dataset):
@@ -632,8 +661,25 @@ class Task(ABC):
         """
         pass
 
+    def _preprocess_data_transformer(
+        self, dataset: Dataset, framework: str, **kwargs
+    ) -> Dataset:
+        """Process the data for use by a transformer model.
+
+        For use by a transformer model.
+
+        Args:
+            dataset_dict (DatasetDict):
+                The dataset dictionary.
+
+        Returns:
+            DatasetDict:
+                The processed dataset dictionary.
+        """
+        pass
+
     @abstractmethod
-    def _load_data_collator(self, tokenizer: Optional[PreTrainedTokenizerBase] = None):
+    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
         """Load the data collator used to prepare samples during finetuning.
 
         Args:
