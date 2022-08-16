@@ -226,7 +226,11 @@ class EvaluationTask(ABC):
 
                 # Otherwise we encountered an error
                 else:
-                    raise InvalidEvaluation(str(test_itr_scores))
+                    message = (
+                        f"An unknown error occurred during the evaluation of the {idx}"
+                        f" iteration. The error message returned was: {str(test_itr_scores)}"
+                    )
+                    raise InvalidEvaluation(message=message)
 
             scores.append(test_itr_scores)
 
@@ -637,14 +641,14 @@ class EvaluationTask(ABC):
     @abstractmethod
     def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
         """Preprocess a dataset by tokenizing and aligning the labels.
-        
+
         Args:
             dataset (Hugging Face dataset):
                 The dataset to preprocess.
             kwargs:
                 Extra keyword arguments containing objects used in preprocessing the
                 dataset.
-                
+
         Returns:
             Hugging Face dataset: The preprocessed dataset.
         """
@@ -653,12 +657,12 @@ class EvaluationTask(ABC):
     @abstractmethod
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
         """Load the data collator used to prepare samples during finetuning.
-        
+
         Args:
             tokenizer (Hugging Face tokenizer or None, optional):
                 A pretrained tokenizer. Can be None if the tokenizer is not used in the
                 initialisation of the data collator. Defaults to None.
-                
+
         Returns:
             Hugging Face data collator:
                 The data collator.
