@@ -7,21 +7,21 @@ from datasets import Dataset
 from transformers import DataCollatorWithPadding, PreTrainedTokenizerBase
 
 from .exceptions import InvalidEvaluation, MissingLabel
-from .task import EvaluationTask
+from .task import Task
 
 
-class SentimentAnalysis(EvaluationTask):
-    """Sentiment analysis evaluation task.
+class TextClassification(Task):
+    """Text classification task.
 
     Args:
-        dataset_task (DatasetTask):
-            The configuration of the dataset task.
+        task_config (TaskConfig):
+            The configuration of the task.
         evaluation_config (EvaluationConfig):
             The configuration of the evaluation.
 
     Attributes:
-        dataset_task (DatasetTask):
-            The configuration of the dataset task.
+        task_config (TaskConfig):
+            The configuration of the task.
         evaluation_config (EvaluationConfig):
             The configuration of the evaluation.
     """
@@ -73,6 +73,7 @@ class SentimentAnalysis(EvaluationTask):
         self, dataset: Dataset, framework: str, **kwargs
     ) -> list:
         """Preprocess a dataset by tokenizing and aligning the labels.
+
         For use by a pytorch model.
 
         Args:
@@ -97,7 +98,7 @@ class SentimentAnalysis(EvaluationTask):
             raise MissingLabel(label=examples["label"].upper(), label2id=label2id)
         return examples
 
-    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
+    def _load_data_collator(self, tokenizer: Optional[PreTrainedTokenizerBase] = None):
         """Load the data collator used to prepare samples during evaluation.
 
         Args:
@@ -128,20 +129,3 @@ class SentimentAnalysis(EvaluationTask):
         raise InvalidEvaluation(
             "Evaluation of text classification tasks for SpaCy models is not possible."
         )
-
-
-class OffensiveTextClassification(EvaluationTask):
-    """Offensive Text classification evaluation task.
-
-    Args:
-        dataset_task (DatasetTask):
-            The configuration of the dataset task.
-        evaluation_config (EvaluationConfig):
-            The configuration of the evaluation.
-
-    Attributes:
-        dataset_task (DatasetTask):
-            The configuration of the dataset task.
-        evaluation_config (EvaluationConfig):
-            The configuration of the evaluation.
-    """
