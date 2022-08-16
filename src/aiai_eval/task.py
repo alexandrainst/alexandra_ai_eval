@@ -27,7 +27,7 @@ from transformers import (
     PreTrainedTokenizerBase,
 )
 
-from .config import DatasetTask, EvaluationConfig, ModelConfig
+from .config import EvaluationConfig, ModelConfig, TaskConfig
 from .exceptions import (
     InvalidEvaluation,
     InvalidFramework,
@@ -48,36 +48,28 @@ from .utils import (
 logger = logging.getLogger(__name__)
 
 
-class EvaluationTask(ABC):
+class Task(ABC):
     """Abstract evaluation task class.
 
     Args:
-        dataset_task (DatasetTask):
-            The configuration of the dataset task.
+        task_config (TaskConfig):
+            The configuration of the task.
         evaluation_config (EvaluationConfig):
             The configuration of the evaluation.
 
     Attributes:
-        dataset_task (DatasetTask):
-            The configuration of the dataset task.
+        task_config (TaskConfig):
+            The configuration of the task.
         evaluation_config (EvaluationConfig):
             The configuration of the evaluation.
     """
 
-    def __init__(self, dataset_task: DatasetTask, evaluation_config: EvaluationConfig):
-        """Initialise the dataset.
-
-        Args:
-            dataset_task (DatasetTask):
-                The configuration for the dataset.
-            evaluation_config (EvaluationConfig):
-                The configuration for the benchmark.
-        """
-        self.dataset_task = dataset_task
+    def __init__(self, task_config: TaskConfig, evaluation_config: EvaluationConfig):
+        self.task_config = task_config
         self.evaluation_config = evaluation_config
         self._metrics = {
             metric_cfg.name: load_metric(metric_cfg.huggingface_id)
-            for metric_cfg in dataset_task.metrics
+            for metric_cfg in task_config.metrics
         }
 
     def evaluate(self, model_id: str) -> Dict[str, Dict[str, float]]:
@@ -195,7 +187,7 @@ class EvaluationTask(ABC):
                 framework="pytorch",
                 config=model.config,
                 tokenizer=tokenizer,
-                dataset_task=self.dataset_task,
+                task_config=self.task_config,
             )
             # Do framework specific preprocessing
             if isinstance(model, PreTrainedModel):
@@ -250,14 +242,14 @@ class EvaluationTask(ABC):
 
         # If track_carbon_emissions is true append metrics, to correctly log emissions data.
         # We avoid mutating, so any downstream evaluations will not try to use these.
-        metric_configs = list(self.dataset_task.metrics)
+        metric_configs = list(self.task_config.metrics)
         if self.evaluation_config.track_carbon_emissions:
             metric_configs.append(EMISSIONS)
             metric_configs.append(POWER)
 
         # Log scores
         all_scores = log_scores(
-            dataset_name=self.dataset_task.pretty_dataset_name,
+            dataset_name=self.task_config.pretty_dataset_name,
             metric_configs=metric_configs,
             scores=scores,
             model_id=model_config.model_id,
@@ -338,7 +330,7 @@ class EvaluationTask(ABC):
                 return_scores["carbon_emissions"] = emissions_data.emissions
                 return_scores["energy_consumed"] = emissions_data.energy_consumed
 
-            for metric in self.dataset_task.metrics:
+            for metric in self.task_config.metrics:
                 if len(scores):
                     return_scores[metric.name] = np.average(
                         [score[metric.name] for score in scores]
@@ -408,7 +400,7 @@ class EvaluationTask(ABC):
         predictions, labels = predictions_and_labels
         predictions = predictions.argmax(axis=-1)
         results = dict()
-        for cfg in self.dataset_task.metrics:
+        for cfg in self.task_config.metrics:
             metric = self._metrics[cfg.name]
             score_dict = metric.compute(
                 predictions=predictions,
@@ -437,7 +429,7 @@ class EvaluationTask(ABC):
         # Download dataset from the HF Hub
         dataset_dict: DatasetDict
         dataset_dict = load_dataset(  # type: ignore
-            path=self.dataset_task.huggingface_id,
+            path=self.task_config.huggingface_id,
             use_auth_token=self.evaluation_config.use_auth_token,
             cache_dir=self.evaluation_config.cache_dir,
         )
@@ -446,14 +438,14 @@ class EvaluationTask(ABC):
         try:
             dataset_dict = DatasetDict(
                 {
-                    key: dataset_dict.get(self.dataset_task.split_names[key])
+                    key: dataset_dict.get(self.task_config.split_names[key])
                     for key in ["train", "val", "test"]
                 }
             )
         except KeyError:
             message = (
-                f"`split_names`: {list(self.dataset_task.split_names.values())}, does not correspond "
-                f"to found splits: {list(dataset_dict.keys())}"
+                f"`split_names`: {list(self.task_config.split_names.values())}, "
+                f"does not correspond to found splits: {list(dataset_dict.keys())}"
             )
             raise InvalidEvaluation(message)
 
@@ -546,7 +538,7 @@ class EvaluationTask(ABC):
                 use_auth_token=self.evaluation_config.use_auth_token,
             )
 
-            supertask = self.dataset_task.supertask
+            supertask = self.task_config.supertask
             if supertask == "token-classification":
                 model_cls = AutoModelForTokenClassification  # type: ignore
             elif supertask == "text-classification":
@@ -683,7 +675,7 @@ class EvaluationTask(ABC):
                 A carbon emissions tracker. OfflineEmissionsTracker is returned if no internet
                 connection is available.
         """
-        tracker_name = self.dataset_task.dataset_name
+        tracker_name = self.task_config.dataset_name
         if self.evaluation_config.verbose:
             log_level = "info"
         else:
@@ -727,6 +719,7 @@ class EvaluationTask(ABC):
         self, dataset: Dataset, framework: str, **kwargs
     ) -> list:
         """Preprocess a dataset by tokenizing and aligning the labels.
+
         For use by a pytorch model.
 
         Args:
@@ -745,7 +738,9 @@ class EvaluationTask(ABC):
         self, dataset: Dataset, framework: str, **kwargs
     ) -> Dataset:
         """Process the data for use by a transformer model.
+
         For use by a transformer model.
+
         Args:
             dataset_dict (DatasetDict):
                 The dataset dictionary.

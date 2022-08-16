@@ -2,20 +2,20 @@
 
 from typing import Dict
 
-from .config import DatasetTask, Label, MetricConfig
+from .config import Label, MetricConfig, TaskConfig
 
 
-def get_all_dataset_tasks() -> Dict[str, DatasetTask]:
+def get_all_task_configs() -> Dict[str, TaskConfig]:
     """Get a list of all the dataset tasks.
 
     Returns:
         dict:
             A mapping between names of dataset tasks and their configurations.
     """
-    return {cfg.name: cfg for cfg in globals().values() if isinstance(cfg, DatasetTask)}
+    return {cfg.name: cfg for cfg in globals().values() if isinstance(cfg, TaskConfig)}
 
 
-NER = DatasetTask(
+NER = TaskConfig(
     name="ner",
     dataset_name="dane",
     pretty_dataset_name="DaNE",
@@ -163,7 +163,7 @@ NER = DatasetTask(
 )
 
 
-SENT = DatasetTask(
+SENT = TaskConfig(
     name="sent",
     dataset_name="angry-tweets",
     pretty_dataset_name="Angry Tweets",
