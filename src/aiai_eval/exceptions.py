@@ -70,3 +70,18 @@ class NoInternetConnection(Exception):
     def __init__(self, message: str = "There is currently no internet connection."):
         self.message = message
         super().__init__(self.message)
+
+
+class UnsupportedModelType(Exception):
+    def __init__(self, model_type: str, message: str = ""):
+        self.message = (
+            message
+            if message
+            else (
+                f"Received an unsupported model type: {model_type}, "
+                "supported types are `nn.Module` and `PretrainedModel`."
+            )
+        )
+        self.model_type = model_type
+
+        super().__init__(self.message)
