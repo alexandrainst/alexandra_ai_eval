@@ -311,7 +311,6 @@ class EvaluationTask(ABC):
 
                 # Compute metrics
                 scores.append(compute_metrics((model_predictions, batch["labels"])))
-                break
 
             # Aggregate scores from batches
             return_scores = {}
