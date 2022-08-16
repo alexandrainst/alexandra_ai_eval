@@ -1,5 +1,7 @@
 """Unit tests for the `hf_hub` module."""
 
+import os
+
 import pytest
 
 from src.aiai_eval.config import EvaluationConfig, ModelConfig
@@ -13,7 +15,7 @@ class TestGetModelConfig:
         yield EvaluationConfig(
             raise_error_on_invalid_model=True,
             cache_dir="cache_dir",
-            use_auth_token=True,
+            use_auth_token=os.environ["HUGGINGFACE_HUB_TOKEN"],
             progress_bar=True,
             save_results=True,
             verbose=True,
