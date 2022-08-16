@@ -2,6 +2,7 @@
 <img src="https://raw.githubusercontent.com/alexandrainst/AIAI-eval/feat/add-logo/gfx/logo.png">
 </div>
 
+# AIAI-Eval
 ### Evaluation of finetuned models.
 
 ______________________________________________________________________
