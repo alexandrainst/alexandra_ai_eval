@@ -3,7 +3,7 @@
 from typing import Type, Union
 
 from .config import EvaluationConfig, TaskConfig
-from .named_entity_recognition import NEREvaluation
+from .named_entity_recognition import NamedEntityRecognition
 from .task import Task
 from .task_configs import get_all_task_configs
 from .text_classification import TextClassification
@@ -24,11 +24,11 @@ class TaskFactory:
     def __init__(self, evaluation_config: EvaluationConfig):
         self.evaluation_config = evaluation_config
 
-    def build_task(self, task: Union[str, TaskConfig]) -> Task:
+    def build_task(self, task_name_or_config: Union[str, TaskConfig]) -> Task:
         """Build a evaluation task from a configuration or a name.
 
         Args:
-            task (str or TaskConfig):
+            task_name_or_config (str or TaskConfig):
                 The name of the dataset, or the dataset configuration.
 
         Returns:
@@ -37,19 +37,19 @@ class TaskFactory:
         """
         # Get the dataset configuration
         task_config: TaskConfig
-        if isinstance(task, str):
-            task_config = get_all_task_configs()[task]
+        if isinstance(task_name_or_config, str):
+            task_config = get_all_task_configs()[task_name_or_config]
         else:
-            task_config = task
+            task_config = task_name_or_config
 
         # Get the evaluation class based on the task
         evaluation_cls: Type[Task]
         if task_config.supertask == "text-classification":
             evaluation_cls = TextClassification
         elif task_config.name == "ner":
-            evaluation_cls = NEREvaluation
+            evaluation_cls = NamedEntityRecognition
         else:
-            raise ValueError(f"Unknown dataset task: {task_config.supertask}")
+            raise ValueError(f"Unknown task: {task_config.name}")
 
         # Create the task
         task_obj = evaluation_cls(

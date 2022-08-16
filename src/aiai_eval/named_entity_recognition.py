@@ -8,8 +8,8 @@ from transformers import PreTrainedTokenizerBase
 from .task import Task
 
 
-class NEREvaluation(Task):
-    """NER task.
+class NamedEntityRecognition(Task):
+    """Named entity recognition task.
 
     Args:
         task_config (TaskConfig):

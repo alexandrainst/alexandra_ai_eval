@@ -44,7 +44,7 @@ addopts = [
     '-vv',
     '--doctest-modules',
     '--cov=src/aiai_eval',
-    '-n 2',
+    '-n 4',
 ]
 xfail_strict = true
 filterwarnings = ["ignore"]
