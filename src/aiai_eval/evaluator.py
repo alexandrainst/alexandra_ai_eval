@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Dict, Sequence, Union
 
 from .config import EvaluationConfig, TaskConfig
-from .exceptions import InvalidEvaluation, ModelDoesNotExistOnHuggingFaceHubException
+from .exceptions import InvalidEvaluation, ModelDoesNotExistOnHuggingFaceHub
 from .hf_hub import model_exists_on_hf_hub
 from .task_configs import get_all_task_configs
 from .task_factory import TaskFactory
@@ -185,7 +185,7 @@ class Evaluator:
         logger.info(f"Evaluating {model_id} on {task_config.pretty_name}")
 
         if not model_exists_on_hf_hub(model_id=model_id):
-            raise ModelDoesNotExistOnHuggingFaceHubException(model_id)
+            raise ModelDoesNotExistOnHuggingFaceHub(model_id)
 
         try:
             task = self.task_factory.build_task(task_config)

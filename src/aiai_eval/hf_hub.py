@@ -11,7 +11,7 @@ from .config import EvaluationConfig, ModelConfig
 from .exceptions import (
     HuggingFaceHubDown,
     InvalidFramework,
-    ModelDoesNotExistOnHuggingFaceHubException,
+    ModelDoesNotExistOnHuggingFaceHub,
     NoInternetConnection,
 )
 
@@ -49,7 +49,7 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
             The model configuration.
 
     Raises:
-        ModelDoesNotExistOnHuggingFaceHubException:
+        ModelDoesNotExistOnHuggingFaceHub:
             If the model id does not exist on the Hugging Face Hub.
         InvalidFramework:
             If the specified framework is not implemented.
@@ -77,7 +77,7 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
     # Attempt to fetch model data from the Hugging Face Hub.
     # Check if id exists, before creating model config, for more clear exception handling.
     if not model_exists_on_hf_hub(model_id=model_id):
-        raise ModelDoesNotExistOnHuggingFaceHubException(model_id)
+        raise ModelDoesNotExistOnHuggingFaceHub(model_id)
 
     try:
 

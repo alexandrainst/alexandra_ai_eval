@@ -11,11 +11,8 @@ class InvalidEvaluation(Exception):
         super().__init__(self.message)
 
 
-class ModelDoesNotExistOnHuggingFaceHubException(Exception):
-    def __init__(
-        self,
-        model_id: str,
-    ):
+class ModelDoesNotExistOnHuggingFaceHub(Exception):
+    def __init__(self, model_id: str):
         self.model_id = model_id
         self.message = f"The model {model_id} does not exist on the Hugging Face Hub."
         super().__init__(self.message)
@@ -25,12 +22,13 @@ class ModelFetchFailed(Exception):
     def __init__(self, model_id: str, error_msg: str, message: str = ""):
         self.model_id = model_id
         self.error_msg = error_msg
-        self.message = (
-            message
-            if message
-            else f"Download of {model_id} from the Hugging Face Hub failed, with "
-            f"the following error message: {self.error_msg}."
-        )
+        if message != "":
+            self.message = message
+        else:
+            self.message = (
+                f"Download of {model_id} from the Hugging Face Hub failed, with "
+                f"the following error message: {self.error_msg}."
+            )
         super().__init__(self.message)
 
 
@@ -74,14 +72,13 @@ class NoInternetConnection(Exception):
 
 class UnsupportedModelType(Exception):
     def __init__(self, model_type: str, message: str = ""):
-        self.message = (
-            message
-            if message
-            else (
+        if message != "":
+            self.message = message
+        else:
+            self.message = (
                 f"Received an unsupported model type: {model_type}, "
                 "supported types are `nn.Module` and `PretrainedModel`."
             )
-        )
         self.model_type = model_type
 
         super().__init__(self.message)
