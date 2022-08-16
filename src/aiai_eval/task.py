@@ -194,7 +194,7 @@ class EvaluationTask(ABC):
             if isinstance(model, PreTrainedModel):
                 test = self._preprocess_data_transformer(test, **params)
             elif isinstance(model, nn.Module):
-                test = self._preprocess_data_pytorch(test, **params)
+                test = self._preprocess_data_pytorch(test, **params)  # type: ignore
 
         except ValueError:
             raise PreprocessingFailed()
@@ -653,7 +653,7 @@ class EvaluationTask(ABC):
     @abstractmethod
     def _preprocess_data_pytorch(
         self, dataset: Dataset, framework: str, **kwargs
-    ) -> Dataset:
+    ) -> list:
         """Preprocess a dataset by tokenizing and aligning the labels.
         For use by a pytorch model.
 
