@@ -81,7 +81,7 @@ def is_module_installed(module: str) -> bool:
 
 
 def log_scores(
-    dataset_name: str,
+    task_name: str,
     metric_configs: Sequence[MetricConfig],
     scores: Sequence[Dict[str, float]],
     model_id: str,
@@ -89,7 +89,7 @@ def log_scores(
     """Log the scores.
 
     Args:
-        dataset_name (str):
+        task_name (str):
             Name of the dataset.
         metric_configs (sequence of MetricConfig objects):
             Sequence of metrics to log.
@@ -105,7 +105,7 @@ def log_scores(
             scores (means and standard errors).
     """
     # Initial logging message
-    logger.info(f"Finished evaluation of {model_id} on {dataset_name}.")
+    logger.info(f"Finished evaluation of {model_id} on {task_name}.")
 
     # Initialise the total dict
     total_dict = dict()
