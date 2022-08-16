@@ -53,19 +53,26 @@ class TaskConfig:
     Attributes:
         name (str):
             The name of the task. Must be lower case with no spaces.
-        dataset_name (str):
-            The name of the task dataset. Must be lower case with no spaces.
-        pretty_dataset_name (str):
-            A longer prettier name for the dataset, which allows cases and spaces. Used
+        pretty_name (str):
+            A longer prettier name for the task, which allows cases and spaces. Used
             for logging.
         huggingface_id (str):
-            The Hugging Face ID of the dataset.
+            The Hugging Face ID of the dataset associated with the task.
         supertask (str):
             The supertask of the task, describing the overall type of task.
         metrics (sequence of MetricConfig objects):
             The metrics used to evaluate the task.
         labels (sequence of Label objects):
             The labels used in the task.
+        train_name (str or None):
+            The name of the train split of the task. If None, the task has no train
+            split.
+        val_name (str or None):
+            The name of the validation split of the task. If None, the task has no
+            validation split.
+        test_name (str or None):
+            The name of the test split of the task. If None, the task has no test
+            split.
         id2label (list of str):
             The mapping from ID to label.
         label2id (dict of str to int):
@@ -74,20 +81,17 @@ class TaskConfig:
             The number of labels in the dataset.
         label_synonyms (list of list of str):
             The synonyms of all the labels, including the main label.
-        split_names (dict of str to str or None)
-            A dictionary where keys are 'train', 'val', 'test', and the values are
-            the corresponding names of the dataset splits, if the split does not exist
-            None is used.
     """
 
     name: str
-    dataset_name: str
-    pretty_dataset_name: str
+    pretty_name: str
     huggingface_id: str
     supertask: str
     metrics: Sequence[MetricConfig]
     labels: Sequence[Label]
-    split_names: Dict[str, Optional[str]]
+    train_name: Optional[str]
+    val_name: Optional[str]
+    test_name: Optional[str]
 
     @property
     def id2label(self) -> List[str]:
