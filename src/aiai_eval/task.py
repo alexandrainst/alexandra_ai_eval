@@ -22,6 +22,7 @@ from transformers import (
     AutoModelForTokenClassification,
     AutoTokenizer,
     DataCollator,
+    PreTrainedModel,
     PreTrainedTokenizerBase,
 )
 
@@ -31,6 +32,7 @@ from .exceptions import (
     InvalidFramework,
     ModelFetchFailed,
     PreprocessingFailed,
+    UnsupportedModelType,
 )
 from .hf_hub import get_model_config
 from .utils import (
@@ -188,7 +190,12 @@ class EvaluationTask(ABC):
                 tokenizer=tokenizer,
                 dataset_task=self.dataset_task,
             )
-            test = self._preprocess_data(test, **params)
+            # Do framework specific preprocessing
+            if isinstance(model, PreTrainedModel):
+                test = self._preprocess_data_transformer(test, **params)
+            elif isinstance(model, nn.Module):
+                test = self._preprocess_data_pytorch(test, **params)
+
         except ValueError:
             raise PreprocessingFailed()
 
@@ -295,7 +302,12 @@ class EvaluationTask(ABC):
 
             # Get model predictions
             for batch in dataloader:
-                model_predictions = model(**batch).logits
+                if isinstance(model, PreTrainedModel):
+                    model_predictions = model(**batch).logits
+                elif isinstance(model, nn.Module):
+                    model_predictions = model(batch)
+                else:
+                    raise UnsupportedModelType(str(type(model)))
 
                 # Compute metrics
                 scores.append(compute_metrics((model_predictions, batch["labels"])))
@@ -639,8 +651,11 @@ class EvaluationTask(ABC):
         return model
 
     @abstractmethod
-    def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
+    def _preprocess_data_pytorch(
+        self, dataset: Dataset, framework: str, **kwargs
+    ) -> Dataset:
         """Preprocess a dataset by tokenizing and aligning the labels.
+        For use by a pytorch model.
 
         Args:
             dataset (Hugging Face dataset):
@@ -651,6 +666,21 @@ class EvaluationTask(ABC):
 
         Returns:
             Hugging Face dataset: The preprocessed dataset.
+        """
+        pass
+
+    def _preprocess_data_transformer(
+        self, dataset: Dataset, framework: str, **kwargs
+    ) -> Dataset:
+        """Process the data for use by a transformer model.
+        For use by a transformer model.
+        Args:
+            dataset_dict (DatasetDict):
+                The dataset dictionary.
+
+        Returns:
+            DatasetDict:
+                The processed dataset dictionary.
         """
         pass
 
