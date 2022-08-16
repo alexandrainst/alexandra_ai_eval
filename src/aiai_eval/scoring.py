@@ -43,16 +43,15 @@ def log_scores(
 
     # Logging of the aggregated scores
     for metric_cfg in metric_configs:
-        agg_scores = aggregate_scores(scores=scores, metric_config=metric_cfg)
-        test_score, test_se = agg_scores["test"]
+        test_score, test_se = aggregate_scores(scores=scores, metric_config=metric_cfg)
         test_score *= 100
         test_se *= 100
 
         msg = f"{metric_cfg.pretty_name}:\n  - Test: {test_score:.2f} ± {test_se:.2f}"
 
         # Store the aggregated test scores
-        total_dict[metric_cfg.name] = test_score
-        total_dict[f"{metric_cfg.name}_se"] = test_se
+        total_dict[f"test_{metric_cfg.name}"] = test_score
+        total_dict[f"test_{metric_cfg.name}_se"] = test_se
 
         # Log the scores
         logger.info(msg)
@@ -66,7 +65,7 @@ def log_scores(
 
 def aggregate_scores(
     scores: Sequence[Dict[str, float]], metric_config: MetricConfig
-) -> Dict[str, Tuple[float, float]]:
+) -> Tuple[float, float]:
     """Helper function to compute the mean with confidence intervals.
 
     Args:
@@ -78,20 +77,16 @@ def aggregate_scores(
             metric from `scores`.
 
     Returns:
-        dict:
-            Dictionary with key 'test', with values being a pair of floats, containing
-            the score and the radius of its 95% confidence interval.
+        pair of floats:
+            A pair (score, se) of the mean and the standard error of the scores.
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        results = dict()
-        test_scores = [dct[metric_config.name] for dct in scores]
+        test_scores = [dct[f"test_{metric_config.name}"] for dct in scores]
         test_score = np.mean(test_scores)
         if len(test_scores) > 1:
             sample_std = np.std(test_scores, ddof=1)
             test_se = sample_std / np.sqrt(len(test_scores))
         else:
             test_se = np.nan
-        results["test"] = (test_score, 1.96 * test_se)
-
-        return results
+        return (float(test_score), float(1.96 * test_se))
