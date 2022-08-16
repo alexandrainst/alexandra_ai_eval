@@ -6,7 +6,7 @@ from typing import Optional
 from datasets import Dataset
 from transformers import DataCollatorWithPadding, PreTrainedTokenizerBase
 
-from .exceptions import InvalidEvaluation
+from .exceptions import InvalidEvaluation, MissingLabel
 from .task import Task
 
 
@@ -26,8 +26,11 @@ class TextClassification(Task):
             The configuration of the evaluation.
     """
 
-    def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
+    def _preprocess_data_transformer(
+        self, dataset: Dataset, framework: str, **kwargs
+    ) -> Dataset:
         """Preprocess a dataset by tokenizing and aligning the labels.
+        For use by a transformer model.
 
         Args:
             dataset (Hugging Face dataset):
@@ -66,14 +69,33 @@ class TextClassification(Task):
         # Remove unused column
         return preprocessed.remove_columns(["text"])
 
+    def _preprocess_data_pytorch(
+        self, dataset: Dataset, framework: str, **kwargs
+    ) -> list:
+        """Preprocess a dataset by tokenizing and aligning the labels.
+
+        For use by a pytorch model.
+
+        Args:
+            dataset (Hugging Face dataset):
+                The dataset to preprocess.
+            kwargs:
+                Extra keyword arguments containing objects used in preprocessing the
+                dataset.
+
+        Returns:
+            Hugging Face dataset: The preprocessed dataset.
+        """
+        full_preprocessed = self._preprocess_data_transformer(
+            dataset=dataset, framework=framework, **kwargs
+        )
+        return full_preprocessed["input_ids"]
+
     def _create_numerical_labels(self, examples: dict, label2id: dict) -> dict:
         try:
             examples["label"] = [label2id[lbl.upper()] for lbl in examples["label"]]
         except KeyError:
-            raise InvalidEvaluation(
-                f"One of the labels in the dataset, {examples['label'].upper()}, does "
-                f"not occur in the label2id dictionary {label2id}."
-            )
+            raise MissingLabel(label=examples["label"].upper(), label2id=label2id)
         return examples
 
     def _load_data_collator(self, tokenizer: Optional[PreTrainedTokenizerBase] = None):

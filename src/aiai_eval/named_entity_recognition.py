@@ -24,14 +24,20 @@ class NEREvaluation(Task):
             The configuration of the evaluation.
     """
 
-    def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
+    def _preprocess_data_transformer(
+        self, dataset: Dataset, framework: str, **kwargs
+    ) -> Dataset:
         """Preprocess a dataset by tokenizing and aligning the labels.
+        For use by a transformer model.
         Args:
             dataset (Hugging Face dataset):
                 The dataset to preprocess.
+            framework (str):
+                Specification of which framework the model is created in.
             kwargs:
                 Extra keyword arguments containing objects used in preprocessing the
                 dataset.
+
         Returns:
             Hugging Face dataset: The preprocessed dataset.
         """
@@ -50,3 +56,22 @@ class NEREvaluation(Task):
                 The data collator.
         """
         pass
+
+    def _preprocess_data_pytorch(
+        self, dataset: Dataset, framework: str, **kwargs
+    ) -> list:
+        """Preprocess a dataset by tokenizing and aligning the labels.
+        For use by a pytorch model.
+        Args:
+            dataset (Hugging Face dataset):
+                The dataset to preprocess.
+            framework (str):
+                Specification of which framework the model is created in.
+            kwargs:
+                Extra keyword arguments containing objects used in preprocessing the
+                dataset.
+
+        Returns:
+            Hugging Face dataset: The preprocessed dataset.
+        """
+        return list(dataset)
