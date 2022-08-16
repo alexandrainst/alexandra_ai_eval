@@ -26,16 +26,19 @@ class SentimentAnalysis(EvaluationTask):
             The configuration of the evaluation.
     """
 
-    def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
+    def _preprocess_data_transformer(
+        self, dataset: Dataset, framework: str, **kwargs
+    ) -> Dataset:
         """Preprocess a dataset by tokenizing and aligning the labels.
-        
+        For use by a transformer model.
+
         Args:
             dataset (Hugging Face dataset):
                 The dataset to preprocess.
             kwargs:
                 Extra keyword arguments containing objects used in preprocessing the
                 dataset.
-                
+
         Returns:
             Hugging Face dataset: The preprocessed dataset.
         """
@@ -66,6 +69,27 @@ class SentimentAnalysis(EvaluationTask):
         # Remove unused column
         return preprocessed.remove_columns(["text"])
 
+    def _preprocess_data_pytorch(
+        self, dataset: Dataset, framework: str, **kwargs
+    ) -> list:
+        """Preprocess a dataset by tokenizing and aligning the labels.
+        For use by a pytorch model.
+
+        Args:
+            dataset (Hugging Face dataset):
+                The dataset to preprocess.
+            kwargs:
+                Extra keyword arguments containing objects used in preprocessing the
+                dataset.
+
+        Returns:
+            Hugging Face dataset: The preprocessed dataset.
+        """
+        full_preprocessed = self._preprocess_data_transformer(
+            dataset=dataset, framework=framework, **kwargs
+        )
+        return full_preprocessed["input_ids"]
+
     def _create_numerical_labels(self, examples: dict, label2id: dict) -> dict:
         try:
             examples["label"] = [label2id[lbl.upper()] for lbl in examples["label"]]
@@ -75,12 +99,12 @@ class SentimentAnalysis(EvaluationTask):
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
         """Load the data collator used to prepare samples during evaluation.
-        
+
         Args:
             tokenizer (Hugging Face tokenizer or None, optional):
                 A pretrained tokenizer. Can be None if the tokenizer is not used in the
                 initialisation of the data collator. Defaults to None.
-                
+
         Returns:
             Hugging Face data collator:
                 The data collator.
@@ -89,13 +113,13 @@ class SentimentAnalysis(EvaluationTask):
 
     def _get_spacy_predictions_and_labels(self, model, dataset: Dataset) -> tuple:
         """Get predictions from SpaCy model on dataset.
-        
+
         Args:
             model (SpaCy model):
                 The model.
             dataset (Hugging Face dataset):
                 The dataset.
-                
+
         Returns:
             A pair of arrays:
                 The first array contains the probability predictions and the second
