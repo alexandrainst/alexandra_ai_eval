@@ -80,8 +80,9 @@ models and/or datasets:
 ├── .pre-commit-config.yaml
 ├── LICENSE
 ├── README.md
+├── aiai_evaluation_results.json
 ├── gfx
-│   └── logo.png
+│   └── aiai-eval-logo.png
 ├── makefile
 ├── models
 ├── notebooks
@@ -92,13 +93,16 @@ models and/or datasets:
 │   │   ├── __init__.py
 │   │   ├── automatic_speech_recognition.py
 │   │   ├── cli.py
+│   │   ├── co2.py
 │   │   ├── config.py
+│   │   ├── country_codes.py
 │   │   ├── evaluator.py
 │   │   ├── exceptions.py
 │   │   ├── hf_hub.py
 │   │   ├── image_to_text.py
 │   │   ├── named_entity_recognition.py
 │   │   ├── question_answering.py
+│   │   ├── scoring.py
 │   │   ├── task.py
 │   │   ├── task_configs.py
 │   │   ├── task_factory.py
@@ -108,5 +112,22 @@ models and/or datasets:
 │       ├── fix_dot_env_file.py
 │       └── versioning.py
 └── tests
-    └── __init__.py
+    ├── __init__.py
+    ├── conftest.py
+    ├── test_cli.py
+    ├── test_co2.py
+    ├── test_config.py
+    ├── test_country_codes.py
+    ├── test_evaluator.py
+    ├── test_exceptions.py
+    ├── test_hf_hub.py
+    ├── test_image_to_text.py
+    ├── test_named_entity_recognition.py
+    ├── test_question_answering.py
+    ├── test_scoring.py
+    ├── test_task.py
+    ├── test_task_configs.py
+    ├── test_task_factory.py
+    ├── test_text_classification.py
+    └── test_utils.py
 ```
