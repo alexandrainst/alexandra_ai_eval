@@ -1,16 +1,10 @@
 """Unit tests for the `hf_hub` module."""
 
-import os
-
 import pytest
-from dotenv import load_dotenv
 
 from src.aiai_eval.config import EvaluationConfig, ModelConfig
 from src.aiai_eval.exceptions import ModelDoesNotExistOnHuggingFaceHub
 from src.aiai_eval.hf_hub import get_model_config, model_exists_on_hf_hub
-
-# Load environment variables from .env file
-load_dotenv()
 
 
 class TestGetModelConfig:
@@ -19,7 +13,7 @@ class TestGetModelConfig:
         yield EvaluationConfig(
             raise_error_on_invalid_model=True,
             cache_dir="cache_dir",
-            use_auth_token=os.environ["HUGGINGFACE_HUB_TOKEN"],
+            use_auth_token=False,
             progress_bar=True,
             save_results=True,
             verbose=True,
