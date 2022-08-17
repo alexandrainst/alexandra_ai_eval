@@ -38,7 +38,6 @@ jobs:
 
       - name: Install Dependencies
         run: poetry install
-        if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Test with pytest
         run: poetry run pytest -n 1
