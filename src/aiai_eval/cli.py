@@ -43,7 +43,7 @@ from .task_configs import get_all_task_configs
 )
 @click.option(
     "--track-carbon-emissions",
-    "-tce",
+    "-co2",
     is_flag=True,
     show_default=True,
     help="""Whether to track carbon usage. Remember to set `--country-iso-code` to
