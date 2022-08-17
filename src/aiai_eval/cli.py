@@ -46,16 +46,16 @@ from .task_configs import get_all_task_configs
     "-co2",
     is_flag=True,
     show_default=True,
-    help="""Whether to track carbon usage. Remember to set `--country-iso-code` to
-    properly calculate carbon emissions""",
+    help="""Whether to track carbon usage.""",
 )
 @click.option(
     "--country-iso-code",
-    "-co",
+    "-c",
     default="",
     show_default=True,
     help="""The 3-letter alphabet ISO Code of the country where the compute
-    infrastructure is hosted. See here:
+    infrastructure is hosted. Only relevant if no internet connection is available. A
+    list of all such codes are available here:
     https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes""",
 )
 @click.option(
@@ -81,7 +81,6 @@ from .task_configs import get_all_task_configs
 )
 @click.option(
     "--cache-dir",
-    "-c",
     default=".aiai_cache",
     show_default=True,
     help="The directory where models are datasets are cached.",
