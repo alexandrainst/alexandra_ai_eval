@@ -59,7 +59,7 @@ $ evaluate --help
 
 ### Benchmarking from a Script
 In a script, the syntax is similar to the command line interface. You simply initialise
-an object of the `Benchmarker` class, and call this benchmark object with your favorite
+an object of the `Evaluator` class, and call this evaluate object with your favorite
 models and/or datasets:
 ```
 >>> from aiai_eval import Evaluator
