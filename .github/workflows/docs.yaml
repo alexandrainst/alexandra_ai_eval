@@ -17,12 +17,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'poetry'
-
       - name: Install Poetry
         uses: abatilo/actions-poetry@v2.0.0
         with:
@@ -33,6 +27,12 @@ jobs:
           poetry config virtualenvs.create true
           poetry config virtualenvs.in-project false
           poetry config virtualenvs.path ~/.virtualenvs
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'poetry'
 
       - name: Install Dependencies
         run: poetry install
