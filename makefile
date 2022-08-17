@@ -87,7 +87,7 @@ publish:
 		fi
 
 test:
-	@pytest && readme-cov
+	@python -m pytest && readme-cov
 
 tree:
 	@tree -a \
