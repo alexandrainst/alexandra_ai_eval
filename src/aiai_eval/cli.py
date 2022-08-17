@@ -4,6 +4,7 @@ from typing import Tuple, Union
 
 import click
 
+from .country_codes import ALL_COUNTRY_CODES
 from .evaluator import Evaluator
 from .task_configs import get_all_task_configs
 
@@ -50,8 +51,10 @@ from .task_configs import get_all_task_configs
 )
 @click.option(
     "--country-iso-code",
+    type=click.Choice(ALL_COUNTRY_CODES),
     default="",
     show_default=True,
+    metavar="ISO 3166-1 ALPHA-3 LANGUAGE CODE",
     help="""The 3-letter alphabet ISO Code of the country where the compute
     infrastructure is hosted. Only relevant if no internet connection is available.
     Only relevant if `--track-carbon-emissions` is set. A list of all such codes are
