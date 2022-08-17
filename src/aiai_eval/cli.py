@@ -76,6 +76,20 @@ from .task_configs import get_all_task_configs
     show_default=True,
     help="Whether extra input should be outputted during benchmarking",
 )
+@click.option(
+    "--track-carbon-emissions",
+    "-tce",
+    is_flag=True,
+    show_default=True,
+    help="Whether to track carbon usage. Remember to set `--country-iso-code` to properly calculate carbon emissions",
+)
+@click.option(
+    "--country-iso-code",
+    "-co",
+    default="",
+    show_default=True,
+    help="The 3-letter alphabet ISO Code of the country where the compute infrastructure is hosted. See here: https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes",
+)
 def evaluate(
     model_id: Tuple[str],
     task: Tuple[str],
@@ -86,6 +100,7 @@ def evaluate(
     raise_error_on_invalid_model: bool,
     cache_dir: str,
     verbose: bool = False,
+    track_carbon_emissions: bool = False,
 ):
     """Benchmark finetuned models."""
 
@@ -108,6 +123,7 @@ def evaluate(
         cache_dir=cache_dir,
         use_auth_token=auth,
         verbose=verbose,
+        track_carbon_emissions=track_carbon_emissions,
     )
 
     # Perform the benchmark evaluation

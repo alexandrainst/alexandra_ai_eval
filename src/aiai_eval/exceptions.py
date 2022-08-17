@@ -82,3 +82,19 @@ class UnsupportedModelType(Exception):
         self.model_type = model_type
 
         super().__init__(self.message)
+
+
+class MissingCountryISOCode(Exception):
+    def __init__(
+        self,
+        message: str = (
+            "The carbon tracker calculates carbon usage based on power consumption, "
+            "and the country where the compute infrastructure is hosted. Internet connection "
+            "was not available and hence the location of the infrastructure could not be "
+            "automatically fetched, because of the location must be set, this is done by setting "
+            "the 'country_iso_code' in the config or `--country-iso-code` via the CLI to "
+            "the correct ISO code."
+        ),
+    ):
+        self.message = message
+        super().__init__(self.message)

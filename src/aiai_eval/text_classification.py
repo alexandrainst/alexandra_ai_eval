@@ -61,7 +61,7 @@ class TextClassification(Task):
 
         # Translate labels to ids
         numericalise = partial(
-            self._create_numerical_labels, label2id=kwargs["dataset_task"].label2id
+            self._create_numerical_labels, label2id=kwargs["task_config"].label2id
         )
         preprocessed = tokenised.map(
             numericalise, batched=True, load_from_cache_file=False
@@ -100,7 +100,7 @@ class TextClassification(Task):
             raise MissingLabel(label=examples["label"].upper(), label2id=label2id)
         return examples
 
-    def _load_data_collator(self, tokenizer: Optional[PreTrainedTokenizerBase] = None):
+    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
         """Load the data collator used to prepare samples during evaluation.
 
         Args:

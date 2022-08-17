@@ -202,3 +202,18 @@ SENT = TaskConfig(
     val_name=None,
     test_name="test",
 )
+
+
+EMISSIONS = MetricConfig(
+    name="carbon_emissions",
+    pretty_name="Carbon Emissions",
+    huggingface_id="",
+    results_key="co2",
+)
+
+POWER = MetricConfig(
+    name="energy_consumed",
+    pretty_name="Energy Consumed",
+    huggingface_id="",
+    results_key="power",
+)

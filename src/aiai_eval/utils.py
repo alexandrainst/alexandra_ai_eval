@@ -9,8 +9,10 @@ import warnings
 
 import numpy as np
 import pkg_resources
+import requests
 import torch
 from datasets.utils import disable_progress_bar
+from requests import RequestException
 
 logger = logging.getLogger(__name__)
 
@@ -101,3 +103,17 @@ def block_terminal_output():
 
     # Disable the tokeniser progress bars
     disable_progress_bar()
+
+
+def internet_connection_available() -> bool:
+    """Checks if internet connection is available by pinging google.com.
+
+    Returns:
+            bool:
+                Whether or not internet connection is available.
+    """
+    try:
+        requests.get("https://www.google.com")
+        return True
+    except RequestException:
+        return False

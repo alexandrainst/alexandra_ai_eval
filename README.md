@@ -1,5 +1,5 @@
 <div align='center'>
-<img src="https://raw.githubusercontent.com/alexandrainst/AIAI-eval/feat/add-logo/gfx/logo.png" width="258" height="224">
+<img src="https://raw.githubusercontent.com/alexandrainst/AIAI-eval/main/gfx/aiai-eval-logo.png" width="auto" height="224">
 </div>
 
 ### Evaluation of finetuned models.
@@ -59,7 +59,7 @@ $ evaluate --help
 
 ### Benchmarking from a Script
 In a script, the syntax is similar to the command line interface. You simply initialise
-an object of the `Benchmarker` class, and call this benchmark object with your favorite
+an object of the `Evaluator` class, and call this evaluate object with your favorite
 models and/or datasets:
 ```
 >>> from aiai_eval import Evaluator
