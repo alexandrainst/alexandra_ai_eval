@@ -168,7 +168,6 @@ def aggregate_scores(
 
 def internet_connection_available() -> bool:
     try:
-        # Check if internet connection is available.
         requests.get("https://www.google.com")
         return True
     except RequestException:
