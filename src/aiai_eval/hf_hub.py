@@ -2,7 +2,6 @@
 
 from typing import Optional
 
-import requests
 from huggingface_hub import HfApi, ModelFilter
 from huggingface_hub.utils import RepositoryNotFoundError
 from requests.exceptions import RequestException
