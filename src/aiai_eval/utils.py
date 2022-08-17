@@ -117,7 +117,7 @@ def log_scores(
         agg_scores = aggregate_scores(scores=scores, metric_config=metric_cfg)
         test_score, test_se = agg_scores["test"]
 
-        msg = f"{metric_cfg.pretty_name}:\n  - Test: {test_score:.2f} ± {test_se:.2f}"
+        msg = f"{metric_cfg.pretty_name}:\n  - Test: {test_score:.4f} ± {test_se:.4f}"
 
         # Store the aggregated test scores
         total_dict[metric_cfg.name] = test_score
