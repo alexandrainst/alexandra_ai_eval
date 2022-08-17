@@ -13,7 +13,6 @@ import numpy as np
 import spacy
 import torch
 import torch.nn as nn
-from codecarbon import EmissionsTracker, OfflineEmissionsTracker
 from datasets import Dataset, DatasetDict, load_dataset, load_metric
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
@@ -27,11 +26,11 @@ from transformers import (
     PreTrainedTokenizerBase,
 )
 
+from .co2 import get_carbon_tracker
 from .config import EvaluationConfig, ModelConfig, TaskConfig
 from .exceptions import (
     InvalidEvaluation,
     InvalidFramework,
-    MissingCountryISOCode,
     ModelFetchFailed,
     PreprocessingFailed,
     UnsupportedModelType,
@@ -39,12 +38,7 @@ from .exceptions import (
 from .hf_hub import get_model_config
 from .scoring import log_scores
 from .task_configs import EMISSIONS, POWER
-from .utils import (
-    clear_memory,
-    enforce_reproducibility,
-    internet_connection_available,
-    is_module_installed,
-)
+from .utils import clear_memory, enforce_reproducibility, is_module_installed
 
 logger = logging.getLogger(__name__)
 
@@ -101,7 +95,12 @@ class Task(ABC):
 
         # Prepare carbon tracker
         if self.evaluation_config.track_carbon_emissions:
-            self.carbon_tracker = self._prepare_carbon_tracker()
+            self.carbon_tracker = get_carbon_tracker(
+                task_name=self.task_config.name,
+                country_iso_code=self.evaluation_config.country_iso_code,
+                measure_power_secs=self.evaluation_config.measure_power_secs,
+                verbose=self.evaluation_config.verbose,
+            )
 
         # Load the dataset dictinoary
         dataset_dict = self._load_data()
@@ -668,48 +667,6 @@ class Task(ABC):
         """
         # TODO: Only a placeholder for now
         return model
-
-    def _prepare_carbon_tracker(
-        self,
-    ) -> Union[EmissionsTracker, OfflineEmissionsTracker]:
-        """Prepares a carbon emissions tracker.
-
-        Returns:
-            EmissionsTracker or OfflineEmissionsTracker:
-                A carbon emissions tracker. OfflineEmissionsTracker is returned if no
-                internet connection is available.
-        """
-        tracker_name = self.task_config.name
-        if self.evaluation_config.verbose:
-            log_level = "info"
-        else:
-            log_level = "error"
-
-        if internet_connection_available():
-            carbon_tracker = EmissionsTracker(
-                project_name=tracker_name,
-                measure_power_secs=5,
-                save_to_file=False,
-                save_to_api=False,
-                save_to_logger=False,
-                log_level=log_level,
-            )
-        else:
-            # If country_iso_code is "", raise exception
-            country_iso_code = self.evaluation_config.country_iso_code
-            if country_iso_code == "":
-                raise MissingCountryISOCode
-
-            carbon_tracker = OfflineEmissionsTracker(
-                project_name=tracker_name,
-                measure_power_secs=5,
-                save_to_file=False,
-                save_to_api=False,
-                save_to_logger=False,
-                country_iso_code=country_iso_code,
-                log_level=log_level,
-            )
-        return carbon_tracker
 
     @abstractmethod
     def _preprocess_data_pytorch(
