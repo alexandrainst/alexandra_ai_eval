@@ -3,10 +3,14 @@
 import os
 
 import pytest
+from dotenv import load_dotenv
 
 from src.aiai_eval.config import EvaluationConfig, ModelConfig
 from src.aiai_eval.exceptions import ModelDoesNotExistOnHuggingFaceHub
 from src.aiai_eval.hf_hub import get_model_config, model_exists_on_hf_hub
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 class TestGetModelConfig:
