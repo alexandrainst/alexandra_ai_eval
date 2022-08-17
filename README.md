@@ -80,7 +80,6 @@ models and/or datasets:
 ├── .pre-commit-config.yaml
 ├── LICENSE
 ├── README.md
-├── aiai_evaluation_results.json
 ├── gfx
 │   └── aiai-eval-logo.png
 ├── makefile

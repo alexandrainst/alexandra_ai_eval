@@ -109,4 +109,5 @@ tree:
 		-I *.txt \
 		-I checkpoint-* \
 		-I .coverage* \
-		-I .aiai_cache
+		-I .aiai_cache \
+		-I aiai_evaluation_results.json
