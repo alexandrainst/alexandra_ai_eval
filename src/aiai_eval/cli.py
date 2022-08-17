@@ -81,14 +81,14 @@ from .task_configs import get_all_task_configs
     "-tce",
     is_flag=True,
     show_default=True,
-    help="Whether to track carbon usage.",
+    help="Whether to track carbon usage. Remember to set `--country-iso-code` to properly calculate carbon emissions",
 )
 @click.option(
     "--country-iso-code",
     "-co",
-    default="DNK",
+    default="",
     show_default=True,
-    help="The 3-letter alphabet ISO Code of the country where the compute infrastructure is hosted.",
+    help="The 3-letter alphabet ISO Code of the country where the compute infrastructure is hosted. See here: https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes",
 )
 def evaluate(
     model_id: Tuple[str],
