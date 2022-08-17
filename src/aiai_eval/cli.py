@@ -50,13 +50,19 @@ from .task_configs import get_all_task_configs
 )
 @click.option(
     "--country-iso-code",
-    "-c",
     default="",
     show_default=True,
     help="""The 3-letter alphabet ISO Code of the country where the compute
-    infrastructure is hosted. Only relevant if no internet connection is available. A
-    list of all such codes are available here:
-    https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes""",
+    infrastructure is hosted. Only relevant if no internet connection is available.
+    Only relevant if `--track-carbon-emissions` is set. A list of all such codes are
+    available here: https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes""",
+)
+@click.option(
+    "--measure-power-secs",
+    default=5,
+    show_default=True,
+    help="""How often power is measured, in seconds. Only relevant if
+    `--track-carbon-emissions` is set to True.""",
 )
 @click.option(
     "--no-progress-bar",
@@ -99,6 +105,7 @@ def evaluate(
     use_auth_token: bool,
     track_carbon_emissions: bool,
     country_iso_code: str,
+    measure_power_secs: int,
     no_progress_bar: bool,
     no_save_results: bool,
     raise_error_on_invalid_model: bool,
@@ -128,6 +135,7 @@ def evaluate(
         verbose=verbose,
         track_carbon_emissions=track_carbon_emissions,
         country_iso_code=country_iso_code,
+        measure_power_secs=measure_power_secs,
     )
 
     # Perform the benchmark evaluation
