@@ -1,6 +1,16 @@
-# AIAI-Eval
+<div align='center'>
+<img src="https://raw.githubusercontent.com/alexandrainst/AIAI-eval/main/gfx/aiai-eval-logo.png" width="auto" height="224">
+</div>
 
-Evaluation of finetuned models.
+### Evaluation of finetuned models.
+
+______________________________________________________________________
+[![PyPI Status](https://badge.fury.io/py/aiai_eval.svg)](https://pypi.org/project/aiai_eval/)
+[![Documentation](https://img.shields.io/badge/docs-passing-green)](https://alexandrainst.github.io/AIAI-eval/aiai_eval.html)
+[![License](https://img.shields.io/github/license/alexandrainst/AIAI-eval)](https://github.com/alexandrainst/AIAI-eval/blob/main/LICENSE)
+[![LastCommit](https://img.shields.io/github/last-commit/alexandrainst/AIAI-eval)](https://github.com/alexandrainst/AIAI-eval/commits/main)
+[![Code Coverage](https://img.shields.io/badge/Coverage-0%25-red.svg)](https://github.com/alexandrainst/AIAI-eval/tree/dev/tests)
+
 
 Developers:
 
@@ -8,40 +18,55 @@ Developers:
 - Anders Jess Pedersen (anders.j.pedersen@alexandra.dk)
 
 
-## Setup
-
-### Set up the environment
-
-1. Run `make install`, which installs Poetry (if it isn't already installed), sets up a virtual environment and all Python dependencies therein.
-2. Run `source .venv/bin/activate` to activate the virtual environment.
-
-### Install new packages
-
-To install new PyPI packages, run:
-
+## Installation
+To install the package simply write the following command in your favorite terminal:
 ```
-$ poetry add <package-name>
+$ pip install aiai-eval
 ```
 
-### Auto-generate API documentation
-
-To auto-generate API document for your project, run:
-
+## Quickstart
+### Benchmarking from the Command Line
+The easiest way to benchmark pretrained models is via the command line interface. After
+having installed the package, you can benchmark your favorite model like so:
 ```
-$ make docs
-```
-
-To view the documentation, run:
-
-```
-$ make view-docs
+$ evaluate --model-id <model_id> --task <task>
 ```
 
-## Tools used in this project
-* [Poetry](https://towardsdatascience.com/how-to-effortlessly-publish-your-python-package-to-pypi-using-poetry-44b305362f9f): Dependency management
-* [hydra](https://hydra.cc/): Manage configuration files
-* [pre-commit plugins](https://pre-commit.com/): Automate code reviewing formatting
-* [pdoc](https://github.com/pdoc3/pdoc): Automatically create an API documentation for your project
+Here `model_id` is the HuggingFace model ID, which can be found on the [HuggingFace
+Hub](https://huggingface.co/models), and `task` is the task you want to benchmark the
+model on, such as "ner" for named entity recognition. See all options by typing
+```
+$ evaluate --help
+```
+
+The specific model version to use can also be added after the suffix '@':
+```
+$ evaluate --model_id <model_id>@<commit>
+```
+
+It can be a branch name, a tag name, or a commit id. It defaults to 'main' for latest.
+
+Multiple models and tasks can be specified by just attaching multiple arguments. Here
+is an example with two models:
+```
+$ evaluate --model_id <model_id1> --model_id <model_id2> --task ner
+```
+
+See all the arguments and options available for the `evaluate` command by typing
+```
+$ evaluate --help
+```
+
+### Benchmarking from a Script
+In a script, the syntax is similar to the command line interface. You simply initialise
+an object of the `Evaluator` class, and call this evaluate object with your favorite
+models and/or datasets:
+```
+>>> from aiai_eval import Evaluator
+>>> evaluator = Evaluator()
+>>> evaluator('<model_id>', '<task>')
+```
+
 
 ## Project structure
 ```
@@ -49,34 +74,39 @@ $ make view-docs
 ├── .flake8
 ├── .github
 │   └── workflows
-│       └── ci.yml
+│       ├── ci.yaml
+│       └── docs.yaml
 ├── .gitignore
 ├── .pre-commit-config.yaml
 ├── LICENSE
 ├── README.md
-├── config
-│   ├── __init__.py
-│   ├── config.yaml
-│   ├── model
-│   │   └── model1.yaml
-│   └── process
-│       └── process1.yaml
-├── data
-│   ├── final
-│   ├── processed
-│   └── raw
+├── gfx
+│   └── logo.png
 ├── makefile
 ├── models
 ├── notebooks
 ├── poetry.toml
 ├── pyproject.toml
 ├── src
-│   ├── scripts
-│   │   ├── fix_dot_env_file.py
-│   │   └── versioning.py
-│   └── aiai_eval
-│       ├── __init__.py
-│       └── demo.py
+│   ├── aiai_eval
+│   │   ├── __init__.py
+│   │   ├── automatic_speech_recognition.py
+│   │   ├── cli.py
+│   │   ├── config.py
+│   │   ├── evaluator.py
+│   │   ├── exceptions.py
+│   │   ├── hf_hub.py
+│   │   ├── image_to_text.py
+│   │   ├── named_entity_recognition.py
+│   │   ├── question_answering.py
+│   │   ├── task.py
+│   │   ├── task_configs.py
+│   │   ├── task_factory.py
+│   │   ├── text_classification.py
+│   │   └── utils.py
+│   └── scripts
+│       ├── fix_dot_env_file.py
+│       └── versioning.py
 └── tests
     └── __init__.py
 ```
