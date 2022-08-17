@@ -89,8 +89,9 @@ target/
 # pytest cache
 .pytest_cache/
 
-# Hydra logs
-outputs
-
 # Documentation
 docs/aiai_eval/
+
+# AIAI
+.aiai_cache/
+aiai_evaluation_results.json
