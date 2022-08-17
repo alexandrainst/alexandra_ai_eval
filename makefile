@@ -108,4 +108,5 @@ tree:
 		-I *.csv \
 		-I *.txt \
 		-I checkpoint-* \
-		-I .coverage*
+		-I .coverage* \
+		-I .aiai_cache
