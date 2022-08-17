@@ -14,6 +14,7 @@ from .exceptions import (
     ModelDoesNotExistOnHuggingFaceHubException,
     NoInternetConnection,
 )
+from .utils import internet_connection_available
 
 
 def model_exists_on_hf_hub(model_id: str) -> bool:
@@ -117,15 +118,10 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
     # If fetching from the Hugging Face Hub failed then throw a reasonable exception
     except RequestException:
 
-        # Check if it is because the internet is down, by pinging Google
-        try:
-            requests.get("https://www.google.com")
-
-            # If no errors were raised then Hugging Face Hub is down
+        # Check if it is because the internet is down
+        if internet_connection_available():
             raise HuggingFaceHubDown()
-
-        # Otherwise, if pinging Google also failed, then the internet is down
-        except RequestException:
+        else:
             raise NoInternetConnection()
 
     # Return the model config

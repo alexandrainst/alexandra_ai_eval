@@ -13,6 +13,7 @@ import numpy as np
 import spacy
 import torch
 import torch.nn as nn
+from codecarbon import EmissionsTracker, OfflineEmissionsTracker
 from datasets import Dataset, DatasetDict, load_dataset, load_metric
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
@@ -30,14 +31,17 @@ from .config import EvaluationConfig, ModelConfig, TaskConfig
 from .exceptions import (
     InvalidEvaluation,
     InvalidFramework,
+    MissingCountryISOCode,
     ModelFetchFailed,
     PreprocessingFailed,
     UnsupportedModelType,
 )
 from .hf_hub import get_model_config
+from .task_configs import EMISSIONS, POWER
 from .utils import (
     clear_memory,
     enforce_reproducibility,
+    internet_connection_available,
     is_module_installed,
     log_scores,
 )
@@ -94,6 +98,10 @@ class Task(ABC):
 
         # Load the model
         model_dict = self._load_model(model_config=model_config)
+
+        # Prepare carbon tracker
+        if self.evaluation_config.track_carbon_emissions:
+            self.carbon_tracker = self._prepare_carbon_tracker()
 
         # Load the dataset dictinoary
         dataset_dict = self._load_data()
@@ -233,10 +241,17 @@ class Task(ABC):
 
             scores.append(test_itr_scores)
 
+        # If track_carbon_emissions is true append metrics, to correctly log emissions data.
+        # We avoid mutating, so any downstream evaluations will not try to use these.
+        metric_configs = list(self.task_config.metrics)
+        if self.evaluation_config.track_carbon_emissions:
+            metric_configs.append(EMISSIONS)
+            metric_configs.append(POWER)
+
         # Log scores
         all_scores = log_scores(
             dataset_name=self.task_config.pretty_dataset_name,
-            metric_configs=self.task_config.metrics,
+            metric_configs=metric_configs,
             scores=scores,
             model_id=model_config.model_id,
         )
@@ -267,6 +282,7 @@ class Task(ABC):
                 the corresponding values.
         """
         scores = []
+        return_scores = {}
         try:
             # Set random seeds to enforce reproducibility of the randomly
             # initialised weights
@@ -292,6 +308,10 @@ class Task(ABC):
                 test, batch_size=32, shuffle=True, collate_fn=data_collator  # type: ignore
             )
 
+            # Start carbon emissions tracking
+            if self.evaluation_config.track_carbon_emissions:
+                self.carbon_tracker.start()
+
             # Get model predictions
             for batch in dataloader:
                 if isinstance(model, PreTrainedModel):
@@ -300,12 +320,16 @@ class Task(ABC):
                     model_predictions = model(batch)
                 else:
                     raise UnsupportedModelType(str(type(model)))
-
                 # Compute metrics
                 scores.append(compute_metrics((model_predictions, batch["labels"])))
 
-            # Aggregate scores from batches
-            return_scores = {}
+            # Stop carbon emissions tracking
+            if self.evaluation_config.track_carbon_emissions:
+                self.carbon_tracker.stop()
+                emissions_data = self.carbon_tracker.final_emissions_data
+                return_scores["carbon_emissions"] = emissions_data.emissions
+                return_scores["energy_consumed"] = emissions_data.energy_consumed
+
             for metric in self.task_config.metrics:
                 if len(scores):
                     return_scores[metric.name] = np.average(
@@ -640,6 +664,48 @@ class Task(ABC):
         """
         # TODO: Only a placeholder for now
         return model
+
+    def _prepare_carbon_tracker(
+        self,
+    ) -> Union[EmissionsTracker, OfflineEmissionsTracker]:
+        """Prepares a carbon emissions tracker.
+
+        Returns:
+            EmissionsTracker or OfflineEmissionsTracker:
+                A carbon emissions tracker. OfflineEmissionsTracker is returned if no internet
+                connection is available.
+        """
+        tracker_name = self.task_config.dataset_name
+        if self.evaluation_config.verbose:
+            log_level = "info"
+        else:
+            log_level = "error"
+
+        if internet_connection_available():
+            carbon_tracker = EmissionsTracker(
+                project_name=tracker_name,
+                measure_power_secs=5,
+                save_to_file=False,
+                save_to_api=False,
+                save_to_logger=False,
+                log_level=log_level,
+            )
+        else:
+            # If country_iso_code is "", raise exception
+            country_iso_code = self.evaluation_config.country_iso_code
+            if country_iso_code == "":
+                raise MissingCountryISOCode
+
+            carbon_tracker = OfflineEmissionsTracker(
+                project_name=tracker_name,
+                measure_power_secs=5,
+                save_to_file=False,
+                save_to_api=False,
+                save_to_logger=False,
+                country_iso_code=country_iso_code,
+                log_level=log_level,
+            )
+        return carbon_tracker
 
     @abstractmethod
     def _preprocess_data_pytorch(

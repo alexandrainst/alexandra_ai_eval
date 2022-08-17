@@ -10,7 +10,9 @@ from typing import Dict, Sequence, Tuple
 
 import numpy as np
 import pkg_resources
+import requests
 import torch
+from requests import RequestException
 
 from .config import MetricConfig
 
@@ -114,10 +116,8 @@ def log_scores(
     for metric_cfg in metric_configs:
         agg_scores = aggregate_scores(scores=scores, metric_config=metric_cfg)
         test_score, test_se = agg_scores["test"]
-        test_score *= 100
-        test_se *= 100
 
-        msg = f"{metric_cfg.pretty_name}:\n  - Test: {test_score:.2f} ± {test_se:.2f}"
+        msg = f"{metric_cfg.pretty_name}:\n  - Test: {test_score:.4f} ± {test_se:.4f}"
 
         # Store the aggregated test scores
         total_dict[metric_cfg.name] = test_score
@@ -164,3 +164,16 @@ def aggregate_scores(
         results["test"] = (test_score, 1.96 * test_se)
 
         return results
+
+
+def internet_connection_available() -> bool:
+    """Checks if internet connection is available by pinging google.com.
+
+    Returns:
+            bool: whether or not internet connection is available.
+    """
+    try:
+        requests.get("https://www.google.com")
+        return True
+    except RequestException:
+        return False
