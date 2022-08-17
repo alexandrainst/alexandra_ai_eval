@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Dict, Sequence, Union
 
 from .config import EvaluationConfig, TaskConfig
-from .exceptions import InvalidEvaluation, ModelDoesNotExistOnHuggingFaceHubException
+from .exceptions import InvalidEvaluation, ModelDoesNotExistOnHuggingFaceHub
 from .hf_hub import model_exists_on_hf_hub
 from .task_configs import get_all_task_configs
 from .task_factory import TaskFactory
@@ -43,11 +43,16 @@ class Evaluator:
             is hosted. This is used when tracking carbon usage.
 
     Attributes:
-        progress_bar (bool): Whether progress bars should be shown.
-        save_results (bool): Whether to save the benchmark results.
-        verbose (bool): Whether to output additional output.
-        use_auth_token (str or bool): The authentication token for the Hugging Face Hub.
-        evaluation_results (dict): The benchmark results.
+        progress_bar (bool):
+            Whether progress bars should be shown.
+        save_results (bool):
+            Whether to save the benchmark results.
+        verbose (bool):
+            Whether to output additional output.
+        use_auth_token (str or bool):
+            The authentication token for the Hugging Face Hub.
+        evaluation_results (dict):
+            The benchmark results.
     """
 
     def __init__(
@@ -102,9 +107,9 @@ class Evaluator:
 
         Returns:
             dict:
-                A nested dictionary of the evaluation results. The keys are the names of
-                the datasets, with values being new dictionaries having the model IDs
-                as keys.
+                A nested dictionary of the evaluation results. The keys are the names
+                of the datasets, with values being new dictionaries having the model
+                IDs as keys.
         """
         # Prepare the model IDs and tasks
         model_ids = self._prepare_model_ids(model_id)
@@ -186,10 +191,10 @@ class Evaluator:
             task_config (TaskConfig):
                 The dataset task configuration to use.
         """
-        logger.info(f"Evaluating {model_id} on {task_config.pretty_dataset_name}")
+        logger.info(f"Evaluating {model_id} on {task_config.pretty_name}")
 
         if not model_exists_on_hf_hub(model_id=model_id):
-            raise ModelDoesNotExistOnHuggingFaceHubException(model_id)
+            raise ModelDoesNotExistOnHuggingFaceHub(model_id)
 
         try:
             task = self.task_factory.build_task(task_config)
@@ -199,7 +204,7 @@ class Evaluator:
         except InvalidEvaluation as e:
             logger.info(
                 f"{model_id} could not be evaluated on "
-                f"{task_config.pretty_dataset_name}. Skipping."
+                f"{task_config.pretty_name}. Skipping."
             )
             logger.debug(f'The error message was "{e}".')
 

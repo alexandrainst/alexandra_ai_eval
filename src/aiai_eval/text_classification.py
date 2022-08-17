@@ -30,6 +30,7 @@ class TextClassification(Task):
         self, dataset: Dataset, framework: str, **kwargs
     ) -> Dataset:
         """Preprocess a dataset by tokenizing and aligning the labels.
+
         For use by a transformer model.
 
         Args:
@@ -74,7 +75,7 @@ class TextClassification(Task):
     ) -> list:
         """Preprocess a dataset by tokenizing and aligning the labels.
 
-        For use by a pytorch model.
+        For use by a PyTorch model.
 
         Args:
             dataset (Hugging Face dataset):
@@ -84,7 +85,8 @@ class TextClassification(Task):
                 dataset.
 
         Returns:
-            Hugging Face dataset: The preprocessed dataset.
+            Hugging Face dataset:
+                The preprocessed dataset.
         """
         full_preprocessed = self._preprocess_data_transformer(
             dataset=dataset, framework=framework, **kwargs

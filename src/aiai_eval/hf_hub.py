@@ -2,7 +2,6 @@
 
 from typing import Optional
 
-import requests
 from huggingface_hub import HfApi, ModelFilter
 from huggingface_hub.utils import RepositoryNotFoundError
 from requests.exceptions import RequestException
@@ -11,7 +10,7 @@ from .config import EvaluationConfig, ModelConfig
 from .exceptions import (
     HuggingFaceHubDown,
     InvalidFramework,
-    ModelDoesNotExistOnHuggingFaceHubException,
+    ModelDoesNotExistOnHuggingFaceHub,
     NoInternetConnection,
 )
 from .utils import internet_connection_available
@@ -21,10 +20,12 @@ def model_exists_on_hf_hub(model_id: str) -> bool:
     """Function checks if `model_id` exists on Huggingface Hub.
 
     Args:
-        model_id (str): The model ID to check.
+        model_id (str):
+            The model ID to check.
 
     Returns:
-        bool: If model exists on Hugginface Hub or not.
+        bool:
+            If model exists on Hugginface Hub or not.
     """
     hf_api = HfApi()
     try:
@@ -48,7 +49,7 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
             The model configuration.
 
     Raises:
-        ModelDoesNotExistOnHuggingFaceHubException:
+        ModelDoesNotExistOnHuggingFaceHub:
             If the model id does not exist on the Hugging Face Hub.
         InvalidFramework:
             If the specified framework is not implemented.
@@ -76,7 +77,7 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
     # Attempt to fetch model data from the Hugging Face Hub.
     # Check if id exists, before creating model config, for more clear exception handling.
     if not model_exists_on_hf_hub(model_id=model_id):
-        raise ModelDoesNotExistOnHuggingFaceHubException(model_id)
+        raise ModelDoesNotExistOnHuggingFaceHub(model_id)
 
     try:
 

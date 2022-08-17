@@ -37,13 +37,13 @@ from .exceptions import (
     UnsupportedModelType,
 )
 from .hf_hub import get_model_config
+from .scoring import log_scores
 from .task_configs import EMISSIONS, POWER
 from .utils import (
     clear_memory,
     enforce_reproducibility,
     internet_connection_available,
     is_module_installed,
-    log_scores,
 )
 
 logger = logging.getLogger(__name__)
@@ -119,8 +119,7 @@ class Task(ABC):
             try:
                 test = test.filter(lambda x: len(x["doc"]) > 0)
             except KeyError:
-                message = "Removal of empty examples was attempted, but failed."
-                warnings.warn(message)
+                warnings.warn("Removal of empty examples was attempted, but failed.")
 
         # Set variable with number of iterations
         num_iter = 10 if not self.evaluation_config.testing else 2
@@ -233,16 +232,17 @@ class Task(ABC):
 
                 # Otherwise we encountered an error
                 else:
-                    message = (
-                        f"An unknown error occurred during the evaluation of the {idx}"
-                        f" iteration. The error message returned was: {str(test_itr_scores)}"
+                    raise InvalidEvaluation(
+                        "An unknown error occurred during the evaluation of the "
+                        f"{idx} iteration. The error message returned was: "
+                        f"{str(test_itr_scores)}"
                     )
-                    raise InvalidEvaluation(message=message)
 
             scores.append(test_itr_scores)
 
-        # If track_carbon_emissions is true append metrics, to correctly log emissions data.
-        # We avoid mutating, so any downstream evaluations will not try to use these.
+        # If track_carbon_emissions is true append metrics, to correctly log emissions
+        # data. We avoid mutating, so any downstream evaluations will not try to use
+        # these.
         metric_configs = list(self.task_config.metrics)
         if self.evaluation_config.track_carbon_emissions:
             metric_configs.append(EMISSIONS)
@@ -250,8 +250,8 @@ class Task(ABC):
 
         # Log scores
         all_scores = log_scores(
-            dataset_name=self.task_config.pretty_dataset_name,
-            metric_configs=metric_configs,
+            task_name=self.task_config.pretty_name,
+            metric_configs=self.task_config.metrics,
             scores=scores,
             model_id=model_config.model_id,
         )
@@ -424,7 +424,8 @@ class Task(ABC):
                 dataset.
 
         Raises:
-            InvalidEvaluation: If the split names specified are incorrect.
+            InvalidEvaluation:
+                If the split names specified are incorrect.
         """
         # Download dataset from the HF Hub
         dataset_dict: DatasetDict
@@ -435,19 +436,23 @@ class Task(ABC):
         )
 
         # Remove all other keys than 'train', 'test', 'val'
+        train_name = self.task_config.train_name
+        val_name = self.task_config.val_name
+        test_name = self.task_config.test_name
         try:
             dataset_dict = DatasetDict(
-                {
-                    key: dataset_dict.get(self.task_config.split_names[key])
-                    for key in ["train", "val", "test"]
-                }
+                dict(
+                    train=dataset_dict.get(train_name),
+                    val=dataset_dict.get(val_name),
+                    test=dataset_dict.get(test_name),
+                )
             )
         except KeyError:
-            message = (
-                f"`split_names`: {list(self.task_config.split_names.values())}, "
-                f"does not correspond to found splits: {list(dataset_dict.keys())}"
+            raise InvalidEvaluation(
+                f'The split names "{train_name}", "{val_name}", and '
+                f'"{test_name}" for the train, validation and test split are '
+                "incorrect."
             )
-            raise InvalidEvaluation(message)
 
         # Return the dataset dictionary
         return dataset_dict
@@ -479,7 +484,8 @@ class Task(ABC):
                 tokenizer.
 
         Raises:
-            RuntimeError: If the framework is not recognized.
+            RuntimeError:
+                If the framework is not recognized.
         """
         # Ensure that the framework is installed
         from_flax = model_config.framework == "jax"
@@ -556,14 +562,12 @@ class Task(ABC):
             )
 
         except (OSError, ValueError):
-            msg = (
-                f"The model {model_config.model_id} either does not have a "
-                "frameworks registered, or it is a private model. If it is a "
-                "private model then enable the `--use-auth-token` flag and "
-                "make  sure that you are logged in to the Hub via the "
-                "`huggingface-cli login` command."
+            raise InvalidEvaluation(
+                f"The model {model_config.model_id} either does not have a frameworks "
+                "registered, or it is a private model. If it is a private model then "
+                "enable the `--use-auth-token` flag and make  sure that you are "
+                "logged in to the Hub via the `huggingface-cli login` command."
             )
-            raise InvalidEvaluation(msg)
 
         # Ensure that the labels of the model are consistent with the labels of the
         # dataset
@@ -672,10 +676,10 @@ class Task(ABC):
 
         Returns:
             EmissionsTracker or OfflineEmissionsTracker:
-                A carbon emissions tracker. OfflineEmissionsTracker is returned if no internet
-                connection is available.
+                A carbon emissions tracker. OfflineEmissionsTracker is returned if no
+                internet connection is available.
         """
-        tracker_name = self.task_config.dataset_name
+        tracker_name = self.task_config.name
         if self.evaluation_config.verbose:
             log_level = "info"
         else:
