@@ -105,18 +105,6 @@ class TestTaskConfig:
 
 
 class TestEvaluationConfig:
-    @pytest.fixture(scope="class")
-    def evaluation_config(self):
-        yield EvaluationConfig(
-            raise_error_on_invalid_model=True,
-            cache_dir="cache_dir",
-            use_auth_token=True,
-            progress_bar=True,
-            save_results=True,
-            verbose=True,
-            testing=True,
-        )
-
     def test_evaluation_config_is_object(self, evaluation_config):
         assert isinstance(evaluation_config, EvaluationConfig)
 
