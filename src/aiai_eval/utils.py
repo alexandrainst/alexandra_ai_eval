@@ -167,6 +167,11 @@ def aggregate_scores(
 
 
 def internet_connection_available() -> bool:
+    """Checks if internet connection is available by pinging google.com.
+
+    Returns:
+            bool: whether or not internet connection is available.
+    """
     try:
         requests.get("https://www.google.com")
         return True
