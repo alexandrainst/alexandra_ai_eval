@@ -139,7 +139,8 @@ class EvaluationConfig:
             Whether to track carbon usage.
         country_iso_code (str):
             The 3-letter alphabet ISO Code of the country where the compute infrastructure
-            is hosted. This is used when tracking carbon usage.
+            is hosted. This is used when tracking carbon usage. See here:
+            https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
 
     """
 
@@ -151,7 +152,7 @@ class EvaluationConfig:
     verbose: bool
     testing: bool = False
     track_carbon_emissions: bool = False
-    country_iso_code: str = "DNK"
+    country_iso_code: str = ""
 
 
 @dataclass
