@@ -1,4 +1,4 @@
-"""Main Evaluator class, used to evaluate models."""
+"""Main Evaluator class, used to evaluate finetuned models."""
 
 
 import json
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class Evaluator:
-    """Evaluating provided Danish language models.
+    """Evaluating finetuned models.
 
     Args:
         progress_bar (bool, optional):
@@ -39,20 +39,18 @@ class Evaluator:
         track_carbon_emissions (bool):
             Whether to track carbon usage.
         country_iso_code (str):
-            The 3-letter alphabet ISO Code of the country where the compute infrastructure
-            is hosted. This is used when tracking carbon usage.
+            The 3-letter alphabet ISO Code of the country where the compute
+            infrastructure is hosted. Only relevant if no internet connection is
+            available. A list of all such codes are available here:
+            https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
 
     Attributes:
-        progress_bar (bool):
-            Whether progress bars should be shown.
-        save_results (bool):
-            Whether to save the benchmark results.
-        verbose (bool):
-            Whether to output additional output.
-        use_auth_token (str or bool):
-            The authentication token for the Hugging Face Hub.
+        evaluation_config (EvaluationConfig):
+            The evaluation configuration.
         evaluation_results (dict):
-            The benchmark results.
+            The evaluation results.
+        task_factory (TaskFactory):
+            The factory object used to generate tasks to be evaluated.
     """
 
     def __init__(
