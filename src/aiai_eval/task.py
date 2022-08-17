@@ -31,6 +31,7 @@ from .config import EvaluationConfig, ModelConfig, TaskConfig
 from .exceptions import (
     InvalidEvaluation,
     InvalidFramework,
+    MissingCountryISOCode,
     ModelFetchFailed,
     PreprocessingFailed,
     UnsupportedModelType,
@@ -690,18 +691,11 @@ class Task(ABC):
                 log_level=log_level,
             )
         else:
-            # If country_iso_code is "DNK", send warning
+            # If country_iso_code is "", raise exception
             country_iso_code = self.evaluation_config.country_iso_code
-            if country_iso_code == "DNK":
-                message = (
-                    "The carbon tracker calculates carbon usage based on power consumption, "
-                    "and the country where the compute infrastructure is hosted. Internet connection "
-                    "was not available and hence the location of the infrastructure could not be "
-                    "automatically fetched, because of the this the location defaults to 'DNK'."
-                    "If the compute infrastructure is not hosted in Denmark, change the"
-                    "'country_iso_code' to the correct ISO code."
-                )
-                warnings.warn(message)
+            if country_iso_code == "":
+                raise MissingCountryISOCode
+
             carbon_tracker = OfflineEmissionsTracker(
                 project_name=tracker_name,
                 measure_power_secs=5,
