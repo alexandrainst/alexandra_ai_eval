@@ -51,7 +51,7 @@ from .task_configs import get_all_task_configs
 )
 @click.option(
     "--country-iso-code",
-    type=click.Choice(ALL_COUNTRY_CODES),
+    type=click.Choice([""] + ALL_COUNTRY_CODES),
     default="",
     show_default=True,
     metavar="ISO 3166-1 ALPHA-3 LANGUAGE CODE",
