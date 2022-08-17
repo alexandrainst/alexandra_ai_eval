@@ -62,7 +62,7 @@ class Evaluator:
         use_auth_token: Union[bool, str] = False,
         verbose: bool = False,
         track_carbon_emissions: bool = False,
-        country_iso_code: str = "DNK",
+        country_iso_code: str = "",
     ):
         # Build evaluation configuration
         self.evaluation_config = EvaluationConfig(
