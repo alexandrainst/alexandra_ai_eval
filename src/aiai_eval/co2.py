@@ -9,7 +9,7 @@ from .utils import internet_connection_available
 
 
 def get_carbon_tracker(
-    task_name: str, country_iso_code: str, measure_power_secs: int, verbose: bool
+    task_name: str, country_iso_code: str, verbose: bool
 ) -> Union[EmissionsTracker, OfflineEmissionsTracker]:
     """Prepares a carbon emissions tracker.
 
@@ -20,8 +20,6 @@ def get_carbon_tracker(
             ISO code of the country. Only relevant if no internet connection is
             available. A list of all such codes are available here:
             https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
-        measure_power_secs (int):
-            How often power is measured, in seconds.
         verbose (bool):
             Whether to print verbose output.
 
@@ -35,7 +33,7 @@ def get_carbon_tracker(
     if internet_connection_available():
         carbon_tracker = EmissionsTracker(
             project_name=task_name,
-            measure_power_secs=measure_power_secs,
+            measure_power_secs=1,
             log_level=log_level,
             save_to_file=False,
             save_to_api=False,
@@ -48,7 +46,7 @@ def get_carbon_tracker(
 
         carbon_tracker = OfflineEmissionsTracker(
             project_name=task_name,
-            measure_power_secs=measure_power_secs,
+            measure_power_secs=1,
             country_iso_code=country_iso_code,
             log_level=log_level,
             save_to_file=False,

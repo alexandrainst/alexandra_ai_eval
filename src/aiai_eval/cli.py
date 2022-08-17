@@ -58,13 +58,6 @@ from .task_configs import get_all_task_configs
     available here: https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes""",
 )
 @click.option(
-    "--measure-power-secs",
-    default=5,
-    show_default=True,
-    help="""How often power is measured, in seconds. Only relevant if
-    `--track-carbon-emissions` is set to True.""",
-)
-@click.option(
     "--no-progress-bar",
     "-np",
     is_flag=True,
@@ -105,7 +98,6 @@ def evaluate(
     use_auth_token: bool,
     track_carbon_emissions: bool,
     country_iso_code: str,
-    measure_power_secs: int,
     no_progress_bar: bool,
     no_save_results: bool,
     raise_error_on_invalid_model: bool,
@@ -135,7 +127,6 @@ def evaluate(
         verbose=verbose,
         track_carbon_emissions=track_carbon_emissions,
         country_iso_code=country_iso_code,
-        measure_power_secs=measure_power_secs,
     )
 
     # Perform the benchmark evaluation

@@ -44,9 +44,6 @@ class Evaluator:
             available. Only relevant if `track_carbon_emissions` is set to True. A list
             of all such codes are available here:
             https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
-        measure_power_secs (int):
-            How often power is measured, in seconds. Only relevant if
-            `track_carbon_emissions` is set to True.
 
     Attributes:
         evaluation_config (EvaluationConfig):
@@ -67,7 +64,6 @@ class Evaluator:
         verbose: bool = False,
         track_carbon_emissions: bool = False,
         country_iso_code: str = "",
-        measure_power_secs: int = 5,
     ):
         # Build evaluation configuration
         self.evaluation_config = EvaluationConfig(
@@ -79,7 +75,6 @@ class Evaluator:
             verbose=verbose,
             track_carbon_emissions=track_carbon_emissions,
             country_iso_code=country_iso_code,
-            measure_power_secs=measure_power_secs,
         )
 
         # Initialise variable storing model lists, so we only have to fetch it once

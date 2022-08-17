@@ -98,7 +98,6 @@ class Task(ABC):
             self.carbon_tracker = get_carbon_tracker(
                 task_name=self.task_config.name,
                 country_iso_code=self.evaluation_config.country_iso_code,
-                measure_power_secs=self.evaluation_config.measure_power_secs,
                 verbose=self.evaluation_config.verbose,
             )
 
