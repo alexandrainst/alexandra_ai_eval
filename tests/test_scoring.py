@@ -20,9 +20,9 @@ def metric_config():
 @pytest.fixture(scope="module")
 def scores(metric_config):
     yield [
-        {f"test_{metric_config.name}": 0.50},
-        {f"test_{metric_config.name}": 0.55},
-        {f"test_{metric_config.name}": 0.60},
+        {metric_config.name: 0.50},
+        {metric_config.name: 0.55},
+        {metric_config.name: 0.60},
     ]
 
 
@@ -32,7 +32,7 @@ class TestAggregateScores:
         agg_scores = aggregate_scores(scores=scores, metric_config=metric_config)
 
         # Manually compute the mean and standard error of the scores
-        test_scores = [dct[f"test_{metric_config.name}"] for dct in scores]
+        test_scores = [dct[metric_config.name] for dct in scores]
         mean = np.mean(test_scores)
         se = 1.96 * np.std(test_scores, ddof=1) / np.sqrt(len(test_scores))
 
@@ -69,8 +69,8 @@ class TestLogScores:
 
     def test_total_scores_keys(self, logged_scores, metric_config):
         assert sorted(logged_scores["total"].keys()) == [
-            f"test_{metric_config.name}",
-            f"test_{metric_config.name}_se",
+            metric_config.name,
+            f"{metric_config.name}_se",
         ]
 
     def test_total_scores_values_are_floats(self, logged_scores):
