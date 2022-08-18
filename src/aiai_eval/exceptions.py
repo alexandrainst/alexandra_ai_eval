@@ -108,7 +108,7 @@ class InvalidArchitectureForTask(Exception):
             f"The provided model-id has the following architectures: {str(self.architectures)}, "
             f"none of which fits the provided task's supertask: {supertask}. Please provide another "
             f"model ID which is a {supertask}-type model, or provide another task which fits the "
-            f"architectures {str(self.architectures)}."
+            f"aforementioned architectures."
         )
 
         super().__init__(self.message)
