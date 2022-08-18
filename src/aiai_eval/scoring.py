@@ -80,7 +80,7 @@ def aggregate_scores(
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        test_scores = [dct[f"test_{metric_config.name}"] for dct in scores]
+        test_scores = [dct[metric_config.name] for dct in scores]
         test_score = np.mean(test_scores)
         if len(test_scores) > 1:
             sample_std = np.std(test_scores, ddof=1)
