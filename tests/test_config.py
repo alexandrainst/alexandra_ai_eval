@@ -35,6 +35,7 @@ def task_config(metric_config, label):
         supertask="supertask_name",
         metrics=[metric_config],
         labels=[label],
+        feature_column_name="column_name",
         train_name="train",
         val_name="val",
         test_name="test",
