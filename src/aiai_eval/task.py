@@ -320,7 +320,7 @@ class Task(ABC):
                     raise UnsupportedModelType(str(type(model)))
                 # Compute metrics
                 scores.append(compute_metrics((model_predictions, batch["labels"])))
-                break
+               
             # Stop carbon emissions tracking
             if self.evaluation_config.track_carbon_emissions:
                 self.carbon_tracker.stop()
