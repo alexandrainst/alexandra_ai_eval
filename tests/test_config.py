@@ -78,6 +78,7 @@ class TestTaskConfig:
         assert task_config.supertask == "supertask_name"
         assert task_config.metrics == [metric_config]
         assert task_config.labels == [label]
+        assert task_config.feature_column_name == "column_name"
         assert task_config.train_name == "train"
         assert task_config.val_name == "val"
         assert task_config.test_name == "test"
