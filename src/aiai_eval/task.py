@@ -34,6 +34,7 @@ from .exceptions import (
     ModelFetchFailed,
     PreprocessingFailed,
     UnsupportedModelType,
+    WrongFeatureColumnName,
 )
 from .hf_hub import get_model_config
 from .scoring import log_scores
@@ -112,12 +113,11 @@ class Task(ABC):
 
         # Remove empty examples from the datasets
         try:
-            test = test.filter(lambda x: len(x["tokens"]) > 0)
+            test = test.filter(
+                lambda x: len(x[self.task_config.feature_column_name]) > 0
+            )
         except KeyError:
-            try:
-                test = test.filter(lambda x: len(x["doc"]) > 0)
-            except KeyError:
-                warnings.warn("Removal of empty examples was attempted, but failed.")
+            raise WrongFeatureColumnName(self.task_config.feature_column_name)
 
         # Set variable with number of iterations
         num_iter = 10 if not self.evaluation_config.testing else 2
@@ -208,7 +208,7 @@ class Task(ABC):
 
         # Set up progress bar
         if self.evaluation_config.progress_bar:
-            itr = tqdm(range(num_iter), desc="Benchmarking")
+            itr = tqdm(range(num_iter), desc="Evaluating")
         else:
             itr = range(num_iter)
 

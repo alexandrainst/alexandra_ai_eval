@@ -1,12 +1,11 @@
 """Class for text classification tasks."""
 
 from functools import partial
-from typing import Optional
 
 from datasets import Dataset
 from transformers import DataCollatorWithPadding, PreTrainedTokenizerBase
 
-from .exceptions import InvalidEvaluation, MissingLabel
+from .exceptions import InvalidEvaluation, MissingLabel, WrongFeatureColumnName
 from .task import Task
 
 
@@ -54,7 +53,14 @@ class TextClassification(Task):
 
         # Tokenizer helper
         def tokenise(examples: dict) -> dict:
-            return tokenizer(examples["text"], truncation=True, padding=True)
+            try:
+                return tokenizer(
+                    examples[kwargs["task_config"].feature_column_name],
+                    truncation=True,
+                    padding=True,
+                )
+            except KeyError:
+                raise WrongFeatureColumnName(kwargs["task_config"].feature_column_name)
 
         # Tokenise
         tokenised = dataset.map(tokenise, batched=True, load_from_cache_file=False)
@@ -68,7 +74,7 @@ class TextClassification(Task):
         )
 
         # Remove unused column
-        return preprocessed.remove_columns(["text"])
+        return preprocessed.remove_columns(kwargs["task_config"].feature_column_name)
 
     def _preprocess_data_pytorch(
         self, dataset: Dataset, framework: str, **kwargs
