@@ -111,4 +111,12 @@ class InvalidArchitectureForTask(Exception):
             f"aforementioned architectures."
         )
 
+
+class WrongFeatureColumnName(Exception):
+    def __init__(
+        self,
+        feature_column_name: str,
+    ):
+        self.feature_column_name = feature_column_name
+        self.message = f"The provided feature column name: {self.feature_column_name} was incorrect."
         super().__init__(self.message)
