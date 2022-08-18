@@ -48,8 +48,8 @@ def log_scores(
         msg = f"{metric_cfg.pretty_name}:\n  - Test: {test_score:.4f} ± {test_se:.4f}"
 
         # Store the aggregated test scores
-        total_dict[f"test_{metric_cfg.name}"] = test_score
-        total_dict[f"test_{metric_cfg.name}_se"] = test_se
+        total_dict[metric_cfg.name] = test_score
+        total_dict[f"{metric_cfg.name}_se"] = test_se
 
         # Log the scores
         logger.info(msg)
@@ -80,7 +80,7 @@ def aggregate_scores(
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        test_scores = [dct[f"test_{metric_config.name}"] for dct in scores]
+        test_scores = [dct[metric_config.name] for dct in scores]
         test_score = np.mean(test_scores)
         if len(test_scores) > 1:
             sample_std = np.std(test_scores, ddof=1)
