@@ -546,21 +546,19 @@ class Task(ABC):
             supertask = self.task_config.supertask
             if supertask == "token-classification":
                 # Check if model architecture fit the supertask of the provided task.
-                if not any(
-                    ["TokenClassification" in arc for arc in config.architectures]
-                ):
-                    raise InvalidArchitectureForTask(
-                        architectures=config.architectures, supertask=supertask
-                    )
+                self._check_supertask(
+                    architectures=config.architectures,
+                    supertask=supertask,
+                    search_str="TokenClassification",
+                )
                 model_cls = AutoModelForTokenClassification  # type: ignore
             elif supertask == "text-classification":
                 # Check if model architecture fit the supertask of the provided task.
-                if not any(
-                    ["SequenceClassification" in arc for arc in config.architectures]
-                ):
-                    raise InvalidArchitectureForTask(
-                        architectures=config.architectures, supertask=supertask
-                    )
+                self._check_supertask(
+                    architectures=config.architectures,
+                    supertask=supertask,
+                    search_str="SequenceClassification",
+                )
                 model_cls = AutoModelForSequenceClassification  # type: ignore
             else:
                 raise ValueError(f"The supertask `{supertask}` was not recognised.")
@@ -616,6 +614,14 @@ class Task(ABC):
                 tokenizer.model_max_length = 512
 
         return dict(model=model, tokenizer=tokenizer)
+
+    def _check_supertask(
+        self, architectures: Sequence[str], supertask: str, search_str: str
+    ):
+        if not any([search_str in arc for arc in architectures]):
+            raise InvalidArchitectureForTask(
+                architectures=architectures, supertask=supertask
+            )
 
     def _load_spacy_model(self, model_config: ModelConfig) -> Dict[str, Any]:
         """Load a spaCy model.
