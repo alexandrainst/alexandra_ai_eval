@@ -29,6 +29,7 @@ from transformers import (
 from .co2 import get_carbon_tracker
 from .config import EvaluationConfig, ModelConfig, TaskConfig
 from .exceptions import (
+    InvalidArchitectureForTask,
     InvalidEvaluation,
     InvalidFramework,
     ModelFetchFailed,
@@ -544,8 +545,22 @@ class Task(ABC):
 
             supertask = self.task_config.supertask
             if supertask == "token-classification":
+                # Check if model architecture fit the supertask of the provided task.
+                if not any(
+                    ["TokenClassification" in arc for arc in config.architectures]
+                ):
+                    raise InvalidArchitectureForTask(
+                        architectures=config.architectures, supertask=supertask
+                    )
                 model_cls = AutoModelForTokenClassification  # type: ignore
             elif supertask == "text-classification":
+                # Check if model architecture fit the supertask of the provided task.
+                if not any(
+                    ["SequenceClassification" in arc for arc in config.architectures]
+                ):
+                    raise InvalidArchitectureForTask(
+                        architectures=config.architectures, supertask=supertask
+                    )
                 model_cls = AutoModelForSequenceClassification  # type: ignore
             else:
                 raise ValueError(f"The supertask `{supertask}` was not recognised.")
