@@ -48,8 +48,8 @@ def log_scores(
         msg = f"{metric_cfg.pretty_name}:\n  - Test: {test_score:.4f} ± {test_se:.4f}"
 
         # Store the aggregated test scores
-        total_dict[f"test_{metric_cfg.name}"] = test_score
-        total_dict[f"test_{metric_cfg.name}_se"] = test_se
+        total_dict[metric_cfg.name] = test_score
+        total_dict[f"{metric_cfg.name}_se"] = test_se
 
         # Log the scores
         logger.info(msg)
