@@ -1,6 +1,6 @@
 """Custom exceptions used in the project."""
 
-from typing import Dict
+from typing import Dict, Sequence
 
 
 class InvalidEvaluation(Exception):
@@ -97,4 +97,18 @@ class MissingCountryISOCode(Exception):
         ),
     ):
         self.message = message
+        super().__init__(self.message)
+
+
+class InvalidArchitectureForTask(Exception):
+    def __init__(self, architectures: Sequence[str], supertask: str):
+        self.architectures = architectures
+        self.supertask = supertask
+        self.message = (
+            f"The provided model-id has the following architectures: {str(self.architectures)}, "
+            f"none of which fits the provided tasks supertask: {supertask}. Provide a another "
+            f"model-id which is a {supertask}-type model, or provide another task which fits the "
+            f"architectures {str(self.architectures)}."
+        )
+
         super().__init__(self.message)
