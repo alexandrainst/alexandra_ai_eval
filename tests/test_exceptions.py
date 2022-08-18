@@ -4,6 +4,7 @@ import pytest
 
 from src.aiai_eval.exceptions import (
     HuggingFaceHubDown,
+    InvalidArchitectureForTask,
     InvalidEvaluation,
     InvalidFramework,
     MissingLabel,
@@ -12,6 +13,7 @@ from src.aiai_eval.exceptions import (
     NoInternetConnection,
     PreprocessingFailed,
     UnsupportedModelType,
+    WrongFeatureColumnName,
 )
 
 
@@ -262,5 +264,67 @@ class TestUnsupportedModelType:
         message = (
             f"Received an unsupported model type: {model_type}, "
             "supported types are `nn.Module` and `PretrainedModel`."
+        )
+        assert exception.message == message
+
+
+class TestWrongFeatureColumnName:
+    """Unit tests for the WrongFeatureColumnName exception class."""
+
+    @pytest.fixture(scope="class")
+    def feature_column_name(self):
+        yield "column_name"
+
+    @pytest.fixture(scope="class")
+    def exception(self, feature_column_name):
+        yield WrongFeatureColumnName(feature_column_name=feature_column_name)
+
+    def test_wrong_feature_column_name_is_an_exception(self, exception):
+        with pytest.raises(WrongFeatureColumnName):
+            raise exception
+
+    def test_model_type_is_stored(self, exception, feature_column_name):
+        assert exception.feature_column_name == feature_column_name
+
+    def test_message_is_stored(self, exception, feature_column_name):
+        message = (
+            f"The provided feature column name: {feature_column_name} was incorrect."
+        )
+        assert exception.message == message
+
+
+class TestInvalidArchitectureForTask:
+    """Unit tests for the InvalidArchitectureForTask exception class."""
+
+    @pytest.fixture(scope="class")
+    def architectures(self):
+        yield ["test_model_type"]
+
+    @pytest.fixture(scope="class")
+    def supertask(self):
+        yield "supertask"
+
+    @pytest.fixture(scope="class")
+    def exception(self, architectures, supertask):
+        yield InvalidArchitectureForTask(
+            architectures=architectures, supertask=supertask
+        )
+
+    def test_invalid_architecture_for_task_is_an_exception(self, exception):
+        with pytest.raises(InvalidArchitectureForTask):
+            raise exception
+
+    def test_supertask_is_stored(self, exception, supertask):
+        assert exception.supertask == supertask
+
+    def test_architecture_is_stored(self, exception, architectures):
+        assert exception.architectures == architectures
+
+    def test_message_is_stored(self, exception, architectures, supertask):
+        message = (
+            f"The provided model-id has the following architectures: {str(architectures)}, "
+            f"none of which fits the provided task's supertask: {supertask}. Please provide another "
+            f"model ID which is a {supertask}-type model, or provide another task which fits the "
+            f"aforementioned architectures."
         )
         assert exception.message == message
