@@ -2,24 +2,11 @@
 
 import pytest
 
-from src.aiai_eval.config import EvaluationConfig, Label
+from src.aiai_eval.config import Label
 from src.aiai_eval.named_entity_recognition import NamedEntityRecognition
 from src.aiai_eval.task_configs import NER, SENT
 from src.aiai_eval.task_factory import TaskFactory
 from src.aiai_eval.text_classification import TextClassification
-
-
-@pytest.fixture(scope="module")
-def evaluation_config():
-    yield EvaluationConfig(
-        raise_error_on_invalid_model=True,
-        cache_dir="cache_dir",
-        use_auth_token=True,
-        progress_bar=True,
-        save_results=True,
-        verbose=True,
-        testing=True,
-    )
 
 
 @pytest.fixture(scope="module")

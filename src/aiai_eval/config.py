@@ -137,15 +137,16 @@ class EvaluationConfig:
             'evaluation_results.json'.
         verbose (bool):
             Whether to print verbose output.
-        testing (bool, optional):
-            Whether a unit test is being run. Defaults to False.
         track_carbon_usage (bool):
             Whether to track carbon usage.
         country_iso_code (str):
-            The 3-letter alphabet ISO Code of the country where the compute infrastructure
-            is hosted. This is used when tracking carbon usage. See here:
+            The 3-letter alphabet ISO Code of the country where the compute
+            infrastructure is hosted. Only relevant if no internet connection is
+            available. Only relevant if `track_carbon_emissions` is set to True. A list
+            of all such codes are available here:
             https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
-
+        testing (bool, optional):
+            Whether a unit test is being run. Defaults to False.
     """
 
     raise_error_on_invalid_model: bool
@@ -154,9 +155,9 @@ class EvaluationConfig:
     progress_bar: bool
     save_results: bool
     verbose: bool
+    track_carbon_emissions: bool
+    country_iso_code: str
     testing: bool = False
-    track_carbon_emissions: bool = False
-    country_iso_code: str = ""
 
 
 @dataclass

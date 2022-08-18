@@ -2,24 +2,12 @@
 
 import pytest
 
-from src.aiai_eval.config import EvaluationConfig, ModelConfig
+from src.aiai_eval.config import ModelConfig
 from src.aiai_eval.exceptions import ModelDoesNotExistOnHuggingFaceHub
 from src.aiai_eval.hf_hub import get_model_config, model_exists_on_hf_hub
 
 
 class TestGetModelConfig:
-    @pytest.fixture(scope="class")
-    def evaluation_config(self):
-        yield EvaluationConfig(
-            raise_error_on_invalid_model=True,
-            cache_dir="cache_dir",
-            use_auth_token=False,
-            progress_bar=True,
-            save_results=True,
-            verbose=True,
-            testing=True,
-        )
-
     @pytest.fixture(scope="class")
     def model_config(self, evaluation_config):
         yield get_model_config(

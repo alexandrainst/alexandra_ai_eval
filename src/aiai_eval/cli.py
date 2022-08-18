@@ -4,6 +4,7 @@ from typing import Tuple, Union
 
 import click
 
+from .country_codes import ALL_COUNTRY_CODES
 from .evaluator import Evaluator
 from .task_configs import get_all_task_configs
 
@@ -43,20 +44,21 @@ from .task_configs import get_all_task_configs
 )
 @click.option(
     "--track-carbon-emissions",
-    "-tce",
+    "-co2",
     is_flag=True,
     show_default=True,
-    help="""Whether to track carbon usage. Remember to set `--country-iso-code` to
-    properly calculate carbon emissions""",
+    help="""Whether to track carbon usage.""",
 )
 @click.option(
     "--country-iso-code",
-    "-co",
+    type=click.Choice([""] + ALL_COUNTRY_CODES),
     default="",
     show_default=True,
+    metavar="ISO 3166-1 ALPHA-3 LANGUAGE CODE",
     help="""The 3-letter alphabet ISO Code of the country where the compute
-    infrastructure is hosted. See here:
-    https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes""",
+    infrastructure is hosted. Only relevant if no internet connection is available.
+    Only relevant if `--track-carbon-emissions` is set. A list of all such codes are
+    available here: https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes""",
 )
 @click.option(
     "--no-progress-bar",
@@ -81,7 +83,6 @@ from .task_configs import get_all_task_configs
 )
 @click.option(
     "--cache-dir",
-    "-c",
     default=".aiai_cache",
     show_default=True,
     help="The directory where models are datasets are cached.",

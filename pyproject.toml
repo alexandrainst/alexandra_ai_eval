@@ -21,6 +21,7 @@ seqeval = "^1.2.2"
 huggingface-hub = ">=0.8.1,<1.0.0"
 datasets = "^2.4.0"
 codecarbon = "^2.1.3"
+fsspec = "^2022.7.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"

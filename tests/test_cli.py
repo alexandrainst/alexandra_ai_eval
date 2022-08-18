@@ -35,7 +35,7 @@ def test_cli_param_types(params):
     assert params["auth_token"] == STRING
     assert params["use_auth_token"] == BOOL
     assert params["track_carbon_emissions"] == BOOL
-    assert params["country_iso_code"] == STRING
+    assert isinstance(params["country_iso_code"], Choice)
     assert params["no_progress_bar"] == BOOL
     assert params["no_save_results"] == BOOL
     assert params["raise_error_on_invalid_model"] == BOOL
