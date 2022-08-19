@@ -16,5 +16,7 @@ def evaluation_config():
         verbose=True,
         track_carbon_emissions=True,
         country_iso_code="DNK",
+        prefer_mps=False,
+        prefer_cpu=False,
         testing=True,
     )
