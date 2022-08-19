@@ -88,6 +88,18 @@ from .task_configs import get_all_task_configs
     help="The directory where models are datasets are cached.",
 )
 @click.option(
+    "--prefer-mps",
+    is_flag=True,
+    show_default=True,
+    help="Whether to prefer MPS GPUs when available.",
+)
+@click.option(
+    "--prefer-cpu",
+    is_flag=True,
+    show_default=True,
+    help="Whether to prefer CPU.",
+)
+@click.option(
     "--verbose",
     "-v",
     is_flag=True,
@@ -105,6 +117,8 @@ def evaluate(
     no_save_results: bool,
     raise_error_on_invalid_model: bool,
     cache_dir: str,
+    prefer_mps: bool,
+    prefer_cpu: bool,
     verbose: bool,
 ):
     """Benchmark finetuned models."""
@@ -127,9 +141,11 @@ def evaluate(
         raise_error_on_invalid_model=raise_error_on_invalid_model,
         cache_dir=cache_dir,
         use_auth_token=auth,
-        verbose=verbose,
         track_carbon_emissions=track_carbon_emissions,
         country_iso_code=country_iso_code,
+        prefer_mps=prefer_mps,
+        prefer_cpu=prefer_cpu,
+        verbose=verbose,
     )
 
     # Perform the benchmark evaluation

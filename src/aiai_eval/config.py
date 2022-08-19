@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Sequence, Union
 
+from .utils import get_available_devices
+
 
 @dataclass
 class MetricConfig:
@@ -148,6 +150,10 @@ class EvaluationConfig:
             available. Only relevant if `track_carbon_emissions` is set to True. A list
             of all such codes are available here:
             https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
+        prefer_mps (bool):
+            Whether to prefer MPS for the compute infrastructure.
+        prefer_cpu (bool):
+            Whether to prefer CPU for the compute infrastructure.
         testing (bool, optional):
             Whether a unit test is being run. Defaults to False.
     """
@@ -160,7 +166,34 @@ class EvaluationConfig:
     verbose: bool
     track_carbon_emissions: bool
     country_iso_code: str
+    prefer_mps: bool
+    prefer_cpu: bool
     testing: bool = False
+
+    @property
+    def device(self) -> str:
+        """The compute device to use for the evaluation.
+
+        Returns:
+            str:
+                The compute device to use for the evaluation.
+        """
+
+        # If CPU is preferred then everything else will be ignored, as the CPU is
+        # always available
+        if self.prefer_cpu:
+            return "cpu"
+
+        # Otherwise we fetch a list of available devices
+        available_devices = get_available_devices()
+
+        # If MPS is preferred and is available then we use it
+        if self.prefer_mps and "mps" in available_devices:
+            return "mps"
+
+        # Otherwise, we use the best available device, which is the first device
+        # present in the list
+        return available_devices[0]
 
 
 @dataclass

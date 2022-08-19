@@ -34,16 +34,20 @@ class Evaluator:
             specified then the token will be fetched from the Hugging Face CLI, where
             the user has logged in through `huggingface-cli login`. If a string is
             specified then it will be used as the token. Defaults to False.
-        verbose (bool, optional):
-            Whether to output additional output. Defaults to False.
-        track_carbon_emissions (bool):
-            Whether to track carbon usage.
-        country_iso_code (str):
+        track_carbon_emissions (bool, optional):
+            Whether to track carbon usage. Defaults to False.
+        country_iso_code (str, optional):
             The 3-letter alphabet ISO Code of the country where the compute
             infrastructure is hosted. Only relevant if no internet connection is
-            available. Only relevant if `track_carbon_emissions` is set to True. A list
-            of all such codes are available here:
+            available. Only relevant if `track_carbon_emissions` is set to True.
+            Defaults to the empty string. A list of all such codes are available here:
             https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
+        prefer_mps (bool, optional):
+            Whether to prefer MPS GPUs when available. Defaults to False.
+        prefer_cpu (bool, optional):
+            Whether to prefer CPU. Defaults to False.
+        verbose (bool, optional):
+            Whether to output additional output. Defaults to False.
 
     Attributes:
         evaluation_config (EvaluationConfig):
@@ -61,9 +65,11 @@ class Evaluator:
         raise_error_on_invalid_model: bool = False,
         cache_dir: str = ".aiai_cache",
         use_auth_token: Union[bool, str] = False,
-        verbose: bool = False,
         track_carbon_emissions: bool = False,
         country_iso_code: str = "",
+        prefer_mps: bool = False,
+        prefer_cpu: bool = False,
+        verbose: bool = False,
     ):
         # Build evaluation configuration
         self.evaluation_config = EvaluationConfig(
@@ -75,6 +81,8 @@ class Evaluator:
             verbose=verbose,
             track_carbon_emissions=track_carbon_emissions,
             country_iso_code=country_iso_code,
+            prefer_mps=prefer_mps,
+            prefer_cpu=prefer_cpu,
         )
 
         # Initialise variable storing model lists, so we only have to fetch it once
