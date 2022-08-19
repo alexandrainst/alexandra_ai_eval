@@ -29,6 +29,7 @@ from transformers import (
 from .co2 import get_carbon_tracker
 from .config import EvaluationConfig, ModelConfig, TaskConfig
 from .exceptions import (
+    InvalidArchitectureForTask,
     InvalidEvaluation,
     InvalidFramework,
     ModelFetchFailed,
@@ -544,8 +545,20 @@ class Task(ABC):
 
             supertask = self.task_config.supertask
             if supertask == "token-classification":
+                # Check if model architecture fit the supertask of the provided task.
+                self._check_supertask(
+                    architectures=config.architectures,
+                    supertask=supertask,
+                    search_str="TokenClassification",
+                )
                 model_cls = AutoModelForTokenClassification  # type: ignore
             elif supertask == "text-classification":
+                # Check if model architecture fit the supertask of the provided task.
+                self._check_supertask(
+                    architectures=config.architectures,
+                    supertask=supertask,
+                    search_str="SequenceClassification",
+                )
                 model_cls = AutoModelForSequenceClassification  # type: ignore
             else:
                 raise ValueError(f"The supertask `{supertask}` was not recognised.")
@@ -601,6 +614,29 @@ class Task(ABC):
                 tokenizer.model_max_length = 512
 
         return dict(model=model, tokenizer=tokenizer)
+
+    def _check_supertask(
+        self, architectures: Sequence[str], supertask: str, search_str: str
+    ):
+        """Checks if the supertask corresponds to the architectures, by looking for the
+        search_str.
+
+        Args:
+            architectures (list of str):
+                The model architecture names.
+            supertask (str):
+                The supertask associated to a task, e.g. text-classification.
+            search_str (str):
+                The string we are looking for in the architecture names.
+
+        Raises:
+            InvalidArchitectureForTask:
+                If the search_str is not found in any of the architectures.
+        """
+        if not any([search_str in arc for arc in architectures]):
+            raise InvalidArchitectureForTask(
+                architectures=architectures, supertask=supertask
+            )
 
     def _load_spacy_model(self, model_config: ModelConfig) -> Dict[str, Any]:
         """Load a spaCy model.
