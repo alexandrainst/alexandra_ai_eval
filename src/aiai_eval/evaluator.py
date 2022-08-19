@@ -114,6 +114,28 @@ class Evaluator:
         model_ids = self._prepare_model_ids(model_id)
         task_configs = self._prepare_task_configs(task_name=task)
 
+        # If there are multiple models and/or tasks specified, then we log an initial
+        # message containing all the upcoming evaluations. The individual (model, task)
+        # pairs will also be logged individually later
+        if len(model_ids) > 1 or len(task_configs) > 1:
+
+            # Prepare model string for logging
+            if len(model_ids) == 1:
+                model_str = f"{model_ids[0]} model"
+            else:
+                model_str = ", ".join(model_id for model_id in model_ids[:-1])
+                model_str += f" and {model_ids[-1]} models"
+
+            # Prepare task string for logging
+            if len(task_configs) == 1:
+                task_str = f"{task_configs[0].pretty_name} task"
+            else:
+                task_str = ", ".join(cfg.pretty_name for cfg in task_configs[:-1])
+                task_str += f" and {task_configs[-1].pretty_name} tasks"
+
+            # Log status
+            logger.info(f"Evaluating the {model_str} on the {task_str}.")
+
         # Evaluate all the models in `model_ids` on all the datasets in `dataset_tasks`
         for task_config in task_configs:
             for m_id in model_ids:
@@ -190,7 +212,9 @@ class Evaluator:
             task_config (TaskConfig):
                 The dataset task configuration to use.
         """
-        logger.info(f"Evaluating {model_id} on {task_config.pretty_name}")
+        logger.info(
+            f"Evaluating the {model_id} model on the {task_config.pretty_name} task."
+        )
 
         if not model_exists_on_hf_hub(model_id=model_id):
             raise ModelDoesNotExistOnHuggingFaceHub(model_id)
@@ -202,8 +226,8 @@ class Evaluator:
             logger.debug(f"Results:\n{results}")
         except InvalidEvaluation as e:
             logger.info(
-                f"{model_id} could not be evaluated on "
-                f"{task_config.pretty_name}. Skipping."
+                f"{model_id} could not be evaluated on {task_config.pretty_name}. "
+                "Skipping."
             )
             logger.debug(f'The error message was "{e}".')
 
