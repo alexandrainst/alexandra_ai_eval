@@ -216,7 +216,7 @@ class Task(ABC):
         # Load the data collator
         data_collator = self._load_data_collator(tokenizer)
 
-        scores = []
+        scores = list()
         for idx in itr:
             while True:
                 test_itr_scores = self._evaluate_pytorch_jax_single_iteration(
@@ -280,8 +280,8 @@ class Task(ABC):
                 The keys in the dict correspond to the metrics and values
                 the corresponding values.
         """
-        scores = []
-        return_scores = {}
+        scores = list()
+        return_scores = dict()
         try:
             # Set random seeds to enforce reproducibility of the randomly
             # initialised weights
@@ -302,12 +302,20 @@ class Task(ABC):
                 test, batch_size=32, shuffle=True, collate_fn=data_collator  # type: ignore
             )
 
+            # Create progress bar
+            if self.evaluation_config.progress_bar:
+                itr = tqdm(
+                    dataloader, desc=f"Evaluating iteration {idx+1}", leave=False
+                )
+            else:
+                itr = dataloader
+
             # Start carbon emissions tracking
             if self.evaluation_config.track_carbon_emissions:
                 self.carbon_tracker.start()
 
             # Get model predictions
-            for batch in dataloader:
+            for batch in itr:
 
                 # If we are dealing with a Hugging Face model then the `batch` is a
                 # dictionary of tensors
