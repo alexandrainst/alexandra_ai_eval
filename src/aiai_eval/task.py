@@ -5,7 +5,6 @@ import random
 import subprocess
 import warnings
 from abc import ABC, abstractmethod
-from functools import partial
 from subprocess import CalledProcessError
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
