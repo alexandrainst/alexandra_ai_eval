@@ -6,6 +6,7 @@ import os
 import random
 import re
 import warnings
+from typing import List
 
 import numpy as np
 import pkg_resources
@@ -117,3 +118,29 @@ def internet_connection_available() -> bool:
         return True
     except RequestException:
         return False
+
+
+def get_available_devices() -> List[str]:
+    """Gets the available devices.
+
+    This will check whether a CUDA GPU and MPS GPU is available.
+
+    Returns:
+        List[str]:
+            The available devices, sorted as ["cuda", "mps", "cpu"].
+    """
+    available_devices = list()
+
+    # Add CUDA to the list if it is available
+    if torch.cuda.is_available():
+        available_devices.append("cuda")
+
+    # Add MPS to the list if it is available
+    if torch.backends.mps.is_available():
+        available_devices.append("mps")
+
+    # Always add CPU to the list
+    available_devices.append("cpu")
+
+    # Return the list of available devices
+    return available_devices
