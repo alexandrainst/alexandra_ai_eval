@@ -7,7 +7,7 @@ import warnings
 from abc import ABC, abstractmethod
 from functools import partial
 from subprocess import CalledProcessError
-from typing import Any, Dict, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import spacy
@@ -294,11 +294,6 @@ class Task(ABC):
             model_dict = self._load_model(model_config=model_config)
             model = model_dict["model"]
 
-            # Initialise compute_metrics function
-            compute_metrics = partial(
-                self._compute_metrics, id2label=model.config.id2label
-            )
-
             # Get iteration data
             test = tests[idx]
 
@@ -313,14 +308,35 @@ class Task(ABC):
 
             # Get model predictions
             for batch in dataloader:
+
+                # If we are dealing with a Hugging Face model then the `batch` is a
+                # dictionary of tensors
                 if isinstance(model, PreTrainedModel):
+                    batch = {
+                        key: value.to(self.evaluation_config.device)
+                        for key, value in batch.items()
+                    }
                     model_predictions = model(**batch).logits
+
+                # Otherwise, if we are dealing with a PyTorch model then the `batch` is
+                # a tensor of inputs
                 elif isinstance(model, nn.Module):
+                    batch = batch.to(self.evaluation_config.device)
                     model_predictions = model(batch)
+
+                # Otherwise, we throw an error
                 else:
                     raise UnsupportedModelType(str(type(model)))
-                # Compute metrics
-                scores.append(compute_metrics((model_predictions, batch["labels"])))
+
+                # Compute the metrics
+                metrics = self._compute_metrics(
+                    predictions=model_predictions,
+                    labels=batch["labels"],
+                    id2label=model.config.id2label,
+                )
+
+                # Append the metrics to the list of all scores
+                scores.append(metrics)
 
             # Stop carbon emissions tracking
             if self.evaluation_config.track_carbon_emissions:
@@ -329,10 +345,10 @@ class Task(ABC):
                 return_scores["carbon_emissions"] = emissions_data.emissions
                 return_scores["energy_consumed"] = emissions_data.energy_consumed
 
-            for metric in self.task_config.metrics:
-                if len(scores):
-                    return_scores[metric.name] = np.average(
-                        [score[metric.name] for score in scores]
+            if len(scores) > 0:
+                for metric_cfg in self.task_config.metrics:
+                    return_scores[metric_cfg.name] = np.mean(
+                        [score[metric_cfg.name] for score in scores]
                     )
             return return_scores
 
@@ -380,14 +396,18 @@ class Task(ABC):
         return {"foo": {"bar": 1.0}}
 
     def _compute_metrics(
-        self, predictions_and_labels: tuple, id2label: Optional[list] = None
+        self,
+        predictions: Union[torch.Tensor, np.ndarray],
+        labels: Union[torch.Tensor, np.ndarray],
+        id2label: Optional[list] = None,
     ) -> Dict[str, float]:
         """Compute the metrics needed for evaluation.
 
         Args:
-            predictions_and_labels (pair of arrays):
-                The first array contains the probability predictions and the second
-                array contains the true labels.
+            predictions (PyTorch tensor or NumPy array):
+                The predictions of the model.
+            labels (PyTorch tensor or NumPy array):
+                The ground truth labels.
             id2label (list or None, optional):
                 Conversion of indices to labels. Defaults to None.
 
@@ -396,20 +416,78 @@ class Task(ABC):
                 A dictionary with the names of the metrics as keys and the metric
                 values as values.
         """
-        predictions, labels = predictions_and_labels
-        predictions = predictions.argmax(axis=-1)
+        # Ensure that the predictions and labels are NumPy arrays
+        if isinstance(predictions, torch.Tensor):
+            predictions_np = predictions.detach().cpu().numpy()
+        else:
+            predictions_np = np.asarray(predictions)
+        if isinstance(labels, torch.Tensor):
+            labels_np = labels.detach().cpu().numpy()
+        else:
+            labels_np = np.asarray(labels)
+
+        # Compute the predicted classes
+        if any(
+            predictions_np.dtype == dtype
+            for dtype in {np.float16, np.float32, np.float64}
+        ):
+            predictions_np = np.argmax(predictions_np, axis=-1)
+
+        # Prepare the predictions and labels for the given task
+        all_predictions_labels = self._prepare_predictions_and_labels(
+            predictions=predictions_np, labels=labels_np, id2label=id2label
+        )
+
+        # If there are multiple metrics but only one pair in the
+        # `all_predictions_labels` list, we copy our that entry to ensure there is a
+        # pair for each metric
+        if len(all_predictions_labels) == 1 and len(self.task_config.metrics) > 1:
+            all_predictions_labels *= len(self.task_config.metrics)
+
+        # Compute all the metrics
         results = dict()
-        for cfg in self.task_config.metrics:
-            metric = self._metrics[cfg.name]
+        for metric_cfg, predictions_labels in zip(
+            self.task_config.metrics, all_predictions_labels
+        ):
+            predictions, labels = predictions_labels
+            metric = self._metrics[metric_cfg.name]
             score_dict = metric.compute(
                 predictions=predictions,
                 references=labels,
-                **cfg.compute_kwargs,
+                **metric_cfg.compute_kwargs,
             )
             if score_dict is not None:
-                scores = score_dict[cfg.results_key]
-                results[cfg.name] = scores
+                scores = score_dict[metric_cfg.results_key]
+                results[metric_cfg.name] = scores
+
+        # Return the results
         return results
+
+    def _prepare_predictions_and_labels(
+        self,
+        predictions: np.ndarray,
+        labels: np.ndarray,
+        id2label: Optional[list] = None,
+    ) -> List[Tuple[np.ndarray, np.ndarray]]:
+        """Prepare predictions and labels for output.
+
+        Args:
+            predictions (NumPy array):
+                The predictions of the model.
+            labels (NumPy array):
+                The ground truth labels.
+            id2label (list or None, optional):
+                Conversion of indices to labels. Defaults to None.
+
+        Returns:
+            list of pairs of NumPy arrays:
+                The prepared predictions and labels. Each list entry is a pair of NumPy
+                arrays associated with each metric, with the first array being the
+                predictions and the second array being the labels. If the list only
+                contains one element and multiple metrics are present, then the same
+                predictions and labels will be used for all the metrics.
+        """
+        return [(predictions, labels)]
 
     def __call__(self, *args, **kwargs):
         return self.evaluate(*args, **kwargs)
@@ -612,6 +690,12 @@ class Task(ABC):
                     tokenizer.model_max_length = 512
             else:
                 tokenizer.model_max_length = 512
+
+        # Set the model to evaluation mode, making its predictions deterministic
+        model.eval()
+
+        # Move the model to the specified device
+        model.to(self.evaluation_config.device)
 
         return dict(model=model, tokenizer=tokenizer)
 
