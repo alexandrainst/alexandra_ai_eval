@@ -37,7 +37,7 @@ MACRO_F1 = MetricConfig(
 
 EMISSIONS = MetricConfig(
     name="carbon_emissions",
-    pretty_name="Carbon Emissions, in gCO2e",
+    pretty_name="Carbon emissions, in grams of CO2 equivalent",
     huggingface_id="",
     results_key="co2",
 )
@@ -45,7 +45,7 @@ EMISSIONS = MetricConfig(
 
 POWER = MetricConfig(
     name="energy_consumed",
-    pretty_name="Energy Consumed, in Wh",
+    pretty_name="Energy consumed, in watt hours",
     huggingface_id="",
     results_key="power",
 )
