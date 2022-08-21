@@ -351,8 +351,8 @@ class Task(ABC):
             if self.evaluation_config.track_carbon_emissions:
                 self.carbon_tracker.stop()
                 emissions_data = self.carbon_tracker.final_emissions_data
-                return_scores["carbon_emissions"] = emissions_data.emissions
-                return_scores["energy_consumed"] = emissions_data.energy_consumed
+                return_scores["carbon_emissions"] = 1000 * emissions_data.emissions
+                return_scores["energy_consumed"] = 1000 * emissions_data.energy_consumed
 
             if len(scores) > 0:
                 for metric_cfg in self.task_config.metrics:
