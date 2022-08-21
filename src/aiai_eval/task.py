@@ -37,8 +37,8 @@ from .exceptions import (
     WrongFeatureColumnName,
 )
 from .hf_hub import get_model_config
+from .metric_configs import EMISSIONS, POWER
 from .scoring import log_scores
-from .task_configs import EMISSIONS, POWER
 from .utils import clear_memory, enforce_reproducibility, is_module_installed
 
 logger = logging.getLogger(__name__)
@@ -63,6 +63,8 @@ class Task(ABC):
     def __init__(self, task_config: TaskConfig, evaluation_config: EvaluationConfig):
         self.task_config = task_config
         self.evaluation_config = evaluation_config
+
+        # Load the metric functions from the `datasets` library
         self._metrics = {
             metric_cfg.name: load_metric(metric_cfg.huggingface_id)
             for metric_cfg in task_config.metrics
