@@ -251,7 +251,7 @@ class Task(ABC):
         # Log scores
         all_scores = log_scores(
             task_name=self.task_config.pretty_name,
-            metric_configs=self.task_config.metrics,
+            metric_configs=metric_configs,
             scores=scores,
             model_id=model_config.model_id,
         )
