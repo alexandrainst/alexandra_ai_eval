@@ -181,4 +181,4 @@ class Label:
     """
 
     name: str
-    synonyms: List[str
+    synonyms: List[str]
