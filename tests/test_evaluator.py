@@ -72,17 +72,17 @@ class TestEvaluator:
         assert task_config == [sent]
 
     def test_evaluate_single_raise_exception_model_not_found(
-        self, evaluator, non_existing_model_id
+        self, evaluator, non_existing_model_id, ner
     ):
         evaluator.evaluation_config.testing = True
         with pytest.raises(ModelDoesNotExistOnHuggingFaceHub):
             evaluator._evaluate_single(
-                task_config=NER, model_id=[non_existing_model_id]
+                task_config=ner, model_id=[non_existing_model_id]
             )
 
     def test_evaluate_single_raise_exception_invalid_task(
-        self, evaluator, existing_model_id
+        self, evaluator, existing_model_id, ner
     ):
         evaluator.evaluation_config.testing = True
         with pytest.raises(InvalidArchitectureForTask):
-            evaluator._evaluate_single(task_config=NER, model_id=existing_model_id)
+            evaluator._evaluate_single(task_config=ner, model_id=existing_model_id)
