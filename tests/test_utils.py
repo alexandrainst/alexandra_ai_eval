@@ -1,5 +1,6 @@
 """Unit tests for the `utils` module."""
 
+import gc
 import random
 
 import numpy as np
@@ -7,6 +8,7 @@ import torch
 from transformers import AutoModelForSequenceClassification
 
 from src.aiai_eval.utils import (
+    clear_memory,
     enforce_reproducibility,
     internet_connection_available,
     is_module_installed,
@@ -109,6 +111,17 @@ class TestIsModuleInstalled:
         assert not is_module_installed("not-a-module")
 
 
-class TestInternetConnectionAvailable:
-    def test_internet_connection_available(self):
-        assert internet_connection_available()
+def test_internet_connection_available():
+    assert internet_connection_available()
+
+
+class TestClearMemory:
+    def test_gc_counts_is_smaller(self):
+        orig_count = gc.get_count()
+        clear_memory()
+        assert gc.get_count() <= orig_count
+
+    def test_torch_memory_cache_decreases(self):
+        orig_torch_mem = torch.cuda.memory_cached()
+        clear_memory()
+        assert torch.cuda.memory_cached() <= orig_torch_mem
