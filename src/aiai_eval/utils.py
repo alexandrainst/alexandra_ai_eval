@@ -1,11 +1,14 @@
 """Utility functions for the project."""
 
+import enum
 import gc
 import logging
 import os
 import random
 import re
 import warnings
+from dataclasses import dataclass
+from typing import List
 
 import numpy as np
 import pkg_resources
@@ -121,3 +124,61 @@ def internet_connection_available() -> bool:
         return True
     except RequestException:
         return False
+
+
+class Device(str, enum.Enum):
+    """The compute device to use for the evaluation.
+
+    Attributes:
+        CPU:
+            CPU device.
+        MPS:
+            MPS GPU, used in M-series MacBooks.
+        CUDA:
+            CUDA GPU, used with NVIDIA GPUs.
+    """
+
+    CPU = "cpu"
+    MPS = "mps"
+    CUDA = "cuda"
+
+
+def get_available_devices() -> List[Device]:
+    """Gets the available devices.
+
+    This will check whether a CUDA GPU and MPS GPU is available.
+
+    Returns:
+        list of Device objects:
+            The available devices, sorted as CUDA, MPS, CPU.
+    """
+    available_devices = list()
+
+    # Add CUDA to the list if it is available
+    if torch.cuda.is_available():
+        available_devices.append(Device.CUDA)
+
+    # Add MPS to the list if it is available
+    if torch.backends.mps.is_available():
+        available_devices.append(Device.MPS)
+
+    # Always add CPU to the list
+    available_devices.append(Device.CPU)
+
+    # Return the list of available devices
+    return available_devices
+
+
+@dataclass
+class Label:
+    """A label in a dataset task.
+
+    Attributes:
+        name (str):
+            The name of the label.
+        synonyms (list of str):
+            The synonyms of the label.
+    """
+
+    name: str
+    synonyms: List[str]

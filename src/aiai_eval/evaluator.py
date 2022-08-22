@@ -7,7 +7,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Sequence, Union
 
-from .config import EvaluationConfig, TaskConfig
+from .config import Device, EvaluationConfig, TaskConfig
 from .exceptions import InvalidEvaluation, ModelDoesNotExistOnHuggingFaceHub
 from .hf_hub import model_exists_on_hf_hub
 from .task_configs import get_all_task_configs
@@ -34,16 +34,20 @@ class Evaluator:
             specified then the token will be fetched from the Hugging Face CLI, where
             the user has logged in through `huggingface-cli login`. If a string is
             specified then it will be used as the token. Defaults to False.
-        verbose (bool, optional):
-            Whether to output additional output. Defaults to False.
-        track_carbon_emissions (bool):
-            Whether to track carbon usage.
-        country_iso_code (str):
+        track_carbon_emissions (bool, optional):
+            Whether to track carbon usage. Defaults to False.
+        country_iso_code (str, optional):
             The 3-letter alphabet ISO Code of the country where the compute
             infrastructure is hosted. Only relevant if no internet connection is
-            available. Only relevant if `track_carbon_emissions` is set to True. A list
-            of all such codes are available here:
+            available. Only relevant if `track_carbon_emissions` is set to True.
+            Defaults to the empty string. A list of all such codes are available here:
             https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
+        prefer_device (Device, optional):
+            The device to prefer when evaluating the model. If the device is not
+            available then another device will be used. Can be "cuda", "mps" and "cpu".
+            Defaults to "cuda".
+        verbose (bool, optional):
+            Whether to output additional output. Defaults to False.
 
     Attributes:
         evaluation_config (EvaluationConfig):
@@ -61,9 +65,10 @@ class Evaluator:
         raise_error_on_invalid_model: bool = False,
         cache_dir: str = ".aiai_cache",
         use_auth_token: Union[bool, str] = False,
-        verbose: bool = False,
         track_carbon_emissions: bool = False,
         country_iso_code: str = "",
+        prefer_device: Device = Device.CUDA,
+        verbose: bool = False,
     ):
         # Build evaluation configuration
         self.evaluation_config = EvaluationConfig(
@@ -75,6 +80,7 @@ class Evaluator:
             verbose=verbose,
             track_carbon_emissions=track_carbon_emissions,
             country_iso_code=country_iso_code,
+            prefer_device=prefer_device,
         )
 
         # Initialise variable storing model lists, so we only have to fetch it once

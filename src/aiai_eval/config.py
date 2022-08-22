@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Sequence, Union
 
+from .utils import Device, Label, get_available_devices
+
 
 @dataclass
 class MetricConfig:
@@ -29,21 +31,6 @@ class MetricConfig:
     huggingface_id: str
     results_key: str
     compute_kwargs: Dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass
-class Label:
-    """A label in a dataset task.
-
-    Attributes:
-        name (str):
-            The name of the label.
-        synonyms (list of str):
-            The synonyms of the label.
-    """
-
-    name: str
-    synonyms: List[str]
 
 
 @dataclass
@@ -148,6 +135,10 @@ class EvaluationConfig:
             available. Only relevant if `track_carbon_emissions` is set to True. A list
             of all such codes are available here:
             https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
+        prefer_device (Device):
+            The device to prefer when evaluating the model. If the device is not
+            available then another device will be used. Can be "cuda", "mps" and "cpu".
+            Defaults to "cuda".
         testing (bool, optional):
             Whether a unit test is being run. Defaults to False.
     """
@@ -160,7 +151,33 @@ class EvaluationConfig:
     verbose: bool
     track_carbon_emissions: bool
     country_iso_code: str
+    prefer_device: Device
     testing: bool = False
+
+    @property
+    def device(self) -> str:
+        """The compute device to use for the evaluation.
+
+        Returns:
+            str:
+                The compute device to use for the evaluation.
+        """
+
+        # If CPU is preferred then everything else will be ignored, as the CPU is
+        # always available
+        if self.prefer_device == Device.CPU:
+            return "cpu"
+
+        # Otherwise we fetch a list of available devices
+        available_devices = get_available_devices()
+
+        # If MPS is preferred and is available then we use it
+        if self.prefer_device == Device.MPS and Device.MPS in available_devices:
+            return "mps"
+
+        # Otherwise, we use the best available device, which is the first device
+        # present in the list
+        return str(available_devices[0])
 
 
 @dataclass

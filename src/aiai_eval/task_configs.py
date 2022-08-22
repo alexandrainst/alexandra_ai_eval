@@ -2,7 +2,8 @@
 
 from typing import Dict
 
-from .config import Label, MetricConfig, TaskConfig
+from .config import MetricConfig, TaskConfig
+from .utils import Label
 
 
 def get_all_task_configs() -> Dict[str, TaskConfig]:
