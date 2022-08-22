@@ -30,7 +30,7 @@ def clear_memory():
         torch.cuda.empty_cache()
 
 
-def enforce_reproducibility(framework: str, seed: int = 703):
+def enforce_reproducibility(framework: str, seed: int = 703) -> np.random.Generator:
     """Ensures reproducibility of experiments.
 
     Args:
@@ -38,6 +38,10 @@ def enforce_reproducibility(framework: str, seed: int = 703):
             The framework used for the benchmarking.
         seed (int):
             Seed for the random number generator.
+
+    Returns:
+        NumPy Generator object:
+            A random number generator, with seed `seed`.
     """
     random.seed(seed)
     np.random.seed(seed)
