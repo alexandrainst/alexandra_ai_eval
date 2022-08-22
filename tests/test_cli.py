@@ -24,8 +24,7 @@ def test_cli_param_names(params):
         "no_save_results",
         "raise_error_on_invalid_model",
         "cache_dir",
-        "prefer_mps",
-        "prefer_cpu",
+        "prefer_device",
         "verbose",
         "help",
     }
@@ -42,7 +41,6 @@ def test_cli_param_types(params):
     assert params["no_save_results"] == BOOL
     assert params["raise_error_on_invalid_model"] == BOOL
     assert params["cache_dir"] == STRING
-    assert params["prefer_mps"] == BOOL
-    assert params["prefer_cpu"] == BOOL
+    assert isinstance(params["prefer_device"], Choice)
     assert params["verbose"] == BOOL
     assert params["help"] == BOOL
