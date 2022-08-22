@@ -4,6 +4,7 @@ from typing import Tuple, Union
 
 import click
 
+from .config import Device
 from .country_codes import ALL_COUNTRY_CODES
 from .evaluator import Evaluator
 from .task_configs import get_all_task_configs
@@ -88,16 +89,12 @@ from .task_configs import get_all_task_configs
     help="The directory where models are datasets are cached.",
 )
 @click.option(
-    "--prefer-mps",
-    is_flag=True,
+    "--prefer-device",
+    type=click.Choice(["cuda", "mps", "cpu"]),
+    default="cuda",
     show_default=True,
-    help="Whether to prefer MPS GPUs when available.",
-)
-@click.option(
-    "--prefer-cpu",
-    is_flag=True,
-    show_default=True,
-    help="Whether to prefer CPU.",
+    help="""The device to prefer when evaluating the model. If the device is not
+    available then another device will be used.""",
 )
 @click.option(
     "--verbose",
@@ -117,8 +114,7 @@ def evaluate(
     no_save_results: bool,
     raise_error_on_invalid_model: bool,
     cache_dir: str,
-    prefer_mps: bool,
-    prefer_cpu: bool,
+    prefer_device: Device,
     verbose: bool,
 ):
     """Benchmark finetuned models."""
@@ -143,8 +139,7 @@ def evaluate(
         use_auth_token=auth,
         track_carbon_emissions=track_carbon_emissions,
         country_iso_code=country_iso_code,
-        prefer_mps=prefer_mps,
-        prefer_cpu=prefer_cpu,
+        prefer_device=prefer_device,
         verbose=verbose,
     )
 
