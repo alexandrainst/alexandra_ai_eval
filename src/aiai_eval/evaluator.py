@@ -7,7 +7,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Sequence, Union
 
-from .config import EvaluationConfig, TaskConfig
+from .config import Device, EvaluationConfig, TaskConfig
 from .exceptions import InvalidEvaluation, ModelDoesNotExistOnHuggingFaceHub
 from .hf_hub import model_exists_on_hf_hub
 from .task_configs import get_all_task_configs
@@ -42,10 +42,10 @@ class Evaluator:
             available. Only relevant if `track_carbon_emissions` is set to True.
             Defaults to the empty string. A list of all such codes are available here:
             https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
-        prefer_mps (bool, optional):
-            Whether to prefer MPS GPUs when available. Defaults to False.
-        prefer_cpu (bool, optional):
-            Whether to prefer CPU. Defaults to False.
+        prefer_device (Device, optional):
+            The device to prefer when evaluating the model. If the device is not
+            available then another device will be used. Can be "cuda", "mps" and "cpu".
+            Defaults to "cuda".
         verbose (bool, optional):
             Whether to output additional output. Defaults to False.
 
@@ -67,8 +67,7 @@ class Evaluator:
         use_auth_token: Union[bool, str] = False,
         track_carbon_emissions: bool = False,
         country_iso_code: str = "",
-        prefer_mps: bool = False,
-        prefer_cpu: bool = False,
+        prefer_device: Device = Device.CUDA,
         verbose: bool = False,
     ):
         # Build evaluation configuration
@@ -81,8 +80,7 @@ class Evaluator:
             verbose=verbose,
             track_carbon_emissions=track_carbon_emissions,
             country_iso_code=country_iso_code,
-            prefer_mps=prefer_mps,
-            prefer_cpu=prefer_cpu,
+            prefer_device=prefer_device,
         )
 
         # Initialise variable storing model lists, so we only have to fetch it once
