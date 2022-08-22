@@ -115,13 +115,7 @@ def test_internet_connection_available():
     assert internet_connection_available()
 
 
-class TestClearMemory:
-    def test_gc_counts_is_smaller(self):
-        orig_count = gc.get_count()
-        clear_memory()
-        assert gc.get_count() <= orig_count
-
-    def test_torch_memory_cache_decreases(self):
-        orig_torch_mem = torch.cuda.memory_cached()
-        clear_memory()
-        assert torch.cuda.memory_cached() <= orig_torch_mem
+def test_clear_memory():
+    orig_count = gc.get_count()
+    clear_memory()
+    assert gc.get_count() < orig_count
