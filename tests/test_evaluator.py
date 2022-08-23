@@ -1,5 +1,8 @@
 """Unit tests for the `evaluator` module."""
 
+from collections import defaultdict
+from typing import Dict
+
 import pytest
 
 from src.aiai_eval.evaluator import Evaluator
@@ -80,7 +83,7 @@ class TestEvaluator:
             evaluator._evaluate_single(task_config=NER, model_id=existing_model_id)
 
     @pytest.mark.parametrize(
-        argnames="model_id, task, expected_results",
+        argnames="model_id, task_config, expected_results",
         argvalues=[
             (
                 "pin/senda",
@@ -117,8 +120,40 @@ class TestEvaluator:
         ],
         ids=["sent_pin-senda", "sent_DaNLP-da-bert-tone-sentiment-polarity"],
     )
-    def test_evaluate_single(self, evaluator, model_id, task, expected_results):
+    def test_evaluate_single(self, evaluator, model_id, task_config, expected_results):
         evaluator.evaluation_config.testing = True
-        evaluator._evaluate_single(task_config=task, model_id=model_id)
-        results = evaluator.evaluation_results[task.name][model_id]
+        evaluator._evaluate_single(task_config=task_config, model_id=model_id)
+        results = evaluator.evaluation_results[task_config.name][model_id]
         assert expected_results == results
+
+    # TODO: Once we have more than one type of task, this should test combinations of tasks.
+    @pytest.mark.parametrize(
+        argnames="model_ids, tasks",
+        argvalues=[
+            (
+                ["pin/senda", "DaNLP/da-bert-tone-sentiment-polarity"],
+                ["sent", "sent"],
+            ),
+        ],
+        ids=["sent_pin-senda_sent_DaNLP"],
+    )
+    def test_evaluate(self, evaluator, model_ids, tasks):
+        evaluator.evaluation_config.testing = True
+
+        # Get results from evaluate
+        evaluator.evaluate(model_id=model_ids, task=tasks)
+        pin_results = evaluator.evaluation_results[tasks[0]][model_ids[0]]
+        danlp_results = evaluator.evaluation_results[tasks[1]][model_ids[1]]
+
+        # Reset evaluation results
+        evaluator.evaluation_results: Dict[str, dict] = defaultdict(dict)
+
+        # Get results from evaluate_single
+        evaluator._evaluate_single(task_config=SENT, model_id=model_ids[0])
+        evaluator._evaluate_single(task_config=SENT, model_id=model_ids[1])
+        pin_results_single = evaluator.evaluation_results[tasks[0]][model_ids[0]]
+        danlp_results_single = evaluator.evaluation_results[tasks[1]][model_ids[1]]
+
+        # Check that the results are the same
+        assert pin_results_single == pin_results
+        assert danlp_results_single == danlp_results
