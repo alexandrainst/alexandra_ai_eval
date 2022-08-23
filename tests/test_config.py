@@ -114,7 +114,7 @@ class TestEvaluationConfig:
         assert evaluation_config.raise_error_on_invalid_model is True
         assert evaluation_config.cache_dir == "cache_dir"
         assert evaluation_config.use_auth_token is False
-        assert evaluation_config.progress_bar is True
+        assert evaluation_config.progress_bar is False
         assert evaluation_config.save_results is True
         assert evaluation_config.verbose is True
         assert evaluation_config.testing is True

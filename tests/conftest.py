@@ -11,7 +11,7 @@ def evaluation_config():
         raise_error_on_invalid_model=True,
         cache_dir="cache_dir",
         use_auth_token=False,
-        progress_bar=True,
+        progress_bar=False,
         save_results=True,
         verbose=True,
         track_carbon_emissions=True,

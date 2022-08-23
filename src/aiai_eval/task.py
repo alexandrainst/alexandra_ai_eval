@@ -37,8 +37,8 @@ from .exceptions import (
     WrongFeatureColumnName,
 )
 from .hf_hub import get_model_config
+from .metric_configs import EMISSIONS, POWER
 from .scoring import log_scores
-from .task_configs import EMISSIONS, POWER
 from .utils import clear_memory, enforce_reproducibility, is_module_installed
 
 # Set up a logger
@@ -70,6 +70,8 @@ class Task(ABC):
     def __init__(self, task_config: TaskConfig, evaluation_config: EvaluationConfig):
         self.task_config = task_config
         self.evaluation_config = evaluation_config
+
+        # Load the metric functions from the `datasets` library
         self._metrics = {
             metric_cfg.name: load_metric(metric_cfg.huggingface_id)
             for metric_cfg in task_config.metrics
@@ -192,7 +194,6 @@ class Task(ABC):
                 framework="pytorch",
                 config=model.config,
                 tokenizer=tokenizer,
-                task_config=self.task_config,
             )
             # Do framework specific preprocessing
             if isinstance(model, PreTrainedModel):
@@ -256,7 +257,7 @@ class Task(ABC):
         # Log scores
         all_scores = log_scores(
             task_name=self.task_config.pretty_name,
-            metric_configs=self.task_config.metrics,
+            metric_configs=metric_configs,
             scores=scores,
             model_id=model_config.model_id,
         )
@@ -356,8 +357,8 @@ class Task(ABC):
             if self.evaluation_config.track_carbon_emissions:
                 self.carbon_tracker.stop()
                 emissions_data = self.carbon_tracker.final_emissions_data
-                return_scores["carbon_emissions"] = emissions_data.emissions
-                return_scores["energy_consumed"] = emissions_data.energy_consumed
+                return_scores["carbon_emissions"] = 1000 * emissions_data.emissions
+                return_scores["energy_consumed"] = 1000 * emissions_data.energy_consumed
 
             if len(scores) > 0:
                 for metric_cfg in self.task_config.metrics:
@@ -784,12 +785,10 @@ class Task(ABC):
         return model
 
     @abstractmethod
-    def _preprocess_data_pytorch(
-        self, dataset: Dataset, framework: str, **kwargs
-    ) -> list:
+    def _preprocess_data_pytorch(self, dataset: Dataset, **kwargs) -> list:
         """Preprocess a dataset by tokenizing and aligning the labels.
 
-        For use by a pytorch model.
+        For use by a PyTorch model.
 
         Args:
             dataset (Hugging Face dataset):
@@ -799,7 +798,9 @@ class Task(ABC):
                 dataset.
 
         Returns:
-            Hugging Face dataset: The preprocessed dataset.
+            list of lists:
+                Every list element represents the tokenised data for the corresponding
+                example.
         """
         pass
 

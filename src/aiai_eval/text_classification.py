@@ -55,30 +55,28 @@ class TextClassification(Task):
         def tokenise(examples: dict) -> dict:
             try:
                 return tokenizer(
-                    examples[kwargs["task_config"].feature_column_name],
+                    examples[self.task_config.feature_column_name],
                     truncation=True,
                     padding=True,
                 )
             except KeyError:
-                raise WrongFeatureColumnName(kwargs["task_config"].feature_column_name)
+                raise WrongFeatureColumnName(self.task_config.feature_column_name)
 
         # Tokenise
         tokenised = dataset.map(tokenise, batched=True, load_from_cache_file=False)
 
         # Translate labels to ids
         numericalise = partial(
-            self._create_numerical_labels, label2id=kwargs["task_config"].label2id
+            self._create_numerical_labels, label2id=self.task_config.label2id
         )
         preprocessed = tokenised.map(
             numericalise, batched=True, load_from_cache_file=False
         )
 
         # Remove unused column
-        return preprocessed.remove_columns(kwargs["task_config"].feature_column_name)
+        return preprocessed.remove_columns(self.task_config.feature_column_name)
 
-    def _preprocess_data_pytorch(
-        self, dataset: Dataset, framework: str, **kwargs
-    ) -> list:
+    def _preprocess_data_pytorch(self, dataset: Dataset, **kwargs) -> list:
         """Preprocess a dataset by tokenizing and aligning the labels.
 
         For use by a PyTorch model.
@@ -91,19 +89,38 @@ class TextClassification(Task):
                 dataset.
 
         Returns:
-            Hugging Face dataset:
-                The preprocessed dataset.
+            list of lists:
+                Every list element represents the tokenised data for the corresponding
+                example.
         """
         full_preprocessed = self._preprocess_data_transformer(
-            dataset=dataset, framework=framework, **kwargs
+            dataset=dataset, framework="pytorch", **kwargs
         )
         return full_preprocessed["input_ids"]
 
     def _create_numerical_labels(self, examples: dict, label2id: dict) -> dict:
+        """Create numerical labels from the labels.
+
+        Args:
+            examples (dict):
+                The examples to create numerical labels for.
+            label2id (dict):
+                The mapping from labels to ids.
+
+        Returns:
+            dict: The examples with numerical labels.
+
+        Raises:
+            MissingLabel:
+                If a label is missing in the `label2id` mapping.
+        """
         try:
             examples["label"] = [label2id[lbl.upper()] for lbl in examples["label"]]
         except KeyError:
-            raise MissingLabel(label=examples["label"].upper(), label2id=label2id)
+            missing_label = [
+                lbl.upper() for lbl in examples["label"] if lbl.upper() not in label2id
+            ][0]
+            raise MissingLabel(label=missing_label, label2id=label2id)
         return examples
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
