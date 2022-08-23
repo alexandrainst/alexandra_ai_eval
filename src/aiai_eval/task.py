@@ -519,7 +519,7 @@ class Task(ABC):
             InvalidEvaluation:
                 If the split names specified are incorrect.
         """
-        # Download dataset from the HF Hub
+        # Download dataset from the Hugging Face Hub
         dataset_dict: DatasetDict
         dataset_dict = load_dataset(  # type: ignore
             path=self.task_config.huggingface_id,
@@ -527,17 +527,16 @@ class Task(ABC):
             cache_dir=self.evaluation_config.cache_dir,
         )
 
-        # Remove all other keys than 'train', 'test', 'val'
+        # Remove all other keys than the split names
         train_name = self.task_config.train_name
         val_name = self.task_config.val_name
         test_name = self.task_config.test_name
+        split_names = {
+            split_name for split_name in [train_name, val_name, test_name] if split_name
+        }
         try:
             dataset_dict = DatasetDict(
-                dict(
-                    train=dataset_dict.get(train_name),
-                    val=dataset_dict.get(val_name),
-                    test=dataset_dict.get(test_name),
-                )
+                {split_name: dataset_dict[split_name] for split_name in split_names}
             )
         except KeyError:
             raise InvalidEvaluation(
@@ -616,32 +615,28 @@ class Task(ABC):
                 tokenizer.
         """
         try:
+            # Load the configuration of the pretrained model
             config = AutoConfig.from_pretrained(
                 model_config.model_id,
                 revision=model_config.revision,
                 use_auth_token=self.evaluation_config.use_auth_token,
             )
 
+            # Check whether the supertask is a valid one
             supertask = self.task_config.supertask
+            self._check_supertask(
+                architectures=config.architectures, supertask=supertask
+            )
+
+            # Get the model class associated with the supertask
             if supertask == "token-classification":
-                # Check if model architecture fit the supertask of the provided task.
-                self._check_supertask(
-                    architectures=config.architectures,
-                    supertask=supertask,
-                    search_str="TokenClassification",
-                )
                 model_cls = AutoModelForTokenClassification  # type: ignore
-            elif supertask == "text-classification":
-                # Check if model architecture fit the supertask of the provided task.
-                self._check_supertask(
-                    architectures=config.architectures,
-                    supertask=supertask,
-                    search_str="SequenceClassification",
-                )
+            elif supertask == "sequence-classification":
                 model_cls = AutoModelForSequenceClassification  # type: ignore
             else:
                 raise ValueError(f"The supertask `{supertask}` was not recognised.")
 
+            # Load the model with the correct model class
             model = model_cls.from_pretrained(
                 model_config.model_id,
                 revision=model_config.revision,
@@ -651,6 +646,7 @@ class Task(ABC):
                 from_flax=from_flax,
             )
 
+        # If an error occured then throw an informative exception
         except (OSError, ValueError):
             raise InvalidEvaluation(
                 f"The model {model_config.model_id} either does not have a frameworks "
@@ -741,9 +737,7 @@ class Task(ABC):
             )
         return dict(model=model)
 
-    def _check_supertask(
-        self, architectures: Sequence[str], supertask: str, search_str: str
-    ):
+    def _check_supertask(self, architectures: Sequence[str], supertask: str):
         """Checks if the supertask corresponds to the architectures, by looking for the
         search_str.
 
@@ -752,14 +746,21 @@ class Task(ABC):
                 The model architecture names.
             supertask (str):
                 The supertask associated to a task, e.g. text-classification.
-            search_str (str):
-                The string we are looking for in the architecture names.
 
         Raises:
             InvalidArchitectureForTask:
                 If the search_str is not found in any of the architectures.
         """
-        if not any([search_str in arc for arc in architectures]):
+        # Convert the supertask into a search string, by converting kebab case to title
+        # case; e.g., text-classification -> TextClassification
+        search_str = "".join(word.title() for word in supertask.split("-"))
+
+        # Create boolean variable that checks if the supertask exists among the
+        # available architectures
+        supertask_is_an_architecture = any(search_str in arc for arc in architectures)
+
+        # If the supertask is not an architecture, raise an error
+        if not supertask_is_an_architecture:
             raise InvalidArchitectureForTask(
                 architectures=architectures, supertask=supertask
             )
