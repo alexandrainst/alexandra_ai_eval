@@ -60,9 +60,7 @@ class NamedEntityRecognition(Task):
         """
         pass
 
-    def _preprocess_data_pytorch(
-        self, dataset: Dataset, framework: str, **kwargs
-    ) -> list:
+    def _preprocess_data_pytorch(self, dataset: Dataset, **kwargs) -> list:
         """Preprocess a dataset by tokenizing and aligning the labels.
 
         For use by a PyTorch model.
@@ -70,14 +68,13 @@ class NamedEntityRecognition(Task):
         Args:
             dataset (Hugging Face dataset):
                 The dataset to preprocess.
-            framework (str):
-                Specification of which framework the model is created in.
             kwargs:
                 Extra keyword arguments containing objects used in preprocessing the
                 dataset.
 
         Returns:
-            Hugging Face dataset:
-                The preprocessed dataset.
+            list of lists:
+                Every list element represents the tokenised data for the corresponding
+                example.
         """
         return list(dataset)
