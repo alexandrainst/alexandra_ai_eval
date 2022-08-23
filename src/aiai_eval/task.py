@@ -814,6 +814,7 @@ class Task(ABC):
         """
         pass
 
+    @abstractmethod
     def _preprocess_data_transformer(
         self, dataset: Dataset, framework: str, **kwargs
     ) -> Dataset:
