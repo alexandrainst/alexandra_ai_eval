@@ -12,7 +12,6 @@ from src.aiai_eval.exceptions import (
     WrongFeatureColumnName,
 )
 from src.aiai_eval.sequence_classification import SequenceClassification
-from src.aiai_eval.task_configs import SENT
 
 
 @pytest.fixture(scope="module")
@@ -21,8 +20,10 @@ def dataset():
 
 
 @pytest.fixture(scope="module")
-def seq_clf(evaluation_config):
-    yield SequenceClassification(task_config=SENT, evaluation_config=evaluation_config)
+def seq_clf(evaluation_config, task_config):
+    yield SequenceClassification(
+        task_config=task_config, evaluation_config=evaluation_config
+    )
 
 
 @pytest.fixture(scope="module")
@@ -59,11 +60,11 @@ class TestPreprocessDataTransformer:
         ]
 
     def test_throw_exception_if_feature_column_name_is_wrong(
-        self, dataset, evaluation_config, tokenizer
+        self, dataset, evaluation_config, tokenizer, task_config
     ):
         # Create copy of the sentiment analysis task config, with a wrong feature
         # column name
-        sent_cfg_copy = deepcopy(SENT)
+        sent_cfg_copy = deepcopy(task_config)
         sent_cfg_copy.feature_column_name = "wrong_name"
 
         # Create a text classification task with the wrong feature column name
