@@ -41,7 +41,14 @@ from .metric_configs import EMISSIONS, POWER
 from .scoring import log_scores
 from .utils import clear_memory, enforce_reproducibility, is_module_installed
 
+# Set up a logger
 logger = logging.getLogger(__name__)
+
+
+# Ignore warnings from spaCy. This has to be called after the import,
+# as the __init__.py file of spaCy sets the warning levels of spaCy
+# warning W036
+warnings.filterwarnings("ignore", module="spacy*")
 
 
 class Task(ABC):
@@ -576,25 +583,11 @@ class Task(ABC):
         """
         # Ensure that the framework is installed
         from_flax = model_config.framework == "jax"
-        try:
-            # If the framework is JAX then change it to PyTorch, since we will convert
-            # JAX models to PyTorch upon download
-            if model_config.framework == "jax":
-                model_config.framework = "pytorch"
 
-            elif model_config.framework == "spacy":
-                import spacy
-
-                # Ignore warnings from spaCy. This has to be called after the import,
-                # as the __init__.py file of spaCy sets the warning levels of spaCy
-                # warning W036
-                warnings.filterwarnings("ignore", module="spacy*")
-
-        except ModuleNotFoundError:
-            raise ModuleNotFoundError(
-                f"The model {model_config.model_id} is built using the spaCy "
-                "framework which is not installed."
-            )
+        # If the framework is JAX then change it to PyTorch, since we will convert
+        # JAX models to PyTorch upon download
+        if model_config.framework == "jax":
+            model_config.framework = "pytorch"
 
         if model_config.framework == "pytorch":
             return self._load_pytorch_model(model_config, from_flax=from_flax)
@@ -722,10 +715,6 @@ class Task(ABC):
                 the model. Can contain other objects related to the model, such as its
                 tokenizer.
         """
-        # Ignore warnings from spaCy. This has to be called after the import, as the
-        # __init__.py file of spaCy sets the warning levels of spaCy warning W036
-        warnings.filterwarnings("ignore", module="spacy*")
-
         local_model_id = model_config.model_id.split("/")[-1]
 
         # Download the model if it has not already been so
