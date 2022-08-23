@@ -9,7 +9,6 @@ from transformers import PreTrainedTokenizerBase
 
 from src.aiai_eval.exceptions import InvalidArchitectureForTask, InvalidEvaluation
 from src.aiai_eval.task import Task
-from src.aiai_eval.task_configs import SENT, get_all_task_configs
 
 
 class TaskDummy(Task):
@@ -30,11 +29,9 @@ class TaskDummy(Task):
         return None
 
 
-@pytest.fixture(
-    scope="module", params=get_all_task_configs().values(), ids=lambda cfg: cfg.name
-)
-def task(evaluation_config, request):
-    yield TaskDummy(task_config=request.param, evaluation_config=evaluation_config)
+@pytest.fixture(scope="module")
+def task(evaluation_config, task_config):
+    yield TaskDummy(task_config=task_config, evaluation_config=evaluation_config)
 
 
 class TestTaskAttributes:
@@ -45,8 +42,8 @@ class TestTaskAttributes:
     def test_metrics_is_dict(self, metrics):
         assert isinstance(metrics, dict)
 
-    def test_metric_keys_are_metric_names(self, metrics):
-        assert set(metrics.keys()) == {cfg.name for cfg in SENT.metrics}
+    def test_metric_keys_are_metric_names(self, metrics, task_config):
+        assert set(metrics.keys()) == {cfg.name for cfg in task_config.metrics}
 
     def test_metric_values_are_metrics(self, metrics):
         for metric in metrics.values():
