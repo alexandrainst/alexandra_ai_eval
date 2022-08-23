@@ -4,9 +4,9 @@ from typing import Type, Union
 
 from .config import EvaluationConfig, TaskConfig
 from .named_entity_recognition import NamedEntityRecognition
+from .sequence_classification import SequenceClassification
 from .task import Task
 from .task_configs import get_all_task_configs
-from .text_classification import TextClassification
 
 
 class TaskFactory:
@@ -44,8 +44,8 @@ class TaskFactory:
 
         # Get the evaluation class based on the task
         evaluation_cls: Type[Task]
-        if task_config.supertask == "text-classification":
-            evaluation_cls = TextClassification
+        if task_config.supertask == "sequence-classification":
+            evaluation_cls = SequenceClassification
         elif task_config.name == "ner":
             evaluation_cls = NamedEntityRecognition
         else:
