@@ -91,8 +91,9 @@ class TextClassification(Task):
                 dataset.
 
         Returns:
-            Hugging Face dataset:
-                The preprocessed dataset.
+            list of lists:
+                Every list element represents the tokenised data for the corresponding
+                example.
         """
         full_preprocessed = self._preprocess_data_transformer(
             dataset=dataset, framework=framework, **kwargs
@@ -100,6 +101,21 @@ class TextClassification(Task):
         return full_preprocessed["input_ids"]
 
     def _create_numerical_labels(self, examples: dict, label2id: dict) -> dict:
+        """Create numerical labels from the labels.
+
+        Args:
+            examples (dict):
+                The examples to create numerical labels for.
+            label2id (dict):
+                The mapping from labels to ids.
+
+        Returns:
+            dict: The examples with numerical labels.
+
+        Raises:
+            MissingLabel:
+                If a label is missing in the `label2id` mapping.
+        """
         try:
             examples["label"] = [label2id[lbl.upper()] for lbl in examples["label"]]
         except KeyError:
