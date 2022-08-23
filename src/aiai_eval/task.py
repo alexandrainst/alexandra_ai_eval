@@ -185,7 +185,6 @@ class Task(ABC):
                 framework="pytorch",
                 config=model.config,
                 tokenizer=tokenizer,
-                task_config=self.task_config,
             )
             # Do framework specific preprocessing
             if isinstance(model, PreTrainedModel):
