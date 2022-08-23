@@ -709,29 +709,6 @@ class Task(ABC):
 
         return dict(model=model, tokenizer=tokenizer)
 
-    def _check_supertask(
-        self, architectures: Sequence[str], supertask: str, search_str: str
-    ):
-        """Checks if the supertask corresponds to the architectures, by looking for the
-        search_str.
-
-        Args:
-            architectures (list of str):
-                The model architecture names.
-            supertask (str):
-                The supertask associated to a task, e.g. text-classification.
-            search_str (str):
-                The string we are looking for in the architecture names.
-
-        Raises:
-            InvalidArchitectureForTask:
-                If the search_str is not found in any of the architectures.
-        """
-        if not any([search_str in arc for arc in architectures]):
-            raise InvalidArchitectureForTask(
-                architectures=architectures, supertask=supertask
-            )
-
     def _load_spacy_model(self, model_config: ModelConfig) -> Dict[str, Any]:
         """Load a spaCy model.
 
@@ -776,6 +753,29 @@ class Task(ABC):
                 ),
             )
         return dict(model=model)
+
+    def _check_supertask(
+        self, architectures: Sequence[str], supertask: str, search_str: str
+    ):
+        """Checks if the supertask corresponds to the architectures, by looking for the
+        search_str.
+
+        Args:
+            architectures (list of str):
+                The model architecture names.
+            supertask (str):
+                The supertask associated to a task, e.g. text-classification.
+            search_str (str):
+                The string we are looking for in the architecture names.
+
+        Raises:
+            InvalidArchitectureForTask:
+                If the search_str is not found in any of the architectures.
+        """
+        if not any([search_str in arc for arc in architectures]):
+            raise InvalidArchitectureForTask(
+                architectures=architectures, supertask=supertask
+            )
 
     def _adjust_label_ids(
         self,
