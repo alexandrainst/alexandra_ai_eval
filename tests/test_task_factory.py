@@ -4,7 +4,6 @@ import pytest
 
 from src.aiai_eval.config import Label
 from src.aiai_eval.named_entity_recognition import NamedEntityRecognition
-from src.aiai_eval.task_configs import NER, SENT
 from src.aiai_eval.task_factory import TaskFactory
 from src.aiai_eval.text_classification import TextClassification
 
@@ -23,17 +22,15 @@ def test_attributes_correspond_to_arguments(task_factory, evaluation_config):
     assert task_factory.evaluation_config == evaluation_config
 
 
-def test_configs_are_preserved(task_factory, evaluation_config):
-    dataset = task_factory.build_task(task_name_or_config=SENT)
+def test_configs_are_preserved(task_config, task_factory, evaluation_config):
+    dataset = task_factory.build_task(task_name_or_config=task_config)
     assert dataset.evaluation_config == evaluation_config
-    assert dataset.task_config == SENT
+    assert dataset.task_config == task_config
 
 
-def test_build_sent_dataset(task_factory):
-    dataset = task_factory.build_task(task_name_or_config=SENT)
-    assert isinstance(dataset, TextClassification)
-
-
-def test_build_ner_dataset(task_factory):
-    dataset = task_factory.build_task(task_name_or_config=NER)
-    assert isinstance(dataset, NamedEntityRecognition)
+def test_build_dataset(task_config, task_factory):
+    dataset = task_factory.build_task(task_name_or_config=task_config)
+    if task_config.supertask == "sequence-classification":
+        assert isinstance(dataset, TextClassification)
+    elif task_config.name == "ner":
+        assert isinstance(dataset, NamedEntityRecognition)
