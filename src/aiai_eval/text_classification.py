@@ -55,26 +55,26 @@ class TextClassification(Task):
         def tokenise(examples: dict) -> dict:
             try:
                 return tokenizer(
-                    examples[kwargs["task_config"].feature_column_name],
+                    examples[self.task_config.feature_column_name],
                     truncation=True,
                     padding=True,
                 )
             except KeyError:
-                raise WrongFeatureColumnName(kwargs["task_config"].feature_column_name)
+                raise WrongFeatureColumnName(self.task_config.feature_column_name)
 
         # Tokenise
         tokenised = dataset.map(tokenise, batched=True, load_from_cache_file=False)
 
         # Translate labels to ids
         numericalise = partial(
-            self._create_numerical_labels, label2id=kwargs["task_config"].label2id
+            self._create_numerical_labels, label2id=self.task_config.label2id
         )
         preprocessed = tokenised.map(
             numericalise, batched=True, load_from_cache_file=False
         )
 
         # Remove unused column
-        return preprocessed.remove_columns(kwargs["task_config"].feature_column_name)
+        return preprocessed.remove_columns(self.task_config.feature_column_name)
 
     def _preprocess_data_pytorch(
         self, dataset: Dataset, framework: str, **kwargs
