@@ -117,7 +117,10 @@ class TextClassification(Task):
         try:
             examples["label"] = [label2id[lbl.upper()] for lbl in examples["label"]]
         except KeyError:
-            raise MissingLabel(label=examples["label"].upper(), label2id=label2id)
+            missing_label = [
+                lbl.upper() for lbl in examples["label"] if lbl.upper() not in label2id
+            ][0]
+            raise MissingLabel(label=missing_label, label2id=label2id)
         return examples
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
