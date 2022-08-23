@@ -76,9 +76,7 @@ class TextClassification(Task):
         # Remove unused column
         return preprocessed.remove_columns(self.task_config.feature_column_name)
 
-    def _preprocess_data_pytorch(
-        self, dataset: Dataset, framework: str, **kwargs
-    ) -> list:
+    def _preprocess_data_pytorch(self, dataset: Dataset, **kwargs) -> list:
         """Preprocess a dataset by tokenizing and aligning the labels.
 
         For use by a PyTorch model.
@@ -96,7 +94,7 @@ class TextClassification(Task):
                 example.
         """
         full_preprocessed = self._preprocess_data_transformer(
-            dataset=dataset, framework=framework, **kwargs
+            dataset=dataset, framework="pytorch", **kwargs
         )
         return full_preprocessed["input_ids"]
 

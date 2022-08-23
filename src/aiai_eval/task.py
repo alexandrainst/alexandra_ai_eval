@@ -794,12 +794,10 @@ class Task(ABC):
         return model
 
     @abstractmethod
-    def _preprocess_data_pytorch(
-        self, dataset: Dataset, framework: str, **kwargs
-    ) -> list:
+    def _preprocess_data_pytorch(self, dataset: Dataset, **kwargs) -> list:
         """Preprocess a dataset by tokenizing and aligning the labels.
 
-        For use by a pytorch model.
+        For use by a PyTorch model.
 
         Args:
             dataset (Hugging Face dataset):
@@ -809,7 +807,9 @@ class Task(ABC):
                 dataset.
 
         Returns:
-            Hugging Face dataset: The preprocessed dataset.
+            list of lists:
+                Every list element represents the tokenised data for the corresponding
+                example.
         """
         pass
 
