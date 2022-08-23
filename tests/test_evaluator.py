@@ -33,14 +33,6 @@ class TestEvaluator:
     def non_existing_model_id(self):
         yield "invalid-model-id"
 
-    @pytest.fixture(scope="class")
-    def sent(self):
-        yield SENT
-
-    @pytest.fixture(scope="class")
-    def ner(self):
-        yield NER
-
     def test_evaluator_is_object(self, evaluator):
         assert isinstance(evaluator, Evaluator)
 
@@ -65,24 +57,68 @@ class TestEvaluator:
         model_ids = evaluator._prepare_model_ids(existing_model_id)
         assert model_ids == [existing_model_id]
 
-    def test_prepare_task_config(self, evaluator, ner, sent):
+    def test_prepare_task_config(self, evaluator):
         task_config = evaluator._prepare_task_configs(["ner", "sent"])
-        assert task_config == [ner, sent]
+        assert task_config == [NER, SENT]
         task_config = evaluator._prepare_task_configs("sent")
-        assert task_config == [sent]
+        assert task_config == [SENT]
 
     def test_evaluate_single_raise_exception_model_not_found(
-        self, evaluator, non_existing_model_id, ner
+        self, evaluator, non_existing_model_id
     ):
         evaluator.evaluation_config.testing = True
         with pytest.raises(ModelDoesNotExistOnHuggingFaceHub):
             evaluator._evaluate_single(
-                task_config=ner, model_id=[non_existing_model_id]
+                task_config=NER, model_id=[non_existing_model_id]
             )
 
     def test_evaluate_single_raise_exception_invalid_task(
-        self, evaluator, existing_model_id, ner
+        self, evaluator, existing_model_id
     ):
         evaluator.evaluation_config.testing = True
         with pytest.raises(InvalidArchitectureForTask):
-            evaluator._evaluate_single(task_config=ner, model_id=existing_model_id)
+            evaluator._evaluate_single(task_config=NER, model_id=existing_model_id)
+
+    @pytest.mark.parametrize(
+        argnames="model_id, task, expected_results",
+        argvalues=[
+            (
+                "pin/senda",
+                SENT,
+                {
+                    "raw": [
+                        {"macro_f1": 1.0, "mcc": 0.5},
+                        {"macro_f1": 1.0, "mcc": 0.5},
+                    ],
+                    "total": {
+                        "macro_f1": 1.0,
+                        "macro_f1_se": 0.0,
+                        "mcc": 0.5,
+                        "mcc_se": 0.0,
+                    },
+                },
+            ),
+            (
+                "DaNLP/da-bert-tone-sentiment-polarity",
+                SENT,
+                {
+                    "raw": [
+                        {"macro_f1": 0.16666666666666666, "mcc": 0.25},
+                        {"macro_f1": 0.6666666666666666, "mcc": 0.25},
+                    ],
+                    "total": {
+                        "macro_f1": 0.41666666666666663,
+                        "macro_f1_se": 0.48999999999999994,
+                        "mcc": 0.25,
+                        "mcc_se": 0.0,
+                    },
+                },
+            ),
+        ],
+        ids=["sent_pin-senda", "sent_DaNLP-da-bert-tone-sentiment-polarity"],
+    )
+    def test_evaluate_single(self, evaluator, model_id, task, expected_results):
+        evaluator.evaluation_config.testing = True
+        evaluator._evaluate_single(task_config=task, model_id=model_id)
+        results = evaluator.evaluation_results[task.name][model_id]
+        assert expected_results == results
