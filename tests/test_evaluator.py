@@ -1,10 +1,12 @@
 """Unit tests for the `evaluator` module."""
 
 from collections import defaultdict
+from tabnanny import verbose
 from typing import Dict
 
 import pytest
 
+from aiai_eval.utils import Device
 from src.aiai_eval.evaluator import Evaluator
 from src.aiai_eval.exceptions import (
     InvalidArchitectureForTask,
@@ -23,9 +25,10 @@ class TestEvaluator:
             raise_error_on_invalid_model=False,
             cache_dir=".aiai_cache",
             use_auth_token=False,
-            verbose=False,
             track_carbon_emissions=False,
             country_iso_code="",
+            prefer_device=Device.CPU,
+            verbose=False,
         )
 
     @pytest.fixture(scope="class")
