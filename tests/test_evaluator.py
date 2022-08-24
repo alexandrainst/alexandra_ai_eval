@@ -54,7 +54,6 @@ class TestEvaluator:
         assert evaluator.evaluation_config is not None
 
     def test_evaluator_has_task_factory(self, evaluator):
-        assert evaluator.task_factory is not None
         assert isinstance(evaluator.task_factory, TaskFactory)
 
     def test_prepare_model_ids(self, evaluator, existing_model_id):
