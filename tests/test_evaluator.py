@@ -17,7 +17,7 @@ from src.aiai_eval.task_factory import TaskFactory
 
 
 @pytest.fixture(scope="module")
-def evaluator(self):
+def evaluator():
     evaluator = Evaluator(
         progress_bar=True,
         save_results=False,
@@ -34,12 +34,12 @@ def evaluator(self):
 
 
 @pytest.fixture(scope="module")
-def non_existing_model_id(self):
+def non_existing_model_id():
     yield "invalid-model-id"
 
 
 @pytest.fixture(scope="module")
-def existing_model_id(self):
+def existing_model_id():
     yield "bert-base-uncased"
 
 
