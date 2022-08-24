@@ -16,29 +16,52 @@ from src.aiai_eval.task_configs import NER, SENT
 from src.aiai_eval.task_factory import TaskFactory
 
 
+@pytest.fixture(scope="module")
+def evaluator(self):
+    evaluator = Evaluator(
+        progress_bar=True,
+        save_results=False,
+        raise_error_on_invalid_model=False,
+        cache_dir=".aiai_cache",
+        use_auth_token=False,
+        track_carbon_emissions=False,
+        country_iso_code="",
+        prefer_device=Device.CPU,
+        verbose=False,
+    )
+    evaluator.evaluation_config.testing = True
+    yield evaluator
+
+
+@pytest.fixture(scope="module")
+def non_existing_model_id(self):
+    yield "invalid-model-id"
+
+
+@pytest.fixture(scope="module")
+def existing_model_id(self):
+    yield "bert-base-uncased"
+
+
+class TestPrepareModelIds:
+    def test_prepare_model_ids(self, evaluator, existing_model_id):
+        model_ids = evaluator._prepare_model_ids([existing_model_id, existing_model_id])
+        assert model_ids == [existing_model_id, existing_model_id]
+        model_ids = evaluator._prepare_model_ids(existing_model_id)
+        assert model_ids == [existing_model_id]
+
+
+class TestPrepareTaskConfig:
+    def test_prepare_task_config_list_task(self, evaluator):
+        task_config = evaluator._prepare_task_configs(["ner", "sent"])
+        assert task_config == [NER, SENT]
+
+    def test_prepare_task_config_str_task(self, evaluator):
+        task_config = evaluator._prepare_task_configs("sent")
+        assert task_config == [SENT]
+
+
 class TestEvaluator:
-    @pytest.fixture(scope="module")
-    def evaluator(self):
-        yield Evaluator(
-            progress_bar=True,
-            save_results=False,
-            raise_error_on_invalid_model=False,
-            cache_dir=".aiai_cache",
-            use_auth_token=False,
-            track_carbon_emissions=False,
-            country_iso_code="",
-            prefer_device=Device.CPU,
-            verbose=False,
-        )
-
-    @pytest.fixture(scope="class")
-    def existing_model_id(self):
-        yield "bert-base-uncased"
-
-    @pytest.fixture(scope="class")
-    def non_existing_model_id(self):
-        yield "invalid-model-id"
-
     def test_evaluator_is_object(self, evaluator):
         assert isinstance(evaluator, Evaluator)
 
@@ -56,18 +79,8 @@ class TestEvaluator:
     def test_evaluator_has_task_factory(self, evaluator):
         assert isinstance(evaluator.task_factory, TaskFactory)
 
-    def test_prepare_model_ids(self, evaluator, existing_model_id):
-        model_ids = evaluator._prepare_model_ids([existing_model_id, existing_model_id])
-        assert model_ids == [existing_model_id, existing_model_id]
-        model_ids = evaluator._prepare_model_ids(existing_model_id)
-        assert model_ids == [existing_model_id]
 
-    def test_prepare_task_config(self, evaluator):
-        task_config = evaluator._prepare_task_configs(["ner", "sent"])
-        assert task_config == [NER, SENT]
-        task_config = evaluator._prepare_task_configs("sent")
-        assert task_config == [SENT]
-
+class TestEvaluateSingle:
     def test_evaluate_single_raise_exception_model_not_found(
         self, evaluator, non_existing_model_id
     ):
@@ -128,33 +141,35 @@ class TestEvaluator:
         results = evaluator.evaluation_results[task_config.name][model_id]
         assert expected_results == results
 
-    # TODO: Once we have more than one type of task, this should test combinations of tasks.
-    @pytest.mark.parametrize(
-        argnames="model_ids, tasks",
-        argvalues=[
-            (
-                ["pin/senda", "DaNLP/da-bert-tone-sentiment-polarity"],
-                ["sent", "sent"],
-            ),
-        ],
-        ids=["sent_pin-senda_sent_DaNLP"],
-    )
-    def test_evaluate(self, evaluator, model_ids, tasks):
-        evaluator.evaluation_config.testing = True
+
+class TestEvaluate:
+
+    # TODO: Once we have more than one type of task, this should test a combination of tasks,
+    # instead of just one type of task.
+    def test_evaluate_is_identical_to_evaluate_single(self, evaluator):
 
         # Get results from evaluate
-        evaluator.evaluate(model_id=model_ids, task=tasks)
-        pin_results = evaluator.evaluation_results[tasks[0]][model_ids[0]]
-        danlp_results = evaluator.evaluation_results[tasks[1]][model_ids[1]]
+        evaluator.evaluate(
+            model_id=["pin/senda", "DaNLP/da-bert-tone-sentiment-polarity"],
+            task=["sent", "sent"],
+        )
+        pin_results = evaluator.evaluation_results["sent"]["pin/senda"]
+        danlp_results = evaluator.evaluation_results["sent"][
+            "DaNLP/da-bert-tone-sentiment-polarity"
+        ]
 
         # Reset evaluation results
         evaluator.evaluation_results: Dict[str, dict] = defaultdict(dict)
 
         # Get results from evaluate_single
-        evaluator._evaluate_single(task_config=SENT, model_id=model_ids[0])
-        evaluator._evaluate_single(task_config=SENT, model_id=model_ids[1])
-        pin_results_single = evaluator.evaluation_results[tasks[0]][model_ids[0]]
-        danlp_results_single = evaluator.evaluation_results[tasks[1]][model_ids[1]]
+        evaluator._evaluate_single(task_config=SENT, model_id="pin/senda")
+        evaluator._evaluate_single(
+            task_config=SENT, model_id="DaNLP/da-bert-tone-sentiment-polarity"
+        )
+        pin_results_single = evaluator.evaluation_results["sent"]["pin/senda"]
+        danlp_results_single = evaluator.evaluation_results["sent"][
+            "DaNLP/da-bert-tone-sentiment-polarity"
+        ]
 
         # Check that the results are the same
         assert pin_results_single == pin_results
