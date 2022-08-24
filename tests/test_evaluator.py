@@ -1,7 +1,6 @@
 """Unit tests for the `evaluator` module."""
 
 from collections import defaultdict
-from tabnanny import verbose
 from typing import Dict
 
 import pytest
@@ -12,7 +11,7 @@ from src.aiai_eval.exceptions import (
     InvalidArchitectureForTask,
     ModelDoesNotExistOnHuggingFaceHub,
 )
-from src.aiai_eval.task_configs import NER, SENT
+from src.aiai_eval.task_configs import SENT
 from src.aiai_eval.task_factory import TaskFactory
 
 
@@ -53,8 +52,8 @@ class TestPrepareModelIds:
 
 class TestPrepareTaskConfig:
     def test_prepare_task_config_list_task(self, evaluator):
-        task_config = evaluator._prepare_task_configs(["ner", "sent"])
-        assert task_config == [NER, SENT]
+        task_config = evaluator._prepare_task_configs(["sent", "sent"])
+        assert task_config == [SENT, SENT]
 
     def test_prepare_task_config_str_task(self, evaluator):
         task_config = evaluator._prepare_task_configs("sent")
@@ -87,7 +86,7 @@ class TestEvaluateSingle:
         evaluator.evaluation_config.testing = True
         with pytest.raises(ModelDoesNotExistOnHuggingFaceHub):
             evaluator._evaluate_single(
-                task_config=NER, model_id=[non_existing_model_id]
+                task_config=SENT, model_id=[non_existing_model_id]
             )
 
     def test_evaluate_single_raise_exception_invalid_task(
@@ -95,7 +94,7 @@ class TestEvaluateSingle:
     ):
         evaluator.evaluation_config.testing = True
         with pytest.raises(InvalidArchitectureForTask):
-            evaluator._evaluate_single(task_config=NER, model_id=existing_model_id)
+            evaluator._evaluate_single(task_config=SENT, model_id=existing_model_id)
 
     @pytest.mark.parametrize(
         argnames="model_id, task_config, expected_results",
