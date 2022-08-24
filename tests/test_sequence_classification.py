@@ -1,4 +1,4 @@
-"""Unit tests for the `text_classification` module."""
+"""Unit tests for the `sequence_classification` module."""
 
 from copy import deepcopy
 
@@ -11,8 +11,7 @@ from src.aiai_eval.exceptions import (
     MissingLabel,
     WrongFeatureColumnName,
 )
-from src.aiai_eval.task_configs import SENT
-from src.aiai_eval.text_classification import TextClassification
+from src.aiai_eval.sequence_classification import SequenceClassification
 
 
 @pytest.fixture(scope="module")
@@ -21,8 +20,10 @@ def dataset():
 
 
 @pytest.fixture(scope="module")
-def text_clf(evaluation_config):
-    yield TextClassification(task_config=SENT, evaluation_config=evaluation_config)
+def seq_clf(evaluation_config, task_config):
+    yield SequenceClassification(
+        task_config=task_config, evaluation_config=evaluation_config
+    )
 
 
 @pytest.fixture(scope="module")
@@ -32,16 +33,16 @@ def tokenizer():
 
 class TestPreprocessDataTransformer:
     @pytest.fixture(scope="class")
-    def preprocessed(self, dataset, text_clf, tokenizer):
-        yield text_clf._preprocess_data_transformer(
+    def preprocessed(self, dataset, seq_clf, tokenizer):
+        yield seq_clf._preprocess_data_transformer(
             dataset=dataset,
             framework="pytorch",
             tokenizer=tokenizer,
         )
 
-    def test_spacy_framework_throws_exception(self, dataset, text_clf, tokenizer):
+    def test_spacy_framework_throws_exception(self, dataset, seq_clf, tokenizer):
         with pytest.raises(InvalidEvaluation):
-            text_clf._preprocess_data_transformer(
+            seq_clf._preprocess_data_transformer(
                 dataset=dataset,
                 framework="spacy",
                 tokenizer=tokenizer,
@@ -59,21 +60,21 @@ class TestPreprocessDataTransformer:
         ]
 
     def test_throw_exception_if_feature_column_name_is_wrong(
-        self, dataset, evaluation_config, tokenizer
+        self, dataset, evaluation_config, tokenizer, task_config
     ):
         # Create copy of the sentiment analysis task config, with a wrong feature
         # column name
-        sent_cfg_copy = deepcopy(SENT)
+        sent_cfg_copy = deepcopy(task_config)
         sent_cfg_copy.feature_column_name = "wrong_name"
 
         # Create a text classification task with the wrong feature column name
-        text_clf_copy = TextClassification(
+        seq_clf_copy = SequenceClassification(
             task_config=sent_cfg_copy, evaluation_config=evaluation_config
         )
 
         # Attempt to preprocess the dataset with the wrong feature column name
         with pytest.raises(WrongFeatureColumnName):
-            text_clf_copy._preprocess_data_transformer(
+            seq_clf_copy._preprocess_data_transformer(
                 dataset=dataset,
                 framework="pytorch",
                 tokenizer=tokenizer,
@@ -82,8 +83,8 @@ class TestPreprocessDataTransformer:
 
 class TestPreprocessDataPyTorch:
     @pytest.fixture(scope="class")
-    def preprocessed(self, dataset, text_clf, tokenizer):
-        yield text_clf._preprocess_data_pytorch(
+    def preprocessed(self, dataset, seq_clf, tokenizer):
+        yield seq_clf._preprocess_data_pytorch(
             dataset=dataset,
             tokenizer=tokenizer,
         )
@@ -101,15 +102,15 @@ class TestCreateNumericalLabels:
     def label2id(self):
         yield dict(NEGATIVE=0, NEUTRAL=1, POSITIVE=2)
 
-    def test_output_is_dict(self, text_clf, examples, label2id):
-        numerical_labels = text_clf._create_numerical_labels(
+    def test_output_is_dict(self, seq_clf, examples, label2id):
+        numerical_labels = seq_clf._create_numerical_labels(
             examples=examples, label2id=label2id
         )
         assert isinstance(numerical_labels, dict)
 
-    def throw_exception_if_label_is_missing(self, text_clf, label2id):
+    def throw_exception_if_label_is_missing(self, seq_clf, label2id):
         with pytest.raises(MissingLabel):
-            text_clf._create_numerical_labels(
+            seq_clf._create_numerical_labels(
                 examples=dict(label=["not-a-label"]),
                 label2id=label2id,
             )
@@ -117,8 +118,8 @@ class TestCreateNumericalLabels:
 
 class TestLoadDataCollator:
     @pytest.fixture(scope="class")
-    def data_collator(self, text_clf, tokenizer):
-        yield text_clf._load_data_collator(tokenizer=tokenizer)
+    def data_collator(self, seq_clf, tokenizer):
+        yield seq_clf._load_data_collator(tokenizer=tokenizer)
 
     def test_data_collator_dtype(self, data_collator):
         assert isinstance(data_collator, DataCollatorWithPadding)
@@ -127,6 +128,6 @@ class TestLoadDataCollator:
         assert data_collator.padding == "longest"
 
 
-def test_get_spacy_predictions_and_labels_raises_exception(text_clf):
+def test_get_spacy_predictions_and_labels_raises_exception(seq_clf):
     with pytest.raises(InvalidEvaluation):
-        text_clf._get_spacy_predictions_and_labels(model=None, dataset=None)
+        seq_clf._get_spacy_predictions_and_labels(model=None, dataset=None)

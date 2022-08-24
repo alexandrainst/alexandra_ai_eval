@@ -9,8 +9,8 @@ from .exceptions import InvalidEvaluation, MissingLabel, WrongFeatureColumnName
 from .task import Task
 
 
-class TextClassification(Task):
-    """Text classification task.
+class SequenceClassification(Task):
+    """Sequence classification task.
 
     Args:
         task_config (TaskConfig):
