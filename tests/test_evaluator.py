@@ -51,13 +51,13 @@ class TestPrepareModelIds:
 
 
 class TestPrepareTaskConfig:
-    def test_prepare_task_config_list_task(self, evaluator):
-        task_config = evaluator._prepare_task_configs(["sent", "sent"])
-        assert task_config == [SENT, SENT]
+    def test_prepare_task_config_list_task(self, evaluator, task_config):
+        task_config = evaluator._prepare_task_configs([task_config.name, task_config.name])
+        assert task_config == [task_config, task_config]
 
-    def test_prepare_task_config_str_task(self, evaluator):
-        task_config = evaluator._prepare_task_configs("sent")
-        assert task_config == [SENT]
+    def test_prepare_task_config_str_task(self, evaluator, task_config):
+        task_config = evaluator._prepare_task_configs(task_config.name)
+        assert task_config == [task_config]
 
 
 class TestEvaluator:
