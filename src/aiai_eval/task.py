@@ -32,6 +32,7 @@ from .exceptions import (
     InvalidEvaluation,
     InvalidFramework,
     ModelFetchFailed,
+    MPSFallbackNotEnabled,
     PreprocessingFailed,
     UnsupportedModelType,
     WrongFeatureColumnName,
@@ -371,6 +372,9 @@ class Task(ABC):
             return return_scores
 
         except (RuntimeError, ValueError, IndexError) as e:
+            if "PYTORCH_ENABLE_MPS_FALLBACK" in str(e):
+                raise MPSFallbackNotEnabled()
+
             try:
                 del model
             except UnboundLocalError:
