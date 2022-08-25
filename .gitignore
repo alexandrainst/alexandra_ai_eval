@@ -95,3 +95,6 @@ docs/aiai_eval/
 # AIAI
 .aiai_cache/
 aiai_evaluation_results.json
+
+# Gradio logs
+flagged/
