@@ -872,11 +872,6 @@ class Task(ABC):
                 except IndexError:
                     continue
 
-            # Ensure that the model_id2label is in the correct order
-            model_id2label = sorted(
-                model_id2label, key=lambda x: self.task_config.id2label.index(x)
-            )
-
             # Get the synonyms of all the labels, new ones included
             new_synonyms = list(self.task_config.label_synonyms)
             flat_old_synonyms = [
