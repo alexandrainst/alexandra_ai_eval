@@ -43,16 +43,20 @@ def existing_model_id():
 
 
 class TestPrepareModelIds:
-    def test_prepare_model_ids(self, evaluator, existing_model_id):
+    def test_prepare_model_ids_list(self, evaluator, existing_model_id):
         model_ids = evaluator._prepare_model_ids([existing_model_id, existing_model_id])
         assert model_ids == [existing_model_id, existing_model_id]
+
+    def test_prepare_model_ids_str(self, evaluator, existing_model_id):
         model_ids = evaluator._prepare_model_ids(existing_model_id)
         assert model_ids == [existing_model_id]
 
 
 class TestPrepareTaskConfig:
     def test_prepare_task_config_list_task(self, evaluator, task_config):
-        task_config = evaluator._prepare_task_configs([task_config.name, task_config.name])
+        task_config = evaluator._prepare_task_configs(
+            [task_config.name, task_config.name]
+        )
         assert task_config == [task_config, task_config]
 
     def test_prepare_task_config_str_task(self, evaluator, task_config):
@@ -64,9 +68,13 @@ class TestEvaluator:
     def test_evaluator_is_object(self, evaluator):
         assert isinstance(evaluator, Evaluator)
 
-    def test_evaluator_has_attributes(self, evaluator):
+    def test_evaluator_has_attributes_evaluation_config(self, evaluator):
         assert hasattr(evaluator, "evaluation_config")
+
+    def test_evaluator_has_attributes_evaluation_results(self, evaluator):
         assert hasattr(evaluator, "evaluation_results")
+
+    def test_evaluator_has_attributes_evaluation_task_factory(self, evaluator):
         assert hasattr(evaluator, "task_factory")
 
     def test_evaluator_has_results(self, evaluator):
