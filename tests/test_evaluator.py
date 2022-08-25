@@ -97,11 +97,10 @@ class TestEvaluateSingle:
             )
 
     def test_evaluate_single_raise_exception_invalid_task(
-        self, evaluator, existing_model_id
+        self, evaluator, existing_model_id, task_config
     ):
-        evaluator.evaluation_config.testing = True
         with pytest.raises(InvalidArchitectureForTask):
-            evaluator._evaluate_single(task_config=SENT, model_id=existing_model_id)
+            evaluator._evaluate_single(task_config=task_config, model_id=existing_model_id)
 
     @pytest.mark.parametrize(
         argnames="model_id, task_config, expected_results",
