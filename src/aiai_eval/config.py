@@ -177,7 +177,7 @@ class EvaluationConfig:
 
         # Otherwise, we use the best available device, which is the first device
         # present in the list
-        return str(available_devices[0])
+        return available_devices[0].value
 
 
 @dataclass
