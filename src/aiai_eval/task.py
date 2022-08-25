@@ -799,7 +799,9 @@ class Task(ABC):
 
         # Get the `label2id` and `id2label` conversions from the model config
         try:
-            model_label2id = dict(model.config.label2id)
+            model_label2id = {
+                lbl.upper(): idx for lbl, idx in model.config.label2id.items()
+            }
         except AttributeError:
             model_label2id = None
         try:
