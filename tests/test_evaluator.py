@@ -141,7 +141,6 @@ class TestEvaluateSingle:
         ids=["sent_pin-senda", "sent_DaNLP-da-bert-tone-sentiment-polarity"],
     )
     def test_evaluate_single(self, evaluator, model_id, task_config, expected_results):
-        evaluator.evaluation_config.testing = True
         evaluator._evaluate_single(task_config=task_config, model_id=model_id)
         results = evaluator.evaluation_results[task_config.name][model_id]
         assert expected_results == results
