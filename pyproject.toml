@@ -23,6 +23,7 @@ datasets = "^2.4.0"
 codecarbon = "^2.1.3"
 fsspec = "^2022.7.1"
 termcolor = "^1.1.0"
+gradio = "^3.1.7"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
@@ -36,6 +37,7 @@ readme-coverage-badger = ">=0.1.2,<1.0.0"
 
 [tool.poetry.scripts]
 evaluate = "aiai_eval.cli:evaluate"
+evaluate-gui = "aiai_eval.gui:main"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
