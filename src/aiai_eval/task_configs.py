@@ -6,6 +6,7 @@ from .config import TaskConfig
 from .metric_configs import MACRO_F1, MCC, SEQEVAL_MICRO_F1, SEQEVAL_MICRO_F1_NO_MISC
 from .utils import Label
 
+
 def get_all_task_configs() -> Dict[str, TaskConfig]:
     """Get a list of all the dataset tasks.
 
