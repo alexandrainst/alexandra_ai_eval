@@ -861,7 +861,7 @@ class Task(ABC):
                         syn_lst
                         for syn_lst in self.task_config.label_synonyms
                         if label.upper() in syn_lst
-                    ][0][-1]
+                    ][0][0]
                     model_id2label[idx] = canonical_syn
 
                 # IndexError appears when the label does not appear within the
