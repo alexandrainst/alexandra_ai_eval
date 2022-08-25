@@ -39,7 +39,7 @@ def non_existing_model_id():
 
 @pytest.fixture(scope="module")
 def existing_model_id():
-    yield "bert-base-uncased"
+    yield "bert-base-cased"
 
 
 class TestPrepareModelIds:
