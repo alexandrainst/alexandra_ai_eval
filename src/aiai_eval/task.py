@@ -328,7 +328,7 @@ class Task(ABC):
                 # dictionary of tensors
                 if isinstance(model, PreTrainedModel):
                     batch = {
-                        key: value.to(self.evaluation_config.device)
+                        key: value.to(str(self.evaluation_config.device))
                         for key, value in batch.items()
                     }
                     model_predictions = model(**batch).logits
@@ -336,7 +336,7 @@ class Task(ABC):
                 # Otherwise, if we are dealing with a PyTorch model then the `batch` is
                 # a tensor of inputs
                 elif isinstance(model, nn.Module):
-                    batch = batch.to(self.evaluation_config.device)
+                    batch = batch.to(str(self.evaluation_config.device))
                     model_predictions = model(batch)
 
                 # Otherwise, we throw an error
@@ -692,7 +692,7 @@ class Task(ABC):
         model.eval()
 
         # Move the model to the specified device
-        model.to(self.evaluation_config.device)
+        model.to(str(self.evaluation_config.device))
 
         return dict(model=model, tokenizer=tokenizer)
 
