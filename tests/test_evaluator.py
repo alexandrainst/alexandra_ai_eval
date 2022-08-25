@@ -54,14 +54,14 @@ class TestPrepareModelIds:
 
 class TestPrepareTaskConfig:
     def test_prepare_task_config_list_task(self, evaluator, task_config):
-        task_config = evaluator._prepare_task_configs(
+        prepared_task_config = evaluator._prepare_task_configs(
             [task_config.name, task_config.name]
         )
-        assert task_config == [task_config, task_config]
+        assert prepared_task_config == [task_config, task_config]
 
     def test_prepare_task_config_str_task(self, evaluator, task_config):
-        task_config = evaluator._prepare_task_configs(task_config.name)
-        assert task_config == [task_config]
+        prepared_task_config = evaluator._prepare_task_configs(task_config.name)
+        assert prepared_task_config == [task_config]
 
 
 class TestEvaluator:
@@ -100,7 +100,9 @@ class TestEvaluateSingle:
         self, evaluator, existing_model_id, task_config
     ):
         with pytest.raises(InvalidArchitectureForTask):
-            evaluator._evaluate_single(task_config=task_config, model_id=existing_model_id)
+            evaluator._evaluate_single(
+                task_config=task_config, model_id=existing_model_id
+            )
 
     @pytest.mark.parametrize(
         argnames="model_id, task_config, expected_results",
