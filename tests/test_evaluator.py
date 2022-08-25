@@ -89,12 +89,11 @@ class TestEvaluator:
 
 class TestEvaluateSingle:
     def test_evaluate_single_raise_exception_model_not_found(
-        self, evaluator, non_existing_model_id
+        self, evaluator, non_existing_model_id, task_config
     ):
-        evaluator.evaluation_config.testing = True
         with pytest.raises(ModelDoesNotExistOnHuggingFaceHub):
             evaluator._evaluate_single(
-                task_config=SENT, model_id=[non_existing_model_id]
+                task_config=task_config, model_id=[non_existing_model_id]
             )
 
     def test_evaluate_single_raise_exception_invalid_task(
