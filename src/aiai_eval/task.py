@@ -77,7 +77,7 @@ class Task(ABC):
             for metric_cfg in task_config.metrics
         }
 
-    def evaluate(self, model_id: str) -> Dict[str, Dict[str, float]]:
+    def evaluate(self, model_id: str) -> Union[Dict[str, Dict[str, float]], str]:
         """Evaluate a model.
 
         Args:
@@ -159,7 +159,7 @@ class Task(ABC):
         rng: np.random.Generator,
         model_config: ModelConfig,
         num_iter: int,
-    ) -> Dict[str, Dict[str, float]]:
+    ) -> Union[Dict[str, Dict[str, float]], str]:
         """Evaluate a PyTorch or JAX model.
 
         Args:
@@ -176,9 +176,11 @@ class Task(ABC):
                 The number of bootstrapped samples of the test dataset to use.
 
         Returns:
-            dict:
-                The keys in the dict are 'raw' and 'total', with all the raw scores in
-                the first dictionary and the aggregated scores in the second.
+            str or dict:
+                If the `only_return_log` is set then a string is returned containing
+                the logged evaluation results. Otherwise, a nested dictionary of the
+                evaluation results. The keys are the names of the datasets, with values
+                being new dictionaries having the model IDs as keys.
         """
         # Extract the model and tokenizer
         model = model_dict["model"]
@@ -260,6 +262,7 @@ class Task(ABC):
             metric_configs=metric_configs,
             scores=scores,
             model_id=model_config.model_id,
+            only_return_log=self.evaluation_config.only_return_log,
         )
         return all_scores
 
@@ -386,7 +389,7 @@ class Task(ABC):
         rng: np.random.Generator,
         model_config: ModelConfig,
         num_iter: int,
-    ) -> Dict[str, Dict[str, float]]:
+    ) -> Union[Dict[str, Dict[str, float]], str]:
         """Evaluate a PyTorch or JAX model.
 
         Args:

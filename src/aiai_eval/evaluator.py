@@ -5,7 +5,7 @@ import json
 import logging
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Sequence, Union
+from typing import Dict, List, Sequence, Union
 
 from .config import Device, EvaluationConfig, TaskConfig
 from .exceptions import InvalidEvaluation, ModelDoesNotExistOnHuggingFaceHub
@@ -46,6 +46,8 @@ class Evaluator:
             The device to prefer when evaluating the model. If the device is not
             available then another device will be used. Can be "cuda", "mps" and "cpu".
             Defaults to "cuda".
+        only_return_log (bool, optional):
+            Whether to only return the log of the evaluation. Defaults to False.
         verbose (bool, optional):
             Whether to output additional output. Defaults to False.
 
@@ -68,6 +70,7 @@ class Evaluator:
         track_carbon_emissions: bool = False,
         country_iso_code: str = "",
         prefer_device: Device = Device.CUDA,
+        only_return_log: bool = False,
         verbose: bool = False,
     ):
         # Build evaluation configuration
@@ -81,6 +84,7 @@ class Evaluator:
             track_carbon_emissions=track_carbon_emissions,
             country_iso_code=country_iso_code,
             prefer_device=prefer_device,
+            only_return_log=only_return_log,
         )
 
         # Initialise variable storing model lists, so we only have to fetch it once
@@ -101,7 +105,7 @@ class Evaluator:
         self,
         model_id: Union[Sequence[str], str],
         task: Union[Sequence[str], str],
-    ) -> Dict[str, Dict[str, dict]]:
+    ) -> Union[Dict[str, Dict[str, dict]], Dict[str, Dict[str, str]]]:
         """Evaluates models on datasets.
 
         Args:

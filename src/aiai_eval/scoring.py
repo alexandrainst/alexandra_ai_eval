@@ -2,7 +2,7 @@
 
 import logging
 import warnings
-from typing import Dict, Sequence, Tuple
+from typing import Dict, List, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -16,7 +16,8 @@ def log_scores(
     metric_configs: Sequence[MetricConfig],
     scores: Sequence[Dict[str, float]],
     model_id: str,
-) -> dict:
+    only_return_log: bool = False,
+) -> Union[dict, str]:
     """Log the scores.
 
     Args:
@@ -28,24 +29,29 @@ def log_scores(
             The scores that are to be logged.
         model_id (str):
             The full Hugging Face Hub path to the pretrained transformer model.
+        only_return_log (bool, optional):
+            If only the logging string should be returned. Defaults to False.
 
     Returns:
-        dict:
-            A dictionary with keys 'raw_scores' and 'total', with 'raw_scores' being
-            identical to `scores` and 'total' being a dictionary with the aggregated
-            scores (means and standard errors).
+        dict or str:
+            If the `only_return_log` is set then a string is returned containing
+            the logged evaluation results. Otherwise, a nested dictionary of the
+            evaluation results. The keys are the names of the datasets, with values
+            being new dictionaries having the model IDs as keys.
     """
     # Initial logging message
     logger.info(f"Finished evaluation of {model_id} on {task_name}.")
 
     # Initialise the total dict
     total_dict = dict()
+    logging_strings: List[str] = list()
 
     # Logging of the aggregated scores
     for metric_cfg in metric_configs:
         test_score, test_se = aggregate_scores(scores=scores, metric_config=metric_cfg)
 
-        msg = f"{metric_cfg.pretty_name}:\n  - Test: {test_score:.4f} ± {test_se:.4f}"
+        msg = f"{metric_cfg.pretty_name}:\n↳  {test_score:.4f} ± {test_se:.4f}"
+        logging_strings.append(msg)
 
         # Store the aggregated test scores
         total_dict[metric_cfg.name] = test_score
@@ -58,7 +64,10 @@ def log_scores(
     all_scores = dict(raw=scores, total=total_dict)
 
     # Return the extended scores
-    return all_scores
+    if only_return_log:
+        return "\n\n".join(logging_strings)
+    else:
+        return all_scores
 
 
 def aggregate_scores(
