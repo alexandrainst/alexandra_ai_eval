@@ -33,3 +33,7 @@ logging.basicConfig(level=logging.INFO, format=fmt)
 
 # Disable parallelisation when tokenizing, as that can lead to errors
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
+
+# Tell Windows machines to use UTF-8 encoding
+os.environ["PYTHONIOENCODING"] = "UTF-8"
