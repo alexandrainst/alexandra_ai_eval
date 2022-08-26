@@ -210,7 +210,7 @@ class Task(ABC):
 
         # If we are testing then truncate the test set
         if self.evaluation_config.testing:
-            test = Dataset.from_dict(test[:128])
+            test = Dataset.from_dict(test[:4])
 
         # Get bootstrapped datasets
         tests = [
@@ -309,9 +309,11 @@ class Task(ABC):
             # Get iteration data
             test = tests[idx]
 
+            # Define batch size, which depends on whether we are testing or not
+            batch_size = 2 if self.evaluation_config.testing else 32
             # Create dataloader
             dataloader = DataLoader(
-                test, batch_size=32, shuffle=True, collate_fn=data_collator  # type: ignore
+                test, batch_size=batch_size, shuffle=True, collate_fn=data_collator  # type: ignore
             )
 
             # Create progress bar
