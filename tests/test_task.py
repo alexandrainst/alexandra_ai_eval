@@ -4,6 +4,7 @@ from copy import deepcopy
 
 import numpy as np
 import pytest
+import torch
 from datasets import Dataset, DatasetDict, Metric
 from transformers import PreTrainedTokenizerBase
 
@@ -50,25 +51,55 @@ class TestTaskAttributes:
             assert isinstance(metric, Metric)
 
 
-class TestEvaluate:
-    pass
+@pytest.mark.parametrize(
+    argnames="prediction_type,label_type,use_logits,id2label_active",
+    argvalues=[
+        (pred_type, label_type, use_logits, id2label_active)
+        for pred_type in ["numpy", "torch"]
+        for label_type in ["numpy", "torch"]
+        for use_logits in [True, False]
+        for id2label_active in [True, False]
+    ],
+)
+def test_compute_metrics(
+    prediction_type,
+    label_type,
+    use_logits,
+    id2label_active,
+    task,
+):
+    # Define logits, labels and id2label
+    logits = [[1.0, 2.0, -3.0], [4.0, 5.0, -6.0], [7.0, 1.0, -9.0]]
+    labels = [1, 2, 2]
+    id2label = [1, 2, 3] if id2label_active else None
 
+    # Set up predictions as an array
+    if use_logits and prediction_type == "numpy":
+        predictions = np.asarray(logits)
+    elif use_logits and prediction_type == "torch":
+        predictions = torch.tensor(logits)
+    elif not use_logits and prediction_type == "numpy":
+        predictions = np.asarray(logits).argmax(axis=1)
+    else:
+        predictions = torch.tensor(logits).argmax(dim=1)
 
-class TestEvaluatePytorchJax:
-    pass
+    # Define labels
+    if label_type == "numpy":
+        labels = np.array(labels)
+    else:
+        labels = torch.tensor(labels)
 
+    # Compute metrics
+    metrics = task._compute_metrics(
+        predictions=predictions,
+        labels=labels,
+        id2label=id2label,
+    )
 
-class TestEvaluatePytorchJaxSingleIteration:
-    pass
-
-
-@pytest.mark.skip(reason="Not implemented yet")
-class TestEvaluateSpacy:
-    pass
-
-
-class TestComputeMetrics:
-    pass
+    # Check metrics
+    assert isinstance(metrics, dict)
+    for value in metrics.values():
+        assert isinstance(value, float)
 
 
 def test_prepare_predictions_and_labels_output_is_trivial(task):
