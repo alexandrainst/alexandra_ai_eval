@@ -36,4 +36,5 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 # Tell Windows machines to use UTF-8 encoding
+os.environ["ConEmuDefaultCp"] = "65001"
 os.environ["PYTHONIOENCODING"] = "UTF-8"
