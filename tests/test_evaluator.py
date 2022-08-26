@@ -128,13 +128,13 @@ class TestEvaluateSingle:
                 SENT,
                 {
                     "raw": [
-                        {"macro_f1": 0.16666666666666666, "mcc": 0.25},
-                        {"macro_f1": 0.6666666666666666, "mcc": 0.25},
+                        {"macro_f1": 1.0, "mcc": 0.5},
+                        {"macro_f1": 1.0, "mcc": 0.5},
                     ],
                     "total": {
-                        "macro_f1": 0.41666666666666663,
-                        "macro_f1_se": 0.48999999999999994,
-                        "mcc": 0.25,
+                        "macro_f1": 1.0,
+                        "macro_f1_se": 0.0,
+                        "mcc": 0.5,
                         "mcc_se": 0.0,
                     },
                 },

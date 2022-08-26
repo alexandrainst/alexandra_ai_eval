@@ -13,6 +13,7 @@ import spacy
 import torch
 import torch.nn as nn
 from datasets import Dataset, DatasetDict, load_dataset, load_metric
+from torch.nn.parameter import Parameter
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from transformers import (
@@ -32,6 +33,7 @@ from .exceptions import (
     InvalidEvaluation,
     InvalidFramework,
     ModelFetchFailed,
+    MPSFallbackNotEnabled,
     PreprocessingFailed,
     UnsupportedModelType,
     WrongFeatureColumnName,
@@ -77,7 +79,7 @@ class Task(ABC):
             for metric_cfg in task_config.metrics
         }
 
-    def evaluate(self, model_id: str) -> Dict[str, Dict[str, float]]:
+    def evaluate(self, model_id: str) -> Union[Dict[str, Dict[str, float]], str]:
         """Evaluate a model.
 
         Args:
@@ -159,7 +161,7 @@ class Task(ABC):
         rng: np.random.Generator,
         model_config: ModelConfig,
         num_iter: int,
-    ) -> Dict[str, Dict[str, float]]:
+    ) -> Union[Dict[str, Dict[str, float]], str]:
         """Evaluate a PyTorch or JAX model.
 
         Args:
@@ -176,9 +178,11 @@ class Task(ABC):
                 The number of bootstrapped samples of the test dataset to use.
 
         Returns:
-            dict:
-                The keys in the dict are 'raw' and 'total', with all the raw scores in
-                the first dictionary and the aggregated scores in the second.
+            str or dict:
+                If the `only_return_log` is set then a string is returned containing
+                the logged evaluation results. Otherwise, a nested dictionary of the
+                evaluation results. The keys are the names of the datasets, with values
+                being new dictionaries having the model IDs as keys.
         """
         # Extract the model and tokenizer
         model = model_dict["model"]
@@ -260,6 +264,7 @@ class Task(ABC):
             metric_configs=metric_configs,
             scores=scores,
             model_id=model_config.model_id,
+            only_return_log=self.evaluation_config.only_return_log,
         )
         return all_scores
 
@@ -359,8 +364,11 @@ class Task(ABC):
             if self.evaluation_config.track_carbon_emissions:
                 self.carbon_tracker.stop()
                 emissions_data = self.carbon_tracker.final_emissions_data
-                return_scores["carbon_emissions"] = 1000 * emissions_data.emissions
-                return_scores["energy_consumed"] = 1000 * emissions_data.energy_consumed
+                factor = 1_000_000 / len(test)
+                return_scores["carbon_emissions"] = factor * emissions_data.emissions
+                return_scores["energy_consumed"] = (
+                    factor * emissions_data.energy_consumed
+                )
 
             if len(scores) > 0:
                 for metric_cfg in self.task_config.metrics:
@@ -370,6 +378,9 @@ class Task(ABC):
             return return_scores
 
         except (RuntimeError, ValueError, IndexError) as e:
+            if "PYTORCH_ENABLE_MPS_FALLBACK" in str(e):
+                raise MPSFallbackNotEnabled()
+
             try:
                 del model
             except UnboundLocalError:
@@ -388,7 +399,7 @@ class Task(ABC):
         rng: np.random.Generator,
         model_config: ModelConfig,
         num_iter: int,
-    ) -> Dict[str, Dict[str, float]]:
+    ) -> Union[Dict[str, Dict[str, float]], str]:
         """Evaluate a PyTorch or JAX model.
 
         Args:
@@ -784,7 +795,208 @@ class Task(ABC):
             PyTorch Model:
                 The model with adjusted label ids.
         """
-        # TODO: Only a placeholder for now
+        # Define the types of the label conversions
+        model_label2id: Optional[dict]
+        model_id2label: Optional[Union[dict, list]]
+
+        # Get the `label2id` and `id2label` conversions from the model config
+        try:
+            model_label2id = {
+                lbl.upper(): idx for lbl, idx in model.config.label2id.items()
+            }
+        except AttributeError:
+            model_label2id = None
+        try:
+            try:
+                model_num_labels = len(model.config.id2label)
+                if not isinstance(model.config.id2label, list):
+                    model_id2label = dict(model.config.id2label)
+                else:
+                    model_id2label = model.config.id2label
+                model_id2label = [
+                    model_id2label[idx].upper() for idx in range(model_num_labels)
+                ]
+            except IndexError:
+                raise InvalidEvaluation(
+                    "There is a gap in the indexing dictionary of the model."
+                )
+        except AttributeError:
+            model_id2label = None
+
+        # If one of `label2id` or `id2label` exists in the model config, then define
+        # the other one from it
+        if model_label2id is not None and model_id2label is None:
+            model_id2label = {idx: lbl.upper() for lbl, idx in model_label2id.items()}
+            model_id2label = [model_id2label[idx] for idx in range(len(model_id2label))]
+            model.config.id2label = model_id2label
+        if model_label2id is None and model_id2label is not None:
+            model_label2id = {lbl.upper(): id for id, lbl in enumerate(model_id2label)}
+            model.config.label2id = model_label2id
+
+        # If the model does not have `label2id` or `id2label` conversions, then use the
+        # defaults
+        if model_label2id is None or model_id2label is None:
+            model.config.label2id = self.task_config.label2id
+            model.config.id2label = self.task_config.id2label
+
+        # If the model *does* have conversions, then ensure that it can deal with all
+        # the labels in the default conversions. This ensures that we can smoothly deal
+        # with labels that the model have not been trained on (it will just always get
+        # those labels wrong)
+        else:
+
+            # Collect the dataset labels and model labels in the `model_id2label`
+            # conversion list
+            for label in self.task_config.id2label:
+                syns = [
+                    syn
+                    for lst in self.task_config.label_synonyms
+                    for syn in lst
+                    if label.upper() in lst
+                ]
+                if all([syn not in model_id2label for syn in syns]):
+                    model_id2label.append(label)
+
+            # Ensure that the model_id2label does not contain duplicates modulo
+            # synonyms
+            for idx, label in enumerate(model_id2label):
+                try:
+                    canonical_syn = [
+                        syn_lst
+                        for syn_lst in self.task_config.label_synonyms
+                        if label.upper() in syn_lst
+                    ][0][0]
+                    model_id2label[idx] = canonical_syn
+
+                # IndexError appears when the label does not appear within the
+                # label_synonyms (i.e. that we added it in the previous step). In this
+                # case, we just skip the label.
+                except IndexError:
+                    continue
+
+            # Get the synonyms of all the labels, new ones included
+            new_synonyms = list(self.task_config.label_synonyms)
+            flat_old_synonyms = [
+                syn for lst in self.task_config.label_synonyms for syn in lst
+            ]
+            new_synonyms += [
+                [label.upper()]
+                for label in model_id2label
+                if label.upper() not in flat_old_synonyms
+            ]
+
+            # Add all the synonyms of the labels into the label2id conversion
+            # dictionary
+            model_label2id = {
+                label.upper(): id
+                for id, lbl in enumerate(model_id2label)
+                for label_syns in new_synonyms
+                for label in label_syns
+                if lbl.upper() in label_syns
+            }
+
+            # Get the old id2label conversion
+            old_id2label = [
+                model.config.id2label[idx].upper()
+                for idx in range(len(model.config.id2label))
+            ]
+
+            # Alter the model's classification layer to match the dataset if the
+            # model is missing labels
+            if (
+                len(model_id2label) > len(old_id2label)
+                and model_config.framework == "pytorch"
+            ):
+                model = self._alter_classification_layer(
+                    model=model,
+                    model_id2label=model_id2label,
+                    old_id2label=old_id2label,
+                    flat_old_synonyms=flat_old_synonyms,
+                )
+
+            # Update the model's own conversions with the new ones
+            model.config.id2label = model_id2label
+            model.config.label2id = model_label2id
+
+        return model
+
+    def _alter_classification_layer(
+        self,
+        model: nn.Module,
+        model_id2label: list,
+        old_id2label: list,
+        flat_old_synonyms: list,
+    ) -> nn.Module:
+        """Alter the classification layer of the model to match the dataset.
+
+        This changes the classification layer in the finetuned model to be consistent
+        with all the labels in the dataset. If the model was previously finetuned on a
+        dataset which left out a label, say, then that label will be inserted in the
+        model architecture here, but without the model ever predicting it. This will
+        allow the model to be benchmarked on such datasets, however.
+
+        Note that this only works on classification tasks and only for transformer
+        models. This code needs to be rewritten when we add other types of tasks and
+        model types.
+
+        Args:
+            model (PyTorch Model):
+                The model to alter the classification layer of.
+            model_id2label (list):
+                The model's label conversion.
+            old_id2label (list):
+                The old label conversion.
+            flat_old_synonyms (list):
+                The synonyms of the old labels.
+
+        Returns:
+            PyTorch Model:
+                The model with an altered classification layer.
+        """
+        # Count the number of new labels to add to the model
+        num_new_labels = len(model_id2label) - len(old_id2label)
+
+        # If *all* the new labels are new and aren't even synonyms of the
+        # model's labels, then raise an exception
+        if num_new_labels == self.task_config.num_labels:
+            if len(set(flat_old_synonyms).intersection(old_id2label)) == 0:
+                raise InvalidEvaluation(
+                    "The model has not been trained on any of the labels in the "
+                    "dataset, or synonyms thereof."
+                )
+
+        # Load the weights from the model's current classification layer. This handles
+        # both the token classification case and the sequence classification case.
+        # NOTE: This might need additional cases (or a general solution) when we start
+        #       dealing with other tasks.
+        try:
+            clf_weight = model.classifier.weight.data
+        except AttributeError:
+            try:
+                clf_weight = model.classifier.out_proj.weight.data
+            except AttributeError:
+                raise InvalidEvaluation(
+                    "Model does not seem to be a classification model."
+                )
+
+        # Create the new weights, which have zeros at all the new entries
+        zeros = torch.zeros(num_new_labels, model.config.hidden_size)
+        new_clf_weight = torch.cat((clf_weight, zeros), dim=0)
+        new_clf_weight = Parameter(new_clf_weight)
+
+        # Create the new classification layer
+        new_clf = nn.Linear(model.config.hidden_size, len(model_id2label))
+
+        # Assign the new weights to the new classification layer, and replace the old
+        # classification layer with this one
+        new_clf.weight = new_clf_weight
+        model.classifier = new_clf
+
+        # Update the number of labels the model thinks it has. This is required to
+        # avoid exceptions when evaluating
+        model.config.num_labels = len(model_id2label)
+        model.num_labels = len(model_id2label)
+
         return model
 
     @abstractmethod

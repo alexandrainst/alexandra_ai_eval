@@ -113,10 +113,19 @@ class InvalidArchitectureForTask(Exception):
 
 
 class WrongFeatureColumnName(Exception):
-    def __init__(
-        self,
-        feature_column_name: str,
-    ):
+    def __init__(self, feature_column_name: str):
         self.feature_column_name = feature_column_name
         self.message = f"The provided feature column name: {self.feature_column_name} was incorrect."
+        super().__init__(self.message)
+
+
+class MPSFallbackNotEnabled(Exception):
+    def __init__(self):
+        self.message = (
+            "You are using an MPS backend, such as an M1 GPU, but you have not "
+            "enabled the MPS fallback to CPU. Enable this by setting the "
+            "PYTORCH_ENABLE_MPS_FALLBACK environment variable to '1'. You can run the "
+            "evaluation with this enabled by running `PYTORCH_ENABLE_MPS_FALLBACK=1 "
+            "evaluate ...`."
+        )
         super().__init__(self.message)

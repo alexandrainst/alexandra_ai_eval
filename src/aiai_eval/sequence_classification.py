@@ -67,7 +67,7 @@ class SequenceClassification(Task):
 
         # Translate labels to ids
         numericalise = partial(
-            self._create_numerical_labels, label2id=self.task_config.label2id
+            self._create_numerical_labels, label2id=kwargs["config"].label2id
         )
         preprocessed = tokenised.map(
             numericalise, batched=True, load_from_cache_file=False

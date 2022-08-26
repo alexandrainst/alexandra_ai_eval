@@ -139,6 +139,8 @@ class EvaluationConfig:
             The device to prefer when evaluating the model. If the device is not
             available then another device will be used. Can be "cuda", "mps" and "cpu".
             Defaults to "cuda".
+        only_return_log (bool, optional):
+            Whether to only return the log. Defaults to False.
         testing (bool, optional):
             Whether a unit test is being run. Defaults to False.
     """
@@ -152,6 +154,7 @@ class EvaluationConfig:
     track_carbon_emissions: bool
     country_iso_code: str
     prefer_device: Device
+    only_return_log: bool = False
     testing: bool = False
 
     @property
@@ -177,7 +180,7 @@ class EvaluationConfig:
 
         # Otherwise, we use the best available device, which is the first device
         # present in the list
-        return str(available_devices[0])
+        return available_devices[0].value
 
 
 @dataclass
