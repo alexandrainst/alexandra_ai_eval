@@ -32,7 +32,7 @@ class TaskDummy(Task):
 
 @pytest.fixture(scope="module")
 def task(evaluation_config, task_config):
-    yield TaskDummy(task_config=task_config, evaluation_config=evaluation_config)
+    return TaskDummy(task_config=task_config, evaluation_config=evaluation_config)
 
 
 class TestTaskAttributes:
