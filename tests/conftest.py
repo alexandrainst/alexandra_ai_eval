@@ -3,6 +3,7 @@
 import pytest
 
 from src.aiai_eval.config import EvaluationConfig
+from src.aiai_eval.hf_hub import get_model_config
 from src.aiai_eval.task_configs import get_all_task_configs
 from src.aiai_eval.utils import Device
 
@@ -28,3 +29,14 @@ def evaluation_config():
 )
 def task_config(request):
     yield request.param
+
+
+@pytest.fixture(scope="session")
+def model_configs(evaluation_config, task_config):
+    model_id_mapping = dict(
+        sent=["pin/senda"],
+    )
+    yield [
+        get_model_config(model_id=model_id, evaluation_config=evaluation_config)
+        for model_id in model_id_mapping[task_config.name]
+    ]

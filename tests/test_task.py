@@ -8,7 +8,11 @@ import torch
 from datasets import Dataset, DatasetDict, Metric
 from transformers import PreTrainedTokenizerBase
 
-from src.aiai_eval.exceptions import InvalidArchitectureForTask, InvalidEvaluation
+from src.aiai_eval.exceptions import (
+    InvalidArchitectureForTask,
+    InvalidEvaluation,
+    InvalidFramework,
+)
 from src.aiai_eval.task import Task
 
 
@@ -158,15 +162,17 @@ class TestLoadData:
 
 
 class TestLoadModel:
-    pass
+    def test_load_model(self, model_configs, task):
+        for model_config in model_configs:
+            model = task._load_model(model_config)["model"]
+            assert isinstance(model, torch.nn.Module)
 
-
-class TestLoadPytorchModel:
-    pass
-
-
-class TestLoadSpacyModel:
-    pass
+    def test_invalid_model_framework(self, model_configs, task):
+        for model_config in model_configs:
+            model_config_copy = deepcopy(model_config)
+            model_config_copy.framework = "wrong"
+            with pytest.raises(InvalidFramework):
+                task._load_model(model_config_copy)
 
 
 @pytest.mark.parametrize(
