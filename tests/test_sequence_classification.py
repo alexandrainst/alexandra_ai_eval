@@ -4,7 +4,7 @@ from copy import deepcopy
 
 import pytest
 from datasets import Dataset, load_dataset
-from transformers import AutoTokenizer, DataCollatorWithPadding
+from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding
 
 from src.aiai_eval.exceptions import (
     InvalidEvaluation,
@@ -31,13 +31,21 @@ def tokenizer():
     yield AutoTokenizer.from_pretrained("pin/senda")
 
 
+@pytest.fixture(scope="module")
+def model_config():
+    config = AutoConfig.from_pretrained("pin/senda")
+    config.label2id = {lbl.upper(): idx for lbl, idx in config.label2id.items()}
+    yield config
+
+
 class TestPreprocessDataTransformer:
     @pytest.fixture(scope="class")
-    def preprocessed(self, dataset, seq_clf, tokenizer):
+    def preprocessed(self, dataset, seq_clf, tokenizer, model_config):
         yield seq_clf._preprocess_data_transformer(
             dataset=dataset,
             framework="pytorch",
             tokenizer=tokenizer,
+            config=model_config,
         )
 
     def test_spacy_framework_throws_exception(self, dataset, seq_clf, tokenizer):
@@ -83,10 +91,11 @@ class TestPreprocessDataTransformer:
 
 class TestPreprocessDataPyTorch:
     @pytest.fixture(scope="class")
-    def preprocessed(self, dataset, seq_clf, tokenizer):
+    def preprocessed(self, dataset, seq_clf, tokenizer, model_config):
         yield seq_clf._preprocess_data_pytorch(
             dataset=dataset,
             tokenizer=tokenizer,
+            config=model_config,
         )
 
     def test_preprocessed_is_list(self, preprocessed):
