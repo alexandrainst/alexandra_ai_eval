@@ -20,7 +20,7 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
- - OS [e.g., iOS]:
+ - OS [e.g., MacOS, Ubuntu]:
  - Python version [e.g., 3.10.6]:
  - Package version [e.g., 0.1.2]:
 
