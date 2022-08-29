@@ -28,13 +28,14 @@ install:
 			 "`make install` again."; \
 	fi
 	@$(MAKE) setup-poetry
+	@$(MAKE) setup-environment-variables
 	@$(MAKE) setup-git
 
 setup-poetry:
-	@poetry env use python3
+	@poetry env use python3 && poetry install
+
+setup-environment-variables:
 	@poetry run python3 -m src.scripts.fix_dot_env_file
-	@poetry install
-	@poetry run pre-commit install
 
 setup-git:
 	@git init
@@ -49,6 +50,7 @@ setup-git:
 		git config --local commit.gpgsign true; \
 		git config --local user.signingkey ${GPG_KEY_ID}; \
 	fi
+	@poetry run pre-commit install
 
 docs:
 	@poetry run pdoc --docformat google src/aiai_eval -o docs
@@ -65,36 +67,31 @@ view-docs:
 		esac; \
 		"$${openCmd}" docs/aiai_eval.html
 
-bump-major:
+publish-major:
 	@poetry run python -m src.scripts.versioning --major
-	@echo "Bumped major version."
+	@$(MAKE) publish
+	@echo "Published major version!"
 
-bump-minor:
+publish-minor:
 	@poetry run python -m src.scripts.versioning --minor
-	@echo "Bumped minor version."
+	@$(MAKE) publish
+	@echo "Published minor version!"
 
-bump-patch:
+publish-patch:
 	@poetry run python -m src.scripts.versioning --patch
-	@echo "Bumped patch version."
+	@$(MAKE) publish
+	@echo "Published patch version!"
 
 publish:
-	@$(eval include .env)
-	@printf "Preparing to publish to PyPI. Have you ensured to change the package version with 'make bump-X' for 'X' being 'major', 'minor' or 'patch'? [y/n] : "; \
-		read -r answer; \
-		if [ "$${answer}" = "y" ]; then \
-			if [ "${PYPI_API_TOKEN}" = "" ]; then \
-				echo "No PyPI API token specified in the '.env' file, so cannot publish."; \
-			else \
-				echo "Publishing to PyPI..."; \
-				poetry publish --build --username "__token__" --password "${PYPI_API_TOKEN}"; \
-				echo "Published!"; \
-			fi \
-		else \
-			echo "Publishing aborted."; \
-		fi
+	@if [ ${PYPI_API_TOKEN} = "" ]; then \
+		echo "No PyPI API token specified in the '.env' file, so cannot publish."; \
+	else \
+		echo "Publishing to PyPI..."; \
+		poetry publish --build --username "__token__" --password ${PYPI_API_TOKEN}; \
+	fi
 
 test:
-	@python -m pytest && readme-cov
+	@poetry run pytest && readme-cov
 
 tree:
 	@tree -a \
