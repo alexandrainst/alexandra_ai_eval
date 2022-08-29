@@ -154,9 +154,14 @@ class TestLoadData:
             ("test_name",),
         ],
     )
-    def test_wrong_train_name_in_task_config(self, task, attribute_name):
-        task_copy = deepcopy(task)
-        setattr(task_copy.task_config, attribute_name, "wrong")
+    def test_wrong_train_name_in_task_config(
+        self, task, attribute_name, evaluation_config
+    ):
+        task_config_copy = deepcopy(task.task_config)
+        task_copy = TaskDummy(
+            task_config=task_config_copy, evaluation_config=evaluation_config
+        )
+        setattr(task_config_copy, attribute_name, "wrong")
         with pytest.raises(InvalidEvaluation):
             task_copy._load_data()
 
