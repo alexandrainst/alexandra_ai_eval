@@ -56,7 +56,14 @@ docs:
 
 view-docs:
 	@echo "Viewing API documentation..."
-	@open docs/aiai_eval.html
+	@uname=$$(uname); \
+		case $${uname} in \
+			(*Linux*) openCmd='xdg-open'; ;; \
+			(*Darwin*) openCmd='open'; ;; \
+			(*CYGWIN*) openCmd='cygstart'; ;; \
+			(*) echo 'Error: Unsupported platform: $${uname}'; exit 2; ;; \
+		esac; \
+		"$${openCmd}" docs/aiai_eval.html
 
 bump-major:
 	@poetry run python -m src.scripts.versioning --major
