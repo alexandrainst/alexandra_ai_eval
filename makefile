@@ -115,4 +115,5 @@ tree:
 		-I .coverage* \
 		-I .aiai_cache \
 		-I aiai_evaluation_results.json \
-		-I __pycache__
+		-I __pycache__ \
+		-I flagged
