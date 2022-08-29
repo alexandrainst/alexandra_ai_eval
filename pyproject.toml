@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "AIAI-Eval"
-version = "0.0.1"
+version = "0.0.0"
 description = "Evaluation of finetuned models."
 authors = [
     "Dan Saattrup Nielsen <dan.nielsen@alexandra.dk>",
