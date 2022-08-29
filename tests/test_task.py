@@ -4,10 +4,15 @@ from copy import deepcopy
 
 import numpy as np
 import pytest
+import torch
 from datasets import Dataset, DatasetDict, Metric
 from transformers import PreTrainedTokenizerBase
 
-from src.aiai_eval.exceptions import InvalidArchitectureForTask, InvalidEvaluation
+from src.aiai_eval.exceptions import (
+    InvalidArchitectureForTask,
+    InvalidEvaluation,
+    InvalidFramework,
+)
 from src.aiai_eval.task import Task
 
 
@@ -31,7 +36,7 @@ class TaskDummy(Task):
 
 @pytest.fixture(scope="module")
 def task(evaluation_config, task_config):
-    yield TaskDummy(task_config=task_config, evaluation_config=evaluation_config)
+    return TaskDummy(task_config=task_config, evaluation_config=evaluation_config)
 
 
 class TestTaskAttributes:
@@ -50,25 +55,55 @@ class TestTaskAttributes:
             assert isinstance(metric, Metric)
 
 
-class TestEvaluate:
-    pass
+@pytest.mark.parametrize(
+    argnames="prediction_type,label_type,use_logits,id2label_active",
+    argvalues=[
+        (pred_type, label_type, use_logits, id2label_active)
+        for pred_type in ["numpy", "torch"]
+        for label_type in ["numpy", "torch"]
+        for use_logits in [True, False]
+        for id2label_active in [True, False]
+    ],
+)
+def test_compute_metrics(
+    prediction_type,
+    label_type,
+    use_logits,
+    id2label_active,
+    task,
+):
+    # Define logits, labels and id2label
+    logits = [[1.0, 2.0, -3.0], [4.0, 5.0, -6.0], [7.0, 1.0, -9.0]]
+    labels = [1, 2, 2]
+    id2label = [1, 2, 3] if id2label_active else None
 
+    # Set up predictions as an array
+    if use_logits and prediction_type == "numpy":
+        predictions = np.asarray(logits)
+    elif use_logits and prediction_type == "torch":
+        predictions = torch.tensor(logits)
+    elif not use_logits and prediction_type == "numpy":
+        predictions = np.asarray(logits).argmax(axis=1)
+    else:
+        predictions = torch.tensor(logits).argmax(dim=1)
 
-class TestEvaluatePytorchJax:
-    pass
+    # Define labels
+    if label_type == "numpy":
+        labels = np.array(labels)
+    else:
+        labels = torch.tensor(labels)
 
+    # Compute metrics
+    metrics = task._compute_metrics(
+        predictions=predictions,
+        labels=labels,
+        id2label=id2label,
+    )
 
-class TestEvaluatePytorchJaxSingleIteration:
-    pass
-
-
-@pytest.mark.skip(reason="Not implemented yet")
-class TestEvaluateSpacy:
-    pass
-
-
-class TestComputeMetrics:
-    pass
+    # Check metrics
+    assert isinstance(metrics, dict)
+    for value in metrics.values():
+        assert isinstance(value, float)
 
 
 def test_prepare_predictions_and_labels_output_is_trivial(task):
@@ -127,15 +162,17 @@ class TestLoadData:
 
 
 class TestLoadModel:
-    pass
+    def test_load_model(self, model_configs, task):
+        for model_config in model_configs:
+            model = task._load_model(model_config)["model"]
+            assert isinstance(model, torch.nn.Module)
 
-
-class TestLoadPytorchModel:
-    pass
-
-
-class TestLoadSpacyModel:
-    pass
+    def test_invalid_model_framework(self, model_configs, task):
+        for model_config in model_configs:
+            model_config_copy = deepcopy(model_config)
+            model_config_copy.framework = "wrong"
+            with pytest.raises(InvalidFramework):
+                task._load_model(model_config_copy)
 
 
 @pytest.mark.parametrize(
