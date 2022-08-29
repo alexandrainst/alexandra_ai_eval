@@ -3,6 +3,7 @@
 </div>
 
 ### Evaluation of finetuned models.
+##### _(pronounced as in "Aye aye captain")_
 
 ______________________________________________________________________
 [![PyPI Status](https://badge.fury.io/py/aiai_eval.svg)](https://pypi.org/project/aiai_eval/)
@@ -10,12 +11,6 @@ ______________________________________________________________________
 [![License](https://img.shields.io/github/license/alexandrainst/AIAI-eval)](https://github.com/alexandrainst/AIAI-eval/blob/main/LICENSE)
 [![LastCommit](https://img.shields.io/github/last-commit/alexandrainst/AIAI-eval)](https://github.com/alexandrainst/AIAI-eval/commits/main)
 [![Code Coverage](https://img.shields.io/badge/Coverage-79%25-yellowgreen.svg)](https://github.com/alexandrainst/AIAI-eval/tree/main/tests)
-
-
-Developers:
-
-- Dan Saattrup Nielsen (dan.nielsen@alexandra.dk)
-- Anders Jess Pedersen (anders.j.pedersen@alexandra.dk)
 
 
 ## Installation
@@ -66,6 +61,24 @@ models and/or datasets:
 >>> evaluator = Evaluator()
 >>> evaluator('<model_id>', '<task>')
 ```
+
+
+## Contributors
+
+If you feel like this package is missing a crucial feature, if you encounter a bug or
+if you just want to correct a typo in this readme file, then we urge you to join the
+community! Have a look at the [CONTRIBUTING.md](./CONTRIBUTING.md) file, where you can
+check out all the ways you can contribute to this package. :sparkles:
+
+- _Your name here?_ :tada:
+
+
+## Maintainers
+
+The following are the core maintainers of the `aiai_eval` package:
+
+- [@saattrupdan](https://github.com/saattrupdan) (Dan Saattrup Nielsen; saattrupdan@alexandra.dk)
+- [@AJDERS](https://github.com/AJDERS) (Anders Jess Pedersen; anders.j.pedersen@alexandra.dk)
 
 
 ## Project structure
