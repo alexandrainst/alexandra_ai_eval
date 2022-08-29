@@ -91,6 +91,9 @@ target/
 
 # Documentation
 docs/aiai_eval/
+docs/aiai_eval.html
+docs/index.html
+docs/search.json
 
 # AIAI
 .aiai_cache/

@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "AIAI-Eval"
+name = "aiai_eval"
 version = "0.0.1"
 description = "Evaluation of finetuned models."
 authors = [
