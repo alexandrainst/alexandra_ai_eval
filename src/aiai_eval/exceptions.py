@@ -129,3 +129,12 @@ class MPSFallbackNotEnabled(Exception):
             "evaluate ...`."
         )
         super().__init__(self.message)
+
+
+class InvalidTokenizer(Exception):
+    def __init__(self, tokenizer_type: str, message: str = ""):
+        self.tokenizer_type = tokenizer_type
+        self.message = (
+            f"The provided tokenizer type: {self.tokenizer_type} is not supported."
+        )
+        super().__init__(self.message)
