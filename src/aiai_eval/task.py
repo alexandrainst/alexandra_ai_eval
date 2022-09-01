@@ -1028,8 +1028,13 @@ class Task(ABC):
         For use by a transformer model.
 
         Args:
-            dataset_dict (DatasetDict):
-                The dataset dictionary.
+            dataset (Dataset):
+                The dataset.
+            framework (str):
+                The framework of the model.
+            kwargs:
+                Extra keyword arguments containing objects used in preprocessing the
+                dataset.
 
         Returns:
             DatasetDict:
