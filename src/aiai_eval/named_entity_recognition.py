@@ -1,8 +1,10 @@
 """Class for the named entity recognition task."""
-
+from copy import deepcopy
 from functools import partial
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
+import numpy as np
+import torch
 from datasets import Dataset
 from transformers import DataCollatorForTokenClassification, PreTrainedTokenizerBase
 
@@ -51,6 +53,11 @@ class NamedEntityRecognition(Task):
                 "Evaluation of text predictions for SpaCy models is not yet "
                 "implemented."
             )
+
+        # Check what labels are present in the dataset, and store if MISC tags are not
+        # present
+        labels_in_train = {tag for tag_list in dataset["ner_tags"] for tag in tag_list}
+        self.has_misc_tags = "B-MISC" in labels_in_train or "I-MISC" in labels_in_train
 
         # We are now assuming we are using pytorch
         map_fn = partial(
@@ -214,6 +221,77 @@ class NamedEntityRecognition(Task):
                 The data collator.
         """
         return DataCollatorForTokenClassification(tokenizer, label_pad_token_id=-100)
+
+    def _prepare_predictions_and_labels(
+        self,
+        predictions_np: np.ndarray,
+        labels_np: np.ndarray,
+        id2label: Optional[list] = None,
+    ) -> List[Tuple[np.ndarray, np.ndarray]]:
+        """Prepare predictions and labels for output.
+
+        Args:
+            predictions_np (NumPy array):
+                The predictions of the model.
+            labels_np (NumPy array):
+                The ground truth labels.
+            id2label (list or None, optional):
+                Conversion of indices to labels. Defaults to None.
+
+        Returns:
+            list of pairs of NumPy arrays:
+                The prepared predictions and labels. Each list entry is a pair of NumPy
+                arrays associated with each metric, with the first array being the
+                predictions and the second array being the labels. If the list only
+                contains one element and multiple metrics are present, then the same
+                predictions and labels will be used for all the metrics.
+        """
+
+        if id2label is not None:
+            # Remove ignored index (special tokens)
+            predictions = [
+                [
+                    id2label[pred_id]
+                    for pred_id, lbl_id in zip(pred, label)
+                    if lbl_id != -100
+                ]
+                for pred, label in zip(predictions_np, labels_np)
+            ]
+            labels = [
+                [id2label[lbl_id] for _, lbl_id in zip(pred, label) if lbl_id != -100]
+                for pred, label in zip(predictions_np, labels_np)
+            ]
+
+        # Replace predicted tag with either MISC or O tags if they are not part of the
+        # dataset
+        id2label_without_misc = set(self.task_config.id2label).difference(
+            {"B-MISC", "I-MISC"}
+        )
+        for i, prediction_list in enumerate(predictions):
+            for j, ner_tag in enumerate(prediction_list):
+                if ner_tag not in id2label_without_misc:
+                    if self.has_misc_tags and id2label[ner_tag][:2] == "B-":  # type: ignore
+                        predictions[i][j] = "B-MISC"
+                    elif self.has_misc_tags and id2label[ner_tag][:2] == "I-":  # type: ignore
+                        predictions[i][j] = "I-MISC"
+                    else:
+                        predictions[i][j] = "O"
+
+        # Remove MISC labels from predictions
+        predictions_no_misc = deepcopy(predictions)
+        for i, prediction_list in enumerate(predictions_no_misc):
+            for j, ner_tag in enumerate(prediction_list):
+                if ner_tag[-4:] == "MISC":
+                    predictions_no_misc[i][j] = "O"
+
+        # Remove MISC labels from labels
+        labels_no_misc = deepcopy(labels)
+        for i, label_list in enumerate(labels_no_misc):
+            for j, ner_tag in enumerate(label_list):
+                if ner_tag[-4:] == "MISC":
+                    labels_no_misc[i][j] = "O"
+
+        return [(predictions, labels), (predictions_no_misc, labels_no_misc)]
 
     def _preprocess_data_pytorch(self, dataset: Dataset, **kwargs) -> list:
         """Preprocess a dataset by tokenizing and aligning the labels.
