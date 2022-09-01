@@ -463,7 +463,7 @@ class Task(ABC):
 
         # Prepare the predictions and labels for the given task
         all_predictions_labels = self._prepare_predictions_and_labels(
-            predictions=predictions_np, labels=labels_np, id2label=id2label
+            predictions_np=predictions_np, labels_np=labels_np, id2label=id2label
         )
 
         # If there are multiple metrics but only one pair in the
@@ -479,11 +479,14 @@ class Task(ABC):
         ):
             predictions, labels = predictions_labels
             metric = self._metrics[metric_cfg.name]
-            score_dict = metric.compute(
-                predictions=predictions,
-                references=labels,
-                **metric_cfg.compute_kwargs,
-            )
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", category=RuntimeWarning)
+                score_dict = metric.compute(
+                    predictions=predictions,
+                    references=labels,
+                    **metric_cfg.compute_kwargs,
+                )
+
             if score_dict is not None:
                 scores = score_dict[metric_cfg.results_key]
                 results[metric_cfg.name] = scores
@@ -493,8 +496,8 @@ class Task(ABC):
 
     def _prepare_predictions_and_labels(
         self,
-        predictions: np.ndarray,
-        labels: np.ndarray,
+        predictions_np: np.ndarray,
+        labels_np: np.ndarray,
         id2label: Optional[list] = None,
     ) -> List[Tuple[np.ndarray, np.ndarray]]:
         """Prepare predictions and labels for output.
@@ -515,7 +518,7 @@ class Task(ABC):
                 contains one element and multiple metrics are present, then the same
                 predictions and labels will be used for all the metrics.
         """
-        return [(predictions, labels)]
+        return [(predictions_np, labels_np)]
 
     def __call__(self, *args, **kwargs):
         return self.evaluate(*args, **kwargs)
