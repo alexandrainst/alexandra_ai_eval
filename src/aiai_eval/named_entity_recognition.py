@@ -1,10 +1,12 @@
 """Class for the named entity recognition task."""
 
+from functools import partial
 from typing import Optional
 
 from datasets import Dataset
 from transformers import PreTrainedTokenizerBase
 
+from .exceptions import InvalidEvaluation
 from .task import Task
 
 
@@ -44,7 +46,39 @@ class NamedEntityRecognition(Task):
             Hugging Face dataset:
                 The preprocessed dataset.
         """
-        return dataset
+        if framework == "spacy":
+            raise InvalidEvaluation(
+                "Evaluation of text predictions for SpaCy models is not yet "
+                "implemented."
+            )
+
+        # We are now assuming we are using pytorch
+        map_fn = partial(
+            self._tokenize_and_align_labels,
+            tokenizer=kwargs["tokenizer"],
+            label2id=kwargs["config"].label2id,
+        )
+        tokenised_dataset = dataset.map(
+            map_fn, batched=True, load_from_cache_file=False
+        )
+        return tokenised_dataset
+
+    def _tokenize_and_align_labels(
+        self, examples: dict, tokenizer, label2id: dict
+    ) -> dict:
+        """Tokenise all texts and align the labels with them.
+        Args:
+            examples (dict):
+                The examples to be tokenised.
+            tokenizer (Hugging Face tokenizer):
+                A pretrained tokenizer.
+            label2id (dict):
+                A dictionary that converts NER tags to IDs.
+        Returns:
+            dict:
+                A dictionary containing the tokenized data as well as labels.
+        """
+        return {"text": "foo", "labels": "bar", "label_ids": 1}
 
     def _load_data_collator(self, tokenizer: Optional[PreTrainedTokenizerBase] = None):
         """Load the data collator used to prepare samples during finetuning.
