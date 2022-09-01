@@ -111,4 +111,7 @@ class NamedEntityRecognition(Task):
                 Every list element represents the tokenised data for the corresponding
                 example.
         """
-        return list(dataset)
+        full_preprocessed = self._preprocess_data_transformer(
+            dataset=dataset, framework="pytorch", **kwargs
+        )
+        return full_preprocessed["input_ids"]
