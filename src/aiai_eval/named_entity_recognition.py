@@ -4,7 +4,7 @@ from functools import partial
 from typing import List, Optional
 
 from datasets import Dataset
-from transformers import PreTrainedTokenizerBase
+from transformers import DataCollatorForTokenClassification, PreTrainedTokenizerBase
 
 from .exceptions import InvalidEvaluation, InvalidTokenizer, MissingLabel
 from .task import Task
@@ -198,7 +198,7 @@ class NamedEntityRecognition(Task):
             Hugging Face data collator:
                 The data collator.
         """
-        pass
+        return DataCollatorForTokenClassification(tokenizer, label_pad_token_id=-100)
 
     def _preprocess_data_pytorch(self, dataset: Dataset, **kwargs) -> list:
         """Preprocess a dataset by tokenizing and aligning the labels.
