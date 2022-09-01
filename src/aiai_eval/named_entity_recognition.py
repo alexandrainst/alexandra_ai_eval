@@ -61,7 +61,22 @@ class NamedEntityRecognition(Task):
         tokenised_dataset = dataset.map(
             map_fn, batched=True, load_from_cache_file=False
         )
-        return tokenised_dataset
+
+        # Remove unused columns
+        return tokenised_dataset.remove_columns(
+            [
+                self.task_config.feature_column_name,
+                "tokens",
+                "lemmas",
+                "sent_id",
+                "tok_ids",
+                "pos_tags",
+                "morph_tags",
+                "dep_ids",
+                "dep_labels",
+                "ner_tags",
+            ]
+        )
 
     def _tokenize_and_align_labels(
         self, examples: dict, tokenizer, label2id: dict
