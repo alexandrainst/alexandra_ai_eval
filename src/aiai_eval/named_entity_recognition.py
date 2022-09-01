@@ -80,13 +80,14 @@ class NamedEntityRecognition(Task):
         """
 
         tokenized_inputs = tokenizer(
-            examples[self.task_config.feature_column_name],
+            examples["tokens"],
             is_split_into_words=True,
             truncation=True,
             padding=True,
         )
         all_labels: List[List[int]] = []
-        for i, labels in enumerate(examples["ner_tags"]):
+        for i, ner_tags in enumerate(examples["ner_tags"]):
+            labels = [self.task_config.id2label[ner_tag] for ner_tag in ner_tags]
             try:
                 word_ids = tokenized_inputs.word_ids(batch_index=i)
 
