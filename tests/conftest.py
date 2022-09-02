@@ -35,6 +35,7 @@ def task_config(request):
 def model_configs(evaluation_config, task_config):
     model_id_mapping = dict(
         sent=["pin/senda"],
+        ner=["DaNLP/da-bert-ner"],
     )
     yield [
         get_model_config(model_id=model_id, evaluation_config=evaluation_config)
