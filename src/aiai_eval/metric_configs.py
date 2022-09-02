@@ -33,7 +33,7 @@ MACRO_F1 = MetricConfig(
     pretty_name="Macro-average F1-score",
     huggingface_id="f1",
     results_key="f1",
-    compute_kwargs=dict(average="macro", zero_division=1),
+    compute_kwargs=dict(average="macro"),
 )
 
 
