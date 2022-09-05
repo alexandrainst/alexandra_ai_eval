@@ -130,5 +130,6 @@ class SequenceClassification(Task):
                 array contains the true labels.
         """
         raise InvalidEvaluation(
-            "Evaluation of text classification tasks for SpaCy models is not possible."
+            "Evaluation of text classification tasks for SpaCy models is currently "
+            "not possible."
         )
