@@ -1,6 +1,6 @@
 """Custom exceptions used in the project."""
 
-from typing import Dict, Sequence
+from typing import Dict, Sequence, Union
 
 
 class InvalidEvaluation(Exception):
@@ -113,9 +113,16 @@ class InvalidArchitectureForTask(Exception):
 
 
 class WrongFeatureColumnName(Exception):
-    def __init__(self, feature_column_name: str):
-        self.feature_column_name = feature_column_name
-        self.message = f"The provided feature column name: {self.feature_column_name} was incorrect."
+    def __init__(self, feature_column_names: Union[str, Sequence[str]]):
+        # Ensure that feature_column_names is a sequence
+        if isinstance(feature_column_names, str):
+            feature_column_names = [feature_column_names]
+
+        self.feature_column_names = feature_column_names
+        self.message = (
+            "The provided feature column name(s) "
+            f"{', '.join(self.feature_column_names)} were incorrect."
+        )
         super().__init__(self.message)
 
 
