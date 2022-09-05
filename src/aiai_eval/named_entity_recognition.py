@@ -89,7 +89,7 @@ class NamedEntityRecognition(Task):
         self, examples: dict, tokenizer, label2id: dict
     ) -> dict:
         """Tokenise all texts and align the labels with them.
-        
+
         Args:
             examples (dict):
                 The examples to be tokenised.
@@ -97,7 +97,7 @@ class NamedEntityRecognition(Task):
                 A pretrained tokenizer.
             label2id (dict):
                 A dictionary that converts NER tags to IDs.
-                
+
         Returns:
             dict:
                 A dictionary containing the tokenized data as well as labels.
@@ -210,7 +210,9 @@ class NamedEntityRecognition(Task):
         tokenized_inputs["labels"] = all_labels
         return tokenized_inputs
 
-    def _load_data_collator(self, tokenizer: Optional[PreTrainedTokenizerBase] = None):
+    def _load_data_collator(
+        self, tokenizer: Optional[PreTrainedTokenizerBase] = None
+    ) -> DataCollatorForTokenClassification:
         """Load the data collator used to prepare samples during finetuning.
 
         Args:
