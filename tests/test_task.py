@@ -47,7 +47,7 @@ def skip_if_not_this_task(request, task):
             request.node.get_closest_marker("skip_if_not_this_task").args[0]
             != task.task_config.name
         ):
-            pytest.skip("skipped on this task: {}".format(task.task_config.name))
+            pytest.skip(f"skipped on this task: {task.task_config.name}")
 
 
 class TestTaskAttributes:
