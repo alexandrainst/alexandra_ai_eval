@@ -17,8 +17,6 @@ import torch
 from datasets.utils import disable_progress_bar
 from requests import RequestException
 
-from .hf_hub import model_exists_on_hf_hub
-
 logger = logging.getLogger(__name__)
 
 
@@ -32,30 +30,6 @@ def clear_memory():
     # TODO: Also empty MPS cache
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
-
-
-def check_if_model_exist(model_id: str) -> Tuple[bool, bool]:
-    """Checks if a model exists on Huggingface or as an available spacy model.
-
-    Args:
-        model_id (str):
-            The name of the model.
-
-    Returns:
-        tuple of bools:
-            A bool specifying whether the model exists on Huggingface Hub and bool a
-            specifying if model the exists as an available spacy model.
-    """
-    model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
-    try:
-        import spacy
-
-        spacy.load(model_id)
-        model_is_spacy = True
-    except OSError:
-        model_is_spacy = False
-
-    return model_on_hf_hub, model_is_spacy
 
 
 def enforce_reproducibility(framework: str, seed: int = 703) -> np.random.Generator:
