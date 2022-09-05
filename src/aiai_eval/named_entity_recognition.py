@@ -50,7 +50,7 @@ class NamedEntityRecognition(Task):
         """
         if framework == "spacy":
             raise InvalidEvaluation(
-                "Evaluation of text predictions for SpaCy models is not yet "
+                "Evaluation of named entity recognition for SpaCy models is not yet "
                 "implemented."
             )
 
@@ -160,12 +160,13 @@ class NamedEntityRecognition(Task):
                 if len(word_idxs) != len(token_idxs):
                     tokenizer_type = type(tokenizer).__name__
                     raise InvalidTokenizer(
-                        tokenizer_type,
-                        (
-                            "The tokens could not be aligned with the words during manual "
-                            "word-token alignment. It seems that the tokenizer is neither "
-                            "of the fast variant nor of a SentencePiece/WordPiece variant. The "
-                            f"tokenizer type is {tokenizer_type}."
+                        tokenizer_type=tokenizer_type,
+                        message=(
+                            "The tokens could not be aligned with the words during "
+                            "manual word-token alignment. It seems that the tokenizer "
+                            "is neither of the fast variant nor of a SentencePiece/"
+                            "WordPiece variant. The tokenizer type is "
+                            f"{tokenizer_type}."
                         ),
                     )
 
