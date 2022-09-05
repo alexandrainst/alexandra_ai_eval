@@ -149,19 +149,21 @@ class SequenceClassification(Task):
         """
         return DataCollatorWithPadding(tokenizer, padding="longest")
 
-    def _get_spacy_predictions_and_labels(self, model, dataset: Dataset) -> tuple:
-        """Get predictions from SpaCy model on dataset.
+    def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
+        """Helper function that extracts the predictions from a SpaCy model.
+        Aside from extracting the predictions from the model, it also aligns the
+        predictions with the gold tokens, in case the SpaCy tokeniser tokenises the
+        text different from those.
 
         Args:
-            model (SpaCy model):
-                The model.
-            dataset (Hugging Face dataset):
-                The dataset.
+            tokens_processed (tuple):
+                A pair of the labels, being a list of strings, and the SpaCy processed
+                document, being a Spacy `Doc` instance.
 
         Returns:
-            A pair of arrays:
-                The first array contains the probability predictions and the second
-                array contains the true labels.
+            list:
+                A list of predictions for each token, of the same length as the gold
+                tokens (first entry of `tokens_processed`).
         """
         raise InvalidEvaluation(
             "Evaluation of text classification tasks for SpaCy models is not possible."
