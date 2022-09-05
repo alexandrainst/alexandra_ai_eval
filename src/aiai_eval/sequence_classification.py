@@ -157,7 +157,9 @@ class SequenceClassification(Task):
             "Evaluation of text classification tasks for SpaCy models is not possible."
         )
 
-    def _get_spacy_predictions_and_labels(self, model, dataset: Dataset) -> tuple:
+    def _get_spacy_predictions_and_labels(
+        self, model, dataset: Dataset, batch_size: int
+    ) -> tuple:
         """Get predictions from SpaCy model on dataset.
 
         Args:
@@ -165,6 +167,8 @@ class SequenceClassification(Task):
                 The model.
             dataset (Hugging Face dataset):
                 The dataset.
+            batch_size (int):
+                The batch size to use.
 
         Returns:
             A pair of arrays:
