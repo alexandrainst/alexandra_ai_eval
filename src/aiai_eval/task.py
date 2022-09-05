@@ -33,6 +33,7 @@ from .exceptions import (
     InvalidEvaluation,
     InvalidFramework,
     ModelFetchFailed,
+    ModelNotTrainedForTask,
     MPSFallbackNotEnabled,
     PreprocessingFailed,
     UnsupportedModelType,
@@ -311,6 +312,7 @@ class Task(ABC):
 
             # Define batch size, which depends on whether we are testing or not
             batch_size = 2 if self.evaluation_config.testing else 32
+
             # Create dataloader
             dataloader = DataLoader(
                 test, batch_size=batch_size, shuffle=True, collate_fn=data_collator  # type: ignore
@@ -420,8 +422,164 @@ class Task(ABC):
                 The keys in the dict are 'raw' and 'total', with all the raw scores in
                 the first dictionary and the aggregated scores in the second.
         """
-        # TODO: Needs implementation
-        return {"foo": {"bar": 1.0}}
+        # Preprocess the datasets
+        try:
+            test = self._preprocess_data_spacy(test)
+        except ValueError:
+            raise PreprocessingFailed()
+
+        # If we are testing then truncate the test set
+        if self.evaluation_config.testing:
+            test = Dataset.from_dict(test[:4])
+
+        # Get bootstrapped datasets
+        tests = [
+            Dataset.from_dict(test[rng.integers(0, len(test), len(test))])
+            for _ in range(num_iter)
+        ]
+
+        # Set up progress bar
+        if self.evaluation_config.progress_bar:
+            itr = tqdm(range(num_iter), desc="Evaluating")
+        else:
+            itr = range(num_iter)
+
+        scores = list()
+        for idx in itr:
+            while True:
+                test_itr_scores = self._evaluate_spacy_single_iteration(
+                    idx=idx,
+                    model_config=model_config,
+                    tests=tests,
+                )
+                # If the iteration was successful then break the while-loop
+                if isinstance(test_itr_scores, dict):
+                    break
+
+                # Otherwise we encountered an error
+                else:
+                    raise InvalidEvaluation(
+                        "An unknown error occurred during the evaluation of the "
+                        f"{idx} iteration. The error message returned was: "
+                        f"{str(test_itr_scores)}"
+                    )
+
+            scores.append(test_itr_scores)
+
+        # If track_carbon_emissions is true append metrics, to correctly log emissions
+        # data. We avoid mutating, so any downstream evaluations will not try to use
+        # these.
+        metric_configs = list(self.task_config.metrics)
+        if self.evaluation_config.track_carbon_emissions:
+            metric_configs.append(EMISSIONS)
+            metric_configs.append(POWER)
+
+        # Log scores
+        all_scores = log_scores(
+            task_name=self.task_config.pretty_name,
+            metric_configs=metric_configs,
+            scores=scores,
+            model_id=model_config.model_id,
+            only_return_log=self.evaluation_config.only_return_log,
+        )
+        return all_scores
+
+    def _evaluate_spacy_single_iteration(
+        self,
+        idx: int,
+        model_config: ModelConfig,
+        tests: Sequence[Dataset],
+    ) -> Union[dict, Exception]:
+        """
+            Args:
+            idx (int):
+                The index of the current iteration.
+            model_dict (dict):
+                The model dictionary, with keys "model" and "tokenizer".
+            tests (list):
+                A list of bootstraped test datasets.
+
+        Returns:
+            dict or Exception:
+                The keys in the dict correspond to the metrics and values
+                the corresponding values.
+        """
+        scores = list()
+        return_scores = dict()
+        try:
+            # Set random seeds to enforce reproducibility of the randomly
+            # initialised weights
+            random.seed(703 + idx)
+            np.random.seed(703 + idx)
+
+            # Reinitialise a new model
+            model_dict = self._load_model(model_config=model_config)
+            model = model_dict["model"]
+
+            # Get iteration data
+            test = tests[idx]
+
+            # Define batch size, which depends on whether we are testing or not
+            batch_size = 2 if self.evaluation_config.testing else 32
+
+            # Start carbon emissions tracking
+            if self.evaluation_config.track_carbon_emissions:
+                self.carbon_tracker.start()
+
+            # Get model predictions
+            model_predictions, labels = self._get_spacy_predictions_and_labels(
+                model=model, dataset=test, batch_size=batch_size
+            )
+
+            # Check if the spaCy model has been trained on the task at hand. If
+            # not, then skip this benchmark.
+            sample_preds = model_predictions[0]
+            pos_ner_test = isinstance(sample_preds, list) and "" in sample_preds
+            dep_test = isinstance(sample_preds[0], list) and "" in sample_preds[0]
+            if pos_ner_test or dep_test:
+                raise ModelNotTrainedForTask(
+                    task=self.task_config.name, framework="spacy"
+                )
+
+            # Compute the metrics
+            metrics = self._compute_metrics(
+                predictions=model_predictions,
+                labels=labels,
+            )
+            # Append the metrics to the list of all scores
+            scores.append(metrics)
+
+            # Stop carbon emissions tracking
+            if self.evaluation_config.track_carbon_emissions:
+                self.carbon_tracker.stop()
+                emissions_data = self.carbon_tracker.final_emissions_data
+                factor = 1_000_000 / len(test)
+                return_scores["carbon_emissions"] = factor * emissions_data.emissions
+                return_scores["energy_consumed"] = (
+                    factor * emissions_data.energy_consumed
+                )
+
+            if len(scores) > 0:
+                for metric_cfg in self.task_config.metrics:
+                    return_scores[metric_cfg.name] = np.mean(
+                        [score[metric_cfg.name] for score in scores]
+                    )
+            return return_scores
+
+        except (RuntimeError, ValueError, IndexError) as e:
+            if "PYTORCH_ENABLE_MPS_FALLBACK" in str(e):
+                raise MPSFallbackNotEnabled()
+
+            try:
+                del model
+            except UnboundLocalError:
+                pass
+            try:
+                del model_dict
+            except UnboundLocalError:
+                pass
+            clear_memory()
+            return e
 
     def _compute_metrics(
         self,
@@ -1042,6 +1200,62 @@ class Task(ABC):
         Returns:
             DatasetDict:
                 The processed dataset dictionary.
+        """
+        pass
+
+    @abstractmethod
+    def _preprocess_data_spacy(self, dataset: Dataset) -> Dataset:
+        """Process the data for use by a transformer model.
+
+        For use by a transformer model.
+
+        Args:
+            dataset (Dataset):
+                The dataset.
+
+        Returns:
+            Dataset:
+                The processed dataset.
+        """
+        pass
+
+    @abstractmethod
+    def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
+        """Helper function that extracts the predictions from a SpaCy model.
+        Aside from extracting the predictions from the model, it also aligns the
+        predictions with the gold tokens, in case the SpaCy tokeniser tokenises the
+        text different from those.
+
+        Args:
+            tokens_processed (tuple):
+                A pair of the labels, being a list of strings, and the SpaCy processed
+                document, being a Spacy `Doc` instance.
+
+        Returns:
+            list:
+                A list of predictions for each token, of the same length as the gold
+                tokens (first entry of `tokens_processed`).
+        """
+        pass
+
+    @abstractmethod
+    def _get_spacy_predictions_and_labels(
+        self, model: Any, dataset: Dataset, batch_size: int
+    ) -> tuple:
+        """Get predictions from SpaCy model on dataset.
+
+        Args:
+            model (SpaCy model):
+                The model.
+            dataset (Hugging Face dataset):
+                The dataset.
+            batch_size (int):
+                The batch size to use.
+
+        Returns:
+            A pair of arrays:
+                The first array contains the probability predictions and the second
+                array contains the true labels.
         """
         pass
 
