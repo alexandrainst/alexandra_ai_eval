@@ -9,9 +9,9 @@ from typing import Dict, List, Sequence, Union
 
 from .config import Device, EvaluationConfig, TaskConfig
 from .exceptions import InvalidEvaluation, ModelDoesNotExist
+from .hf_hub import check_if_model_exist
 from .task_configs import get_all_task_configs
 from .task_factory import TaskFactory
-from .utils import check_if_model_exist
 
 logger = logging.getLogger(__name__)
 

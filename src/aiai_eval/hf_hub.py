@@ -1,6 +1,6 @@
 """Functions related to the Hugging Face Hub."""
 
-from typing import Optional
+from typing import Optional, Tuple
 
 from huggingface_hub import HfApi, ModelFilter
 from huggingface_hub.utils import RepositoryNotFoundError
@@ -13,7 +13,7 @@ from .exceptions import (
     ModelDoesNotExist,
     NoInternetConnection,
 )
-from .utils import check_if_model_exist, internet_connection_available
+from .utils import internet_connection_available
 
 
 def model_exists_on_hf_hub(model_id: str) -> bool:
@@ -33,6 +33,30 @@ def model_exists_on_hf_hub(model_id: str) -> bool:
         return True
     except RepositoryNotFoundError:
         return False
+
+
+def check_if_model_exist(model_id: str) -> Tuple[bool, bool]:
+    """Checks if a model exists on Huggingface or as an available spacy model.
+
+    Args:
+        model_id (str):
+            The name of the model.
+
+    Returns:
+        tuple of bools:
+            A bool specifying whether the model exists on Huggingface Hub and bool a
+            specifying if model the exists as an available spacy model.
+    """
+    model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
+    try:
+        import spacy
+
+        spacy.load(model_id)
+        model_is_spacy = True
+    except OSError:
+        model_is_spacy = False
+
+    return model_on_hf_hub, model_is_spacy
 
 
 def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> ModelConfig:
