@@ -161,9 +161,9 @@ class SequenceClassification(Task):
                 document, being a Spacy `Doc` instance.
 
         Returns:
-            list:
-                A list of predictions for each token, of the same length as the gold
-                tokens (first entry of `tokens_processed`).
+            A pair of arrays:
+                The first array contains the probability predictions and the second
+                array contains the true labels.
         """
         raise InvalidEvaluation(
             "Evaluation of text classification tasks for SpaCy models is not possible."
