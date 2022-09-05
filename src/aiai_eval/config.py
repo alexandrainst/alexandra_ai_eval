@@ -45,6 +45,9 @@ class TaskConfig:
             for logging.
         huggingface_id (str):
             The Hugging Face ID of the dataset associated with the task.
+        huggingface_subset (str or None, optional):
+            The subset of the Hugging Face dataset associated with the task. Defaults
+            to None.
         supertask (str):
             The supertask of the task, describing the overall type of task.
         metrics (sequence of MetricConfig objects):
@@ -75,6 +78,7 @@ class TaskConfig:
     name: str
     pretty_name: str
     huggingface_id: str
+    huggingface_subset: Optional[str]
     supertask: str
     metrics: List[MetricConfig]
     labels: List[Label]

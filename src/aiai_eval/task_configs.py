@@ -17,10 +17,39 @@ def get_all_task_configs() -> Dict[str, TaskConfig]:
     return {cfg.name: cfg for cfg in globals().values() if isinstance(cfg, TaskConfig)}
 
 
+SENT = TaskConfig(
+    name="sent",
+    pretty_name="sentiment classification",
+    huggingface_id="DDSC/angry-tweets",
+    huggingface_subset=None,
+    supertask="sequence-classification",
+    metrics=[MCC, MACRO_F1],
+    labels=[
+        Label(
+            name="NEGATIVE",
+            synonyms=["NEG", "NEGATIV", "LABEL_0"],
+        ),
+        Label(
+            name="NEUTRAL",
+            synonyms=["NEU", "LABEL_1"],
+        ),
+        Label(
+            name="POSITIVE",
+            synonyms=["POS", "POSITIV", "LABEL_2"],
+        ),
+    ],
+    feature_column_names=["text"],
+    train_name="train",
+    val_name=None,
+    test_name="test",
+)
+
+
 NER = TaskConfig(
     name="ner",
     pretty_name="named entity recognition",
     huggingface_id="dane",
+    huggingface_subset=None,
     supertask="token-classification",
     metrics=[SEQEVAL_MICRO_F1, SEQEVAL_MICRO_F1_NO_MISC],
     labels=[
@@ -154,28 +183,25 @@ NER = TaskConfig(
 )
 
 
-SENT = TaskConfig(
-    name="sent",
-    pretty_name="sentiment classification",
-    huggingface_id="DDSC/angry-tweets",
-    supertask="sequence-classification",
+QA = TaskConfig(
+    name="qa",
+    pretty_name="question answering",
+    huggingface_id="alexandrainst/scandiqa",
+    huggingface_subset="da",
+    supertask="question-answering",
     metrics=[MCC, MACRO_F1],
     labels=[
         Label(
-            name="NEGATIVE",
-            synonyms=["NEG", "NEGATIV", "LABEL_0"],
+            name="START_POSITIONS",
+            synonyms=[],
         ),
         Label(
-            name="NEUTRAL",
-            synonyms=["NEU", "LABEL_1"],
-        ),
-        Label(
-            name="POSITIVE",
-            synonyms=["POS", "POSITIV", "LABEL_2"],
+            name="END_POSITIONS",
+            synonyms=[],
         ),
     ],
     feature_column_names=["question", "context"],
     train_name="train",
-    val_name=None,
+    val_name="val",
     test_name="test",
 )
