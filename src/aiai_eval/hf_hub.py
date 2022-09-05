@@ -10,10 +10,10 @@ from .config import EvaluationConfig, ModelConfig
 from .exceptions import (
     HuggingFaceHubDown,
     InvalidFramework,
-    ModelDoesNotExistOnHuggingFaceHub,
+    ModelDoesNotExist,
     NoInternetConnection,
 )
-from .utils import internet_connection_available
+from .utils import check_if_model_exist, internet_connection_available
 
 
 def model_exists_on_hf_hub(model_id: str) -> bool:
@@ -76,8 +76,10 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
 
     # Attempt to fetch model data from the Hugging Face Hub.
     # Check if id exists, before creating model config, for more clear exception handling.
-    if not model_exists_on_hf_hub(model_id=model_id):
-        raise ModelDoesNotExistOnHuggingFaceHub(model_id)
+    model_on_hf_hub, model_is_spacy = check_if_model_exist(model_id=model_id)
+
+    if not model_on_hf_hub and not model_is_spacy:
+        raise ModelDoesNotExist(model_id=model_id)
 
     try:
 
