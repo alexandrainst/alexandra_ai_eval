@@ -1,7 +1,7 @@
 """Configuration dataclasses."""
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Union
 
 from .utils import Device, Label, get_available_devices
 
@@ -76,8 +76,8 @@ class TaskConfig:
     pretty_name: str
     huggingface_id: str
     supertask: str
-    metrics: Sequence[MetricConfig]
-    labels: Sequence[Label]
+    metrics: List[MetricConfig]
+    labels: List[Label]
     feature_column_names: List[str]
     train_name: Optional[str]
     val_name: Optional[str]
