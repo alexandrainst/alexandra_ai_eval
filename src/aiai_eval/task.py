@@ -503,9 +503,9 @@ class Task(ABC):
         """Prepare predictions and labels for output.
 
         Args:
-            predictions (NumPy array):
+            predictions_np (NumPy array):
                 The predictions of the model.
-            labels (NumPy array):
+            labels_np (NumPy array):
                 The ground truth labels.
             id2label (list or None, optional):
                 Conversion of indices to labels. Defaults to None.
