@@ -556,9 +556,8 @@ class Task(ABC):
             )
         except KeyError:
             raise InvalidEvaluation(
-                f'The split names "{train_name}", "{val_name}", and '
-                f'"{test_name}" for the train, validation and test split are '
-                "incorrect."
+                f"The split names '{train_name}', '{val_name}', and '{test_name}' for "
+                "the train, validation and test split are incorrect."
             )
 
         # Return the dataset dictionary
