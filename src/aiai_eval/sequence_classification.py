@@ -98,18 +98,6 @@ class SequenceClassification(Task):
         )
         return full_preprocessed["input_ids"]
 
-    def _preprocess_data_spacy(self, dataset: Dataset) -> Dataset:
-        """Preprocess the given Huggingface dataset for use by a SpaCy model.
-
-        Args:
-            dataset (Dataset): The dataset to preprocess.
-
-        Returns:
-            Dataset:
-                The preprocessed dataset.
-        """
-        return dataset
-
     def _create_numerical_labels(self, examples: dict, label2id: dict) -> dict:
         """Create numerical labels from the labels.
 
@@ -164,6 +152,41 @@ class SequenceClassification(Task):
             list:
                 A list of predictions for each token, of the same length as the gold
                 tokens (first entry of `tokens_processed`).
+        """
+        raise InvalidEvaluation(
+            "Evaluation of text classification tasks for SpaCy models is not possible."
+        )
+
+    def _get_spacy_predictions_and_labels(self, model, dataset: Dataset) -> tuple:
+        """Get predictions from SpaCy model on dataset.
+
+        Args:
+            model (SpaCy model):
+                The model.
+            dataset (Hugging Face dataset):
+                The dataset.
+
+        Returns:
+            A pair of arrays:
+                The first array contains the probability predictions and the second
+                array contains the true labels.
+        """
+        raise InvalidEvaluation(
+            "Evaluation of text classification tasks for SpaCy models is not possible."
+        )
+
+    def _preprocess_data_spacy(self, dataset: Dataset) -> Dataset:
+        """Process the data for use by a transformer model.
+
+        For use by a transformer model.
+
+        Args:
+            dataset (Dataset):
+                The dataset.
+
+        Returns:
+            Dataset:
+                The processed dataset.
         """
         raise InvalidEvaluation(
             "Evaluation of text classification tasks for SpaCy models is not possible."
