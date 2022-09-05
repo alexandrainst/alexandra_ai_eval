@@ -538,6 +538,7 @@ class Task(ABC):
         dataset_dict: DatasetDict
         dataset_dict = load_dataset(  # type: ignore
             path=self.task_config.huggingface_id,
+            name=self.task_config.huggingface_subset,
             use_auth_token=self.evaluation_config.use_auth_token,
             cache_dir=self.evaluation_config.cache_dir,
         )
