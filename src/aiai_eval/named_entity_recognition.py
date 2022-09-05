@@ -1,10 +1,9 @@
 """Class for the named entity recognition task."""
 from copy import deepcopy
 from functools import partial
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import numpy as np
-import torch
 from datasets import Dataset
 from transformers import DataCollatorForTokenClassification, PreTrainedTokenizerBase
 
@@ -84,6 +83,36 @@ class NamedEntityRecognition(Task):
                 "ner_tags",
             ]
         )
+
+    def _preprocess_data_spacy(self, dataset: Dataset) -> Dataset:
+        """Preprocess the given Huggingface dataset for use by a SpaCy model.
+
+        Args:
+            dataset (Dataset): The dataset to preprocess.
+
+        Returns:
+            Dataset:
+                The preprocessed dataset.
+        """
+        return dataset
+
+    def _get_spacy_predictions_and_labels(
+        self, dataset: Dataset, model: Any
+    ) -> Tuple[list, list]:
+        """Get predictions from spaCy model on dataset.
+
+        Args:
+            model (spaCy model):
+                The model.
+            dataset (Hugging Face dataset):
+                The dataset.
+
+        Returns:
+            A pair of arrays:
+                The first array contains the probability predictions and the second
+                array contains the true labels.
+        """
+        return [], []
 
     def _tokenize_and_align_labels(
         self, examples: dict, tokenizer, label2id: dict
