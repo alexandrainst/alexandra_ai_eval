@@ -55,14 +55,12 @@ class TestPreprocessDataTransformer:
         assert isinstance(preprocessed, Dataset)
 
     def test_preprocessed_columns(self, preprocessed):
-        assert set(preprocessed.features.keys()) == set(
-            [
-                "labels",
-                "input_ids",
-                "token_type_ids",
-                "attention_mask",
-            ]
-        )
+        assert set(preprocessed.features.keys()) == {
+            "labels",
+            "input_ids",
+            "token_type_ids",
+            "attention_mask",
+        }
 
 
 class TestTokenizeAndAlignLabels:
@@ -87,24 +85,22 @@ class TestTokenizeAndAlignLabels:
         assert len(tokenised_dataset) == len(dataset)
 
     def test_tokenize_and_align_labels_columns(self, tokenised_dataset):
-        assert set(tokenised_dataset.features.keys()) == set(
-            [
-                "text",
-                "labels",
-                "input_ids",
-                "token_type_ids",
-                "attention_mask",
-                "tokens",
-                "lemmas",
-                "sent_id",
-                "tok_ids",
-                "pos_tags",
-                "morph_tags",
-                "dep_ids",
-                "dep_labels",
-                "ner_tags",
-            ]
-        )
+        assert set(tokenised_dataset.features.keys()) == {
+            "text",
+            "labels",
+            "input_ids",
+            "token_type_ids",
+            "attention_mask",
+            "tokens",
+            "lemmas",
+            "sent_id",
+            "tok_ids",
+            "pos_tags",
+            "morph_tags",
+            "dep_ids",
+            "dep_labels",
+            "ner_tags",
+        }
 
 
 class TestPreprocessDataPyTorch:
