@@ -7,6 +7,7 @@ SEQEVAL_MICRO_F1 = MetricConfig(
     pretty_name="Micro-average F1-score",
     huggingface_id="seqeval",
     results_key="overall_f1",
+    compute_kwargs=dict(zero_division=1),
 )
 
 
@@ -15,6 +16,7 @@ SEQEVAL_MICRO_F1_NO_MISC = MetricConfig(
     pretty_name="Micro-average F1-score without MISC tags",
     huggingface_id="seqeval",
     results_key="overall_f1",
+    compute_kwargs=dict(zero_division=1),
 )
 
 

@@ -7,6 +7,7 @@ from src.aiai_eval.exceptions import (
     InvalidArchitectureForTask,
     InvalidEvaluation,
     InvalidFramework,
+    InvalidTokenizer,
     MissingLabel,
     ModelDoesNotExistOnHuggingFaceHub,
     ModelFetchFailed,
@@ -327,4 +328,27 @@ class TestInvalidArchitectureForTask:
             f"model ID which is a {supertask}-type model, or provide another task which fits the "
             f"aforementioned architectures."
         )
+        assert exception.message == message
+
+
+class TestInvalidTokenizer:
+    """Unit tests for the InvalidTokenizer exception class."""
+
+    @pytest.fixture(scope="class")
+    def tokenizer_type(self):
+        yield "test_tokenizer_type"
+
+    @pytest.fixture(scope="class")
+    def exception(self, tokenizer_type):
+        yield InvalidTokenizer(tokenizer_type=tokenizer_type)
+
+    def test_invalid_tokenizer_is_an_exception(self, exception):
+        with pytest.raises(InvalidTokenizer):
+            raise exception
+
+    def test_tokenizer_is_stored(self, exception, tokenizer_type):
+        assert exception.tokenizer_type == tokenizer_type
+
+    def test_message_is_stored(self, exception, tokenizer_type):
+        message = f"The provided tokenizer type: {tokenizer_type} is not supported."
         assert exception.message == message

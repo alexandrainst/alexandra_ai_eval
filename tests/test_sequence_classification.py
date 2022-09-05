@@ -12,6 +12,7 @@ from src.aiai_eval.exceptions import (
     WrongFeatureColumnName,
 )
 from src.aiai_eval.sequence_classification import SequenceClassification
+from src.aiai_eval.task_configs import SENT
 
 
 @pytest.fixture(scope="module")
@@ -20,10 +21,8 @@ def dataset():
 
 
 @pytest.fixture(scope="module")
-def seq_clf(evaluation_config, task_config):
-    yield SequenceClassification(
-        task_config=task_config, evaluation_config=evaluation_config
-    )
+def seq_clf(evaluation_config):
+    yield SequenceClassification(task_config=SENT, evaluation_config=evaluation_config)
 
 
 @pytest.fixture(scope="module")

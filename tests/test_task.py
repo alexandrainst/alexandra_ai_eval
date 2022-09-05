@@ -39,6 +39,17 @@ def task(evaluation_config, task_config):
     return TaskDummy(task_config=task_config, evaluation_config=evaluation_config)
 
 
+# Allows us to skip tests based on values set in the task fixture.
+@pytest.fixture(autouse=True)
+def skip_if_not_this_task(request, task):
+    if request.node.get_closest_marker("skip_if_not_this_task"):
+        if (
+            request.node.get_closest_marker("skip_if_not_this_task").args[0]
+            != task.task_config.name
+        ):
+            pytest.skip(f"skipped on this task: {task.task_config.name}")
+
+
 class TestTaskAttributes:
     @pytest.fixture(scope="class")
     def metrics(self, task):
@@ -65,13 +76,15 @@ class TestTaskAttributes:
         for id2label_active in [True, False]
     ],
 )
-def test_compute_metrics(
+@pytest.mark.skip_if_not_this_task("sent")
+def test_compute_metrics_sent(
     prediction_type,
     label_type,
     use_logits,
     id2label_active,
     task,
 ):
+
     # Define logits, labels and id2label
     logits = [[1.0, 2.0, -3.0], [4.0, 5.0, -6.0], [7.0, 1.0, -9.0]]
     labels = [1, 2, 2]
@@ -92,6 +105,43 @@ def test_compute_metrics(
         labels = np.array(labels)
     else:
         labels = torch.tensor(labels)
+
+    # Compute metrics
+    metrics = task._compute_metrics(
+        predictions=predictions,
+        labels=labels,
+        id2label=id2label,
+    )
+
+    # Check metrics
+    assert isinstance(metrics, dict)
+    for value in metrics.values():
+        assert isinstance(value, float)
+
+
+@pytest.mark.parametrize(
+    argnames="id2label_active",
+    argvalues=[True, False],
+)
+@pytest.mark.skip_if_not_this_task("ner")
+def test_compute_metrics_ner(
+    id2label_active,
+    task,
+):
+    # Define logits, labels and id2label
+    logits = [
+        ["O", "O", "B-MISC", "I-MISC", "I-MISC", "I-MISC", "O"],
+        ["B-PER", "I-PER", "O"],
+    ]
+    labels = [
+        ["O", "O", "O", "B-MISC", "I-MISC", "I-MISC", "O"],
+        ["B-PER", "I-PER", "O"],
+    ]
+    id2label = ["O", "B-PER", "I-PER", "B-MISC", "I-MISC"] if id2label_active else None
+
+    # Set up predictions and labels as arrays
+    predictions = np.asarray(logits)
+    labels = np.array(labels)
 
     # Compute metrics
     metrics = task._compute_metrics(
@@ -135,11 +185,11 @@ class TestLoadData:
     def test_loaded_data_keys(self, loaded_data, task):
         split_names = set()
         if task.task_config.train_name:
-            split_names.add("train")
+            split_names.add(task.task_config.train_name)
         if task.task_config.val_name:
-            split_names.add("val")
+            split_names.add(task.task_config.val_name)
         if task.task_config.test_name:
-            split_names.add("test")
+            split_names.add(task.task_config.test_name)
         assert set(loaded_data.keys()) == split_names
 
     def test_loaded_data_values(self, loaded_data):
