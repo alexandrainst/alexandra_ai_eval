@@ -48,12 +48,6 @@ class NamedEntityRecognition(Task):
             Hugging Face dataset:
                 The preprocessed dataset.
         """
-
-        # Check what labels are present in the dataset, and store if MISC tags are not
-        # present
-        labels_in_train = {tag for tag_list in dataset["ner_tags"] for tag in tag_list}
-        self.has_misc_tags = "B-MISC" in labels_in_train or "I-MISC" in labels_in_train
-
         # We are now assuming we are using pytorch
         map_fn = partial(
             self._tokenize_and_align_labels,
@@ -90,11 +84,6 @@ class NamedEntityRecognition(Task):
             Dataset:
                 The preprocessed dataset.
         """
-        # Check what labels are present in the dataset, and store if MISC tags are not
-        # present
-        labels_in_train = {tag for tag_list in dataset["ner_tags"] for tag in tag_list}
-        self.has_misc_tags = "B-MISC" in labels_in_train or "I-MISC" in labels_in_train
-
         # Add a labels column to the dataset
         def create_label_col(example):
             example["labels"] = [
@@ -428,9 +417,9 @@ class NamedEntityRecognition(Task):
             for i, prediction_list in enumerate(predictions):
                 for j, ner_tag in enumerate(prediction_list):
                     if ner_tag not in id2label_without_misc:
-                        if self.has_misc_tags and id2label[ner_tag][:2] == "B-":  # type: ignore
+                        if id2label[ner_tag][:2] == "B-":  # type: ignore
                             predictions[i][j] = "B-MISC"
-                        elif self.has_misc_tags and id2label[ner_tag][:2] == "I-":  # type: ignore
+                        elif id2label[ner_tag][:2] == "I-":  # type: ignore
                             predictions[i][j] = "I-MISC"
                         else:
                             predictions[i][j] = "O"
