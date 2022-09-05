@@ -98,6 +98,18 @@ class SequenceClassification(Task):
         )
         return full_preprocessed["input_ids"]
 
+    def _preprocess_data_spacy(self, dataset: Dataset) -> Dataset:
+        """Preprocess the given Huggingface dataset for use by a SpaCy model.
+
+        Args:
+            dataset (Dataset): The dataset to preprocess.
+
+        Returns:
+            Dataset:
+                The preprocessed dataset.
+        """
+        return dataset
+
     def _create_numerical_labels(self, examples: dict, label2id: dict) -> dict:
         """Create numerical labels from the labels.
 
