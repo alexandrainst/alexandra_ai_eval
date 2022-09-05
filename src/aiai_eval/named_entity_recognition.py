@@ -89,6 +89,7 @@ class NamedEntityRecognition(Task):
         self, examples: dict, tokenizer, label2id: dict
     ) -> dict:
         """Tokenise all texts and align the labels with them.
+        
         Args:
             examples (dict):
                 The examples to be tokenised.
@@ -96,6 +97,7 @@ class NamedEntityRecognition(Task):
                 A pretrained tokenizer.
             label2id (dict):
                 A dictionary that converts NER tags to IDs.
+                
         Returns:
             dict:
                 A dictionary containing the tokenized data as well as labels.
