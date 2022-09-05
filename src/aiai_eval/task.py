@@ -123,12 +123,11 @@ class Task(ABC):
         test = dataset_dict["test"]
 
         # Remove empty examples from the datasets
-        try:
-            test = test.filter(
-                lambda x: len(x[self.task_config.feature_column_name]) > 0
-            )
-        except KeyError:
-            raise WrongFeatureColumnName(self.task_config.feature_column_name)
+        for feat_column in self.task_config.feature_column_names:
+            try:
+                test = test.filter(lambda record: len(record[feat_column]) > 0)
+            except KeyError:
+                raise WrongFeatureColumnName(feat_column)
 
         # Set variable with number of iterations
         num_iter = 10 if not self.evaluation_config.testing else 2

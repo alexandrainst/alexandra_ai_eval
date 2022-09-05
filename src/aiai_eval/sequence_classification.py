@@ -55,12 +55,15 @@ class SequenceClassification(Task):
         def tokenise(examples: dict) -> dict:
             try:
                 return tokenizer(
-                    examples[self.task_config.feature_column_name],
+                    *[
+                        examples[feat_col]
+                        for feat_col in self.task_config.feature_column_names
+                    ],
                     truncation=True,
                     padding=True,
                 )
             except KeyError:
-                raise WrongFeatureColumnName(self.task_config.feature_column_name)
+                raise WrongFeatureColumnName(self.task_config.feature_column_names)
 
         # Tokenise
         tokenised = dataset.map(tokenise, batched=True, load_from_cache_file=False)
@@ -73,8 +76,8 @@ class SequenceClassification(Task):
             numericalise, batched=True, load_from_cache_file=False
         )
 
-        # Remove unused column
-        return preprocessed.remove_columns(self.task_config.feature_column_name)
+        # Remove unused columns
+        return preprocessed.remove_columns(self.task_config.feature_column_names)
 
     def _create_numerical_labels(self, examples: dict, label2id: dict) -> dict:
         """Create numerical labels from the labels.

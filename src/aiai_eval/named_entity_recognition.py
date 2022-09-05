@@ -72,7 +72,7 @@ class NamedEntityRecognition(Task):
         # Remove unused columns
         return tokenised_dataset.remove_columns(
             [
-                self.task_config.feature_column_name,
+                *self.task_config.feature_column_names,
                 "tokens",
                 "lemmas",
                 "sent_id",

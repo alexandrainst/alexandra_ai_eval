@@ -51,8 +51,8 @@ class TaskConfig:
             The metrics used to evaluate the task.
         labels (sequence of Label objects):
             The labels used in the task.
-        feature_column_name (str):
-            The name of the feature column for the dataset.
+        feature_column_names (list of str):
+            The names of the feature columns for the dataset.
         train_name (str or None):
             The name of the train split of the task. If None, the task has no train
             split.
@@ -78,7 +78,7 @@ class TaskConfig:
     supertask: str
     metrics: Sequence[MetricConfig]
     labels: Sequence[Label]
-    feature_column_name: str
+    feature_column_names: List[str]
     train_name: Optional[str]
     val_name: Optional[str]
     test_name: Optional[str]
