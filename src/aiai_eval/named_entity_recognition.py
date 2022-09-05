@@ -296,25 +296,3 @@ class NamedEntityRecognition(Task):
                     labels_no_misc[i][j] = "O"
 
         return [(predictions, labels), (predictions_no_misc, labels_no_misc)]
-
-    def _preprocess_data_pytorch(self, dataset: Dataset, **kwargs) -> list:
-        """Preprocess a dataset by tokenizing and aligning the labels.
-
-        For use by a PyTorch model.
-
-        Args:
-            dataset (Hugging Face dataset):
-                The dataset to preprocess.
-            kwargs:
-                Extra keyword arguments containing objects used in preprocessing the
-                dataset.
-
-        Returns:
-            list of lists:
-                Every list element represents the tokenised data for the corresponding
-                example.
-        """
-        full_preprocessed = self._preprocess_data_transformer(
-            dataset=dataset, framework="pytorch", **kwargs
-        )
-        return full_preprocessed["input_ids"]

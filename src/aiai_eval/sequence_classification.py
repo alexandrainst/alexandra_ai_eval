@@ -76,28 +76,6 @@ class SequenceClassification(Task):
         # Remove unused column
         return preprocessed.remove_columns(self.task_config.feature_column_name)
 
-    def _preprocess_data_pytorch(self, dataset: Dataset, **kwargs) -> list:
-        """Preprocess a dataset by tokenizing and aligning the labels.
-
-        For use by a PyTorch model.
-
-        Args:
-            dataset (Hugging Face dataset):
-                The dataset to preprocess.
-            kwargs:
-                Extra keyword arguments containing objects used in preprocessing the
-                dataset.
-
-        Returns:
-            list of lists:
-                Every list element represents the tokenised data for the corresponding
-                example.
-        """
-        full_preprocessed = self._preprocess_data_transformer(
-            dataset=dataset, framework="pytorch", **kwargs
-        )
-        return full_preprocessed["input_ids"]
-
     def _create_numerical_labels(self, examples: dict, label2id: dict) -> dict:
         """Create numerical labels from the labels.
 
