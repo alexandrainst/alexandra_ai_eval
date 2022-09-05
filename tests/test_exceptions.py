@@ -11,6 +11,7 @@ from src.aiai_eval.exceptions import (
     MissingLabel,
     ModelDoesNotExistOnHuggingFaceHub,
     ModelFetchFailed,
+    ModelNotTrainedForTask,
     NoInternetConnection,
     PreprocessingFailed,
     UnsupportedModelType,
@@ -351,4 +352,34 @@ class TestInvalidTokenizer:
 
     def test_message_is_stored(self, exception, tokenizer_type):
         message = f"The provided tokenizer type: {tokenizer_type} is not supported."
+        assert exception.message == message
+
+
+class TestModelNotTrainedForTask:
+    """Unit tests for the ModelNotTrainedForTask exception class."""
+
+    @pytest.fixture(scope="class")
+    def framework(self):
+        yield "test_framework"
+
+    @pytest.fixture(scope="class")
+    def task(self):
+        yield "test_task"
+
+    @pytest.fixture(scope="class")
+    def exception(self, framework, task):
+        yield ModelNotTrainedForTask(framework=framework, task=task)
+
+    def test_model_not_trained_for_task_is_an_exception(self, exception):
+        with pytest.raises(ModelNotTrainedForTask):
+            raise exception
+
+    def test_model_id_is_stored(self, exception, framework):
+        assert exception.framework == framework
+
+    def test_task_is_stored(self, exception, task):
+        assert exception.task == task
+
+    def test_message_is_stored(self, exception, framework, task):
+        message = f"The {framework} model is not trained for the task {task}."
         assert exception.message == message
