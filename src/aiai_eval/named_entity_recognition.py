@@ -1,10 +1,11 @@
 """Class for the named entity recognition task."""
 from copy import deepcopy
 from functools import partial
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Sequence, Tuple
 
 import numpy as np
 from datasets import Dataset
+from tqdm import tqdm
 from transformers import DataCollatorForTokenClassification, PreTrainedTokenizerBase
 
 from .exceptions import InvalidEvaluation, InvalidTokenizer, MissingLabel
@@ -47,11 +48,6 @@ class NamedEntityRecognition(Task):
             Hugging Face dataset:
                 The preprocessed dataset.
         """
-        if framework == "spacy":
-            raise InvalidEvaluation(
-                "Evaluation of text predictions for SpaCy models is not yet "
-                "implemented."
-            )
 
         # Check what labels are present in the dataset, and store if MISC tags are not
         # present
@@ -94,25 +90,125 @@ class NamedEntityRecognition(Task):
             Dataset:
                 The preprocessed dataset.
         """
-        return dataset
+        # Check what labels are present in the dataset, and store if MISC tags are not
+        # present
+        labels_in_train = {tag for tag_list in dataset["ner_tags"] for tag in tag_list}
+        self.has_misc_tags = "B-MISC" in labels_in_train or "I-MISC" in labels_in_train
+
+        # Add a labels column to the dataset
+        def create_label_col(example):
+            example["labels"] = [
+                self.task_config.id2label[x] for x in example["labels"]
+            ]
+            return example
+
+        dataset = dataset.add_column("labels", dataset["ner_tags"])
+        return dataset.map(create_label_col)
 
     def _get_spacy_predictions_and_labels(
-        self, dataset: Dataset, model: Any
-    ) -> Tuple[list, list]:
-        """Get predictions from spaCy model on dataset.
+        self, model: Any, dataset: Dataset, batch_size: int
+    ) -> tuple:
+        """Get predictions from SpaCy model on dataset.
 
         Args:
-            model (spaCy model):
+            model (SpaCy model):
                 The model.
             dataset (Hugging Face dataset):
                 The dataset.
+            batch_size (int):
+                The batch size to use.
 
         Returns:
             A pair of arrays:
                 The first array contains the probability predictions and the second
                 array contains the true labels.
         """
-        return [], []
+        # Initialise progress bar
+        if self.evaluation_config.progress_bar:
+            itr = tqdm(
+                dataset[self.task_config.feature_column_name],
+                desc="Evaluating model",
+                leave=False,
+            )
+        else:
+            itr = dataset[self.task_config.feature_column_name]
+
+        processed = model.pipe(itr, batch_size=batch_size)
+        map_fn = self._extract_spacy_predictions
+        predictions = map(map_fn, zip(dataset["tokens"], processed))
+
+        return list(predictions), dataset["labels"]
+
+    def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
+        """Helper function that extracts the predictions from a SpaCy model.
+        Aside from extracting the predictions from the model, it also aligns the
+        predictions with the gold tokens, in case the SpaCy tokeniser tokenises the
+        text different from those.
+        Args:
+            tokens_processed (tuple):
+                A pair of the labels, being a list of strings, and the SpaCy processed
+                document, being a Spacy `Doc` instance.
+        Returns:
+            list:
+                A list of predictions for each token, of the same length as the gold
+                tokens (first entry of `tokens_processed`).
+        """
+        tokens, processed = tokens_processed
+
+        # Get the token labels
+        token_labels = self._get_spacy_token_labels(processed)
+
+        # Get the alignment between the SpaCy model's tokens and the gold tokens
+        token_idxs = [tok_idx for tok_idx, tok in enumerate(tokens) for _ in str(tok)]
+        pred_token_idxs = [
+            tok_idx for tok_idx, tok in enumerate(processed) for _ in str(tok)
+        ]
+        alignment = list(zip(token_idxs, pred_token_idxs))
+
+        # Get the aligned predictions
+        predictions = list()
+        for tok_idx, _ in enumerate(tokens):
+            aligned_pred_token = [
+                pred_token_idx
+                for token_idx, pred_token_idx in alignment
+                if token_idx == tok_idx
+            ][0]
+            predictions.append(token_labels[aligned_pred_token])
+
+        return predictions
+
+    def _get_spacy_token_labels(self, processed) -> Sequence[str]:
+        """Get predictions from SpaCy model on dataset.
+        Args:
+            model (SpaCy model):
+                The model.
+            dataset (Hugging Face dataset):
+                The dataset.
+        Returns:
+            A list of strings:
+                The predicted NER labels.
+        """
+
+        def get_ent(token) -> str:
+            """Helper function that extracts the entity from a SpaCy token"""
+
+            # Deal with the O tag separately, as it is the only tag not of the form
+            # B-tag or I-tag
+            if token.ent_iob_ == "O":
+                return "O"
+
+            # In general return a tag of the form B-tag or I-tag
+            else:
+                # Extract tag from spaCy token
+                ent = f"{token.ent_iob_}-{token.ent_type_}"
+
+                # Convert the tag to the its canonical synonym
+                alt_idx = self.task_config.label2id[f"{token.ent_iob_}-MISC".upper()]
+                return self.task_config.id2label[
+                    self.task_config.label2id.get(ent, alt_idx)
+                ]
+
+        return [get_ent(token) for token in processed]
 
     def _tokenize_and_align_labels(
         self, examples: dict, tokenizer, label2id: dict
@@ -280,35 +376,67 @@ class NamedEntityRecognition(Task):
                 predictions and labels will be used for all the metrics.
         """
 
-        if id2label is not None:
-            # Remove ignored index (special tokens)
-            predictions = [
-                [
-                    id2label[pred_id]
-                    for pred_id, lbl_id in zip(pred, label)
-                    if lbl_id != -100
-                ]
-                for pred, label in zip(predictions_np, labels_np)
-            ]
-            labels = [
-                [id2label[lbl_id] for _, lbl_id in zip(pred, label) if lbl_id != -100]
-                for pred, label in zip(predictions_np, labels_np)
-            ]
+        # In case we have received predictions and labels which are already converted
+        # from ids to label tags, we do not need to convert them again.
+        # This is the case when the model is a spacy model.
+        if any(
+            predictions_np.dtype == dtype
+            for dtype in {
+                np.float16,
+                np.float32,
+                np.float64,
+                np.int16,
+                np.int32,
+                np.int64,
+            }
+        ) and any(
+            labels_np.dtype == dtype
+            for dtype in {
+                np.float16,
+                np.float32,
+                np.float64,
+                np.int16,
+                np.int32,
+                np.int64,
+            }
+        ):
 
-        # Replace predicted tag with either MISC or O tags if they are not part of the
-        # dataset
-        id2label_without_misc = set(self.task_config.id2label).difference(
-            {"B-MISC", "I-MISC"}
-        )
-        for i, prediction_list in enumerate(predictions):
-            for j, ner_tag in enumerate(prediction_list):
-                if ner_tag not in id2label_without_misc:
-                    if self.has_misc_tags and id2label[ner_tag][:2] == "B-":  # type: ignore
-                        predictions[i][j] = "B-MISC"
-                    elif self.has_misc_tags and id2label[ner_tag][:2] == "I-":  # type: ignore
-                        predictions[i][j] = "I-MISC"
-                    else:
-                        predictions[i][j] = "O"
+            if id2label is not None:
+                # Remove ignored index (special tokens)
+                predictions = [
+                    [
+                        id2label[pred_id]
+                        for pred_id, lbl_id in zip(pred, label)
+                        if lbl_id != -100
+                    ]
+                    for pred, label in zip(predictions_np, labels_np)
+                ]
+                labels = [
+                    [
+                        id2label[lbl_id]
+                        for _, lbl_id in zip(pred, label)
+                        if lbl_id != -100
+                    ]
+                    for pred, label in zip(predictions_np, labels_np)
+                ]
+
+            # Replace predicted tag with either MISC or O tags if they are not part of the
+            # dataset
+            id2label_without_misc = set(self.task_config.id2label).difference(
+                {"B-MISC", "I-MISC"}
+            )
+            for i, prediction_list in enumerate(predictions):
+                for j, ner_tag in enumerate(prediction_list):
+                    if ner_tag not in id2label_without_misc:
+                        if self.has_misc_tags and id2label[ner_tag][:2] == "B-":  # type: ignore
+                            predictions[i][j] = "B-MISC"
+                        elif self.has_misc_tags and id2label[ner_tag][:2] == "I-":  # type: ignore
+                            predictions[i][j] = "I-MISC"
+                        else:
+                            predictions[i][j] = "O"
+        else:
+            predictions = predictions_np.tolist()
+            labels = labels_np.tolist()
 
         # Remove MISC labels from predictions
         predictions_no_misc = deepcopy(predictions)
