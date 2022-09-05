@@ -1,10 +1,10 @@
 """Class for the named entity recognition task."""
+
 from copy import deepcopy
 from functools import partial
 from typing import List, Optional, Tuple
 
 import numpy as np
-import torch
 from datasets import Dataset
 from transformers import DataCollatorForTokenClassification, PreTrainedTokenizerBase
 
