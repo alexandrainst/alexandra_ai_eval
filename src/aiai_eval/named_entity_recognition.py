@@ -234,17 +234,7 @@ class NamedEntityRecognition(Task):
         model_id2label = kwargs["model_id2label"]
 
         # Extract the labels from the dataset
-        labels = dataset[self.task_config.label_column_name]
-
-        # Remove ignored index from labels
-        labels = [
-            [
-                self.task_config.id2label[lbl_id]
-                for _, lbl_id in zip(pred, label)
-                if lbl_id != -100
-            ]
-            for pred, label in zip(predictions, labels)
-        ]
+        labels = prepared_dataset["labels"]
 
         # Collapse the logits into single predictions for every sample
         if any(
@@ -253,7 +243,7 @@ class NamedEntityRecognition(Task):
         ):
             predictions = np.argmax(predictions, axis=-1)
 
-        # Remove ignored index from predictions
+        # Remove ignored index from predictions and labels
         if model_id2label is not None:
             predictions = [
                 [
@@ -263,15 +253,21 @@ class NamedEntityRecognition(Task):
                 ]
                 for pred, label in zip(predictions, labels)
             ]
+            labels = [
+                [model_id2label[lbl_id] for lbl_id in label if lbl_id != -100]
+                for label in labels
+            ]
 
         # Replace predicted tag with either MISC or O tags if they are not part of the
-        # dataset
-        id2label_without_misc = set(self.task_config.id2label).difference(
+        # dataset. We use the `id2label` from the dataset here, as opposed to the above
+        # `model_id2label`, since we want to replace all the tags which do not appear
+        # in the *dataset labels* with either MISC or O tags.
+        dataset_labels_without_misc = set(self.task_config.id2label).difference(
             {"B-MISC", "I-MISC"}
         )
         for i, prediction_list in enumerate(predictions):
             for j, ner_tag in enumerate(prediction_list):
-                if ner_tag not in id2label_without_misc:
+                if ner_tag not in dataset_labels_without_misc:
                     if ner_tag[:2] == "B-":
                         predictions[i][j] = "B-MISC"
                     elif ner_tag[:2] == "I-":
