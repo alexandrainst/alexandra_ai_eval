@@ -230,8 +230,8 @@ class NamedEntityRecognition(Task):
             list of pairs of sequences:
                 The prepared predictions and labels.
         """
-        # Extract the `id2label` mapping
-        model_id2label = kwargs["id2label"]
+        # Extract the `model_id2label` mapping
+        model_id2label = kwargs["model_id2label"]
 
         # Extract the labels from the dataset
         labels = dataset[self.task_config.label_column_name]

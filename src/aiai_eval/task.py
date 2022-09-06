@@ -356,7 +356,7 @@ class Task(ABC):
                 predictions=all_predictions,
                 dataset=dataset,
                 prepared_dataset=prepared_dataset,
-                id2label=model.config.id2label,
+                model_id2label=model.config.id2label,
                 cls_token_index=tokenizer.cls_token_id,
             )
 
