@@ -138,4 +138,6 @@ class TestLoadDataCollator:
 
 def test_get_spacy_predictions_and_labels_raises_exception(seq_clf):
     with pytest.raises(InvalidEvaluation):
-        seq_clf._get_spacy_predictions_and_labels(model=None, dataset=None)
+        seq_clf._get_spacy_predictions_and_labels(
+            model=None, dataset=None, batch_size=None
+        )
