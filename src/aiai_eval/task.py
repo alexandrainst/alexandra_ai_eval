@@ -371,15 +371,6 @@ class Task(ABC):
             ):
                 prepared_predictions_and_labels *= len(self.task_config.metrics)
 
-            # Collapse the logits into single predictions for every sample
-            for idx, (predictions, lbls) in enumerate(prepared_predictions_and_labels):
-                if any(
-                    predictions.dtype == dtype
-                    for dtype in {np.float16, np.float32, np.float64}
-                ):
-                    predictions = np.argmax(predictions, axis=-1)
-                    prepared_predictions_and_labels[idx] = (predictions, lbls)
-
             # Compute the metrics for each prediction batch
             scores = self._compute_metrics(
                 predictions_and_labels=prepared_predictions_and_labels,
@@ -512,7 +503,16 @@ class Task(ABC):
                 contains one element and multiple metrics are present, then the same
                 predictions and labels will be used for all the metrics.
         """
+        # Collapse the logits into single predictions for every sample
+        if any(
+            predictions.dtype == dtype for dtype in {np.float16, np.float32, np.float64}
+        ):
+            predictions = np.argmax(predictions, axis=-1)
+
+        # Extract labels from dataset
         labels = np.asarray(prepared_dataset["labels"])
+
+        # Return the predictions and labels
         return [(predictions, labels)]
 
     def __call__(self, *args, **kwargs):

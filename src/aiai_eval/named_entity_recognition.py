@@ -239,6 +239,12 @@ class NamedEntityRecognition(Task):
         # Extract the labels from the dataset
         labels = np.asarray(prepared_dataset["labels"])
 
+        # Collapse the logits into single predictions for every sample
+        if any(
+            predictions.dtype == dtype for dtype in {np.float16, np.float32, np.float64}
+        ):
+            predictions = np.argmax(predictions, axis=-1)
+
         # Remove ignored index (special tokens)
         if id2label is not None:
             predictions = np.stack(
