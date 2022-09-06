@@ -111,13 +111,13 @@ class TestEvaluateSingle:
                 SENT,
                 {
                     "raw": [
-                        {"macro_f1": 0.3333333333333333, "mcc": -0.3333333333333333},
-                        {"macro_f1": 0.3333333333333333, "mcc": -0.3333333333333333},
+                        {"macro_f1": 1.0, "mcc": 1.0},
+                        {"macro_f1": 1.0, "mcc": 1.0},
                     ],
                     "total": {
-                        "macro_f1": 0.3333333333333333,
+                        "macro_f1": 1.0,
                         "macro_f1_se": 0.0,
-                        "mcc": -0.3333333333333333,
+                        "mcc": 1.0,
                         "mcc_se": 0.0,
                     },
                 },
@@ -127,19 +127,53 @@ class TestEvaluateSingle:
                 SENT,
                 {
                     "raw": [
-                        {"macro_f1": 0.3333333333333333, "mcc": -0.3333333333333333},
-                        {"macro_f1": 0.3333333333333333, "mcc": -0.3333333333333333},
+                        {"macro_f1": 1.0, "mcc": 1.0},
+                        {"macro_f1": 1.0, "mcc": 1.0},
                     ],
                     "total": {
-                        "macro_f1": 0.3333333333333333,
+                        "macro_f1": 1.0,
                         "macro_f1_se": 0.0,
-                        "mcc": -0.3333333333333333,
+                        "mcc": 1.0,
                         "mcc_se": 0.0,
                     },
                 },
             ),
+            (
+                "saattrupdan/nbailab-base-ner-scandi",
+                NER,
+                {
+                    "raw": [
+                        {"micro_f1": 0.8, "micro_f1_no_misc": 1.0},
+                        {"micro_f1": 0.923076923076923, "micro_f1_no_misc": 1.0},
+                    ],
+                    "total": {
+                        "micro_f1": 0.8615384615384616,
+                        "micro_f1_se": 0.12061538461538451,
+                        "micro_f1_no_misc": 1.0,
+                        "micro_f1_no_misc_se": 0.0,
+                    },
+                },
+            ),
+            (
+                "Maltehb/aelaectra-danish-electra-small-cased-ner-dane",
+                NER,
+                {
+                    "raw": [
+                        {"micro_f1": 0.0, "micro_f1_no_misc": 0.0},
+                        {
+                            "micro_f1": 0.4444444444444445,
+                            "micro_f1_no_misc": 0.6666666666666666,
+                        },
+                    ],
+                    "total": {
+                        "micro_f1": 0.22222222222222224,
+                        "micro_f1_se": 0.4355555555555556,
+                        "micro_f1_no_misc": 0.3333333333333333,
+                        "micro_f1_no_misc_se": 0.6533333333333333,
+                    },
+                },
+            ),
         ],
-        ids=["sent_pin-senda", "sent_DaNLP-da-bert-tone-sentiment-polarity"],
     )
     def test_evaluate_single(self, evaluator, model_id, task_config, expected_results):
         evaluator._evaluate_single(task_config=task_config, model_id=model_id)
