@@ -203,3 +203,23 @@ class TestGetSpacyPredictionsAndLabels:
 
     def test_preprocessed_spacy_labels_are_lists_of_lists(self, preprocessed_spacy):
         assert isinstance(preprocessed_spacy[1][0], list)
+
+
+class TestPreprocessDataSpacy:
+    def test_preprocessed_is_dataset(self, preprocessed_spacy):
+        assert isinstance(preprocessed_spacy, Dataset)
+
+    def test_preprocessed_columns(self, preprocessed_spacy):
+        assert set(preprocessed_spacy.features.keys()) == {
+            "text",
+            "labels",
+            "tokens",
+            "lemmas",
+            "sent_id",
+            "tok_ids",
+            "pos_tags",
+            "morph_tags",
+            "dep_ids",
+            "dep_labels",
+            "ner_tags",
+        }
