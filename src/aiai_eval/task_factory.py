@@ -1,12 +1,12 @@
 """Factory that produces tasks from a task configuration."""
 
-from typing import Type, Union
+from typing import Optional, Type, Union
 
 from .config import EvaluationConfig, TaskConfig
-from .named_entity_recognition import NamedEntityRecognition
-from .sequence_classification import SequenceClassification
+from .exceptions import InvalidTask
 from .task import Task
 from .task_configs import get_all_task_configs
+from .utils import get_class_by_name
 
 
 class TaskFactory:
@@ -43,13 +43,11 @@ class TaskFactory:
             task_config = task_name_or_config
 
         # Get the evaluation class based on the task
-        evaluation_cls: Type[Task]
-        if task_config.supertask == "sequence-classification":
-            evaluation_cls = SequenceClassification
-        elif task_config.name == "ner":
-            evaluation_cls = NamedEntityRecognition
-        else:
-            raise ValueError(f"Unknown task: {task_config.name}")
+        evaluation_cls: Optional[Type[Task]] = get_class_by_name(
+            [task_config.name, task_config.supertask]
+        )
+        if not evaluation_cls:
+            raise InvalidTask(f"Unknown task: {task_config.name}")
 
         # Create the task
         task_obj = evaluation_cls(
