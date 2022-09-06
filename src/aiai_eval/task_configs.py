@@ -188,11 +188,11 @@ QA = TaskConfig(
     labels=[
         Label(
             name="START_POSITIONS",
-            synonyms=[],
+            synonyms=["LABEL_0"],
         ),
         Label(
             name="END_POSITIONS",
-            synonyms=[],
+            synonyms=["LABEL_1"],
         ),
     ],
     feature_column_names=["question", "context"],
