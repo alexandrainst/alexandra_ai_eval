@@ -133,7 +133,9 @@ class QuestionAnswering(Task):
             # One example can give several spans, this is the index of the
             # example containing this span of text.
             sample_index = sample_mapping[i]
-            tokenized_examples["example_id"].append(examples["id"][sample_index])
+            tokenized_examples["example_id"].append(
+                examples["example_id"][sample_index]
+            )
 
             # Set to None the offset_mapping that are not part of the context
             # so it's easy to determine if a token position is part of the
@@ -191,7 +193,7 @@ class QuestionAnswering(Task):
         all_start_logits, all_end_logits = predictions[:, 0], predictions[:, 1]
 
         # Build a map from an example to its corresponding features
-        example_id_to_index = {k: i for i, k in enumerate(dataset["id"])}
+        example_id_to_index = {k: i for i, k in enumerate(dataset["example_id"])}
         features_per_example = defaultdict(list)
         for i, feature in enumerate(prepared_dataset):
             example_id = feature["example_id"]
