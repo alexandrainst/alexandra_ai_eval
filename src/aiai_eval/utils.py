@@ -8,7 +8,7 @@ import random
 import re
 import warnings
 from dataclasses import dataclass
-from typing import List
+from typing import List, Sequence
 
 import numpy as np
 import pkg_resources
@@ -16,6 +16,8 @@ import requests
 import torch
 from datasets.utils import disable_progress_bar
 from requests import RequestException
+
+from .exceptions import InvalidArchitectureForTask
 
 logger = logging.getLogger(__name__)
 
@@ -182,3 +184,31 @@ class Label:
 
     name: str
     synonyms: List[str]
+
+
+def check_supertask(architectures: Sequence[str], supertask: str):
+    """Checks if the supertask corresponds to the architectures.
+
+    Args:
+        architectures (list of str):
+            The model architecture names.
+        supertask (str):
+            The supertask associated to a task, e.g. text-classification.
+
+    Raises:
+        InvalidArchitectureForTask:
+            If the search_str is not found in any of the architectures.
+    """
+    # Convert the supertask into a search string, by converting kebab case to title
+    # case; e.g., text-classification -> TextClassification
+    search_str = "".join(word.title() for word in supertask.split("-"))
+
+    # Create boolean variable that checks if the supertask exists among the
+    # available architectures
+    supertask_is_an_architecture = any(search_str in arc for arc in architectures)
+
+    # If the supertask is not an architecture, raise an error
+    if not supertask_is_an_architecture:
+        raise InvalidArchitectureForTask(
+            architectures=architectures, supertask=supertask
+        )

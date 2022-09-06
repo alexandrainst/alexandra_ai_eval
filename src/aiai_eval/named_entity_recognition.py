@@ -5,8 +5,9 @@ from functools import partial
 from typing import List, Optional, Tuple
 
 import numpy as np
-from datasets import Dataset
-from transformers import DataCollatorForTokenClassification, PreTrainedTokenizerBase
+from datasets.arrow_dataset import Dataset
+from transformers.data.data_collator import DataCollatorForTokenClassification
+from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
 from .exceptions import InvalidEvaluation, InvalidTokenizer, MissingLabel
 from .task import Task
@@ -28,12 +29,8 @@ class NamedEntityRecognition(Task):
             The configuration of the evaluation.
     """
 
-    def _preprocess_data_transformer(
-        self, dataset: Dataset, framework: str, **kwargs
-    ) -> Dataset:
-        """Preprocess a dataset by tokenizing and aligning the labels.
-
-        For use by a transformer model.
+    def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
+        """Preprocess the data.
 
         Args:
             dataset (Hugging Face dataset):
@@ -53,11 +50,6 @@ class NamedEntityRecognition(Task):
                 "Evaluation of named entity recognition for SpaCy models is not yet "
                 "implemented."
             )
-
-        # Check what labels are present in the dataset, and store if MISC tags are not
-        # present
-        labels_in_train = {tag for tag_list in dataset["ner_tags"] for tag in tag_list}
-        self.has_misc_tags = "B-MISC" in labels_in_train or "I-MISC" in labels_in_train
 
         # We are now assuming we are using pytorch
         map_fn = partial(
@@ -81,7 +73,6 @@ class NamedEntityRecognition(Task):
                 "morph_tags",
                 "dep_ids",
                 "dep_labels",
-                "ner_tags",
             ]
         )
 
@@ -110,7 +101,7 @@ class NamedEntityRecognition(Task):
             padding=True,
         )
         all_labels: List[List[int]] = []
-        for i, ner_tags in enumerate(examples["ner_tags"]):
+        for i, ner_tags in enumerate(examples[self.task_config.label_column_name]):
             labels = [self.task_config.id2label[ner_tag] for ner_tag in ner_tags]
             try:
                 word_ids = tokenized_inputs.word_ids(batch_index=i)
@@ -208,18 +199,17 @@ class NamedEntityRecognition(Task):
                 previous_word_idx = word_idx
 
             all_labels.append(label_ids)
-        tokenized_inputs["labels"] = all_labels
+        tokenized_inputs[self.task_config.label_column_name] = all_labels
         return tokenized_inputs
 
     def _load_data_collator(
-        self, tokenizer: Optional[PreTrainedTokenizerBase] = None
+        self, tokenizer: PreTrainedTokenizerBase
     ) -> DataCollatorForTokenClassification:
         """Load the data collator used to prepare samples during finetuning.
 
         Args:
-            tokenizer (Hugging Face tokenizer or None, optional):
-                A pretrained tokenizer. Can be None if the tokenizer is not used in the
-                initialisation of the data collator. Defaults to None.
+            tokenizer (Hugging Face tokenizer):
+                A pretrained tokenizer.
 
         Returns:
             Hugging Face data collator:
@@ -229,19 +219,23 @@ class NamedEntityRecognition(Task):
 
     def _prepare_predictions_and_labels(
         self,
-        predictions_np: np.ndarray,
-        labels_np: np.ndarray,
-        id2label: Optional[list] = None,
+        predictions: np.ndarray,
+        dataset: Dataset,
+        prepared_dataset: Dataset,
+        **kwargs,
     ) -> List[Tuple[np.ndarray, np.ndarray]]:
         """Prepare predictions and labels for output.
 
         Args:
-            predictions_np (NumPy array):
+            predictions (NumPy array):
                 The predictions of the model.
-            labels_np (NumPy array):
-                The ground truth labels.
-            id2label (list or None, optional):
-                Conversion of indices to labels. Defaults to None.
+            dataset (Dataset):
+                The raw dataset.
+            prepared_dataset (Dataset):
+                The prepared dataset.
+            kwargs:
+                Extra keyword arguments containing objects used in preparing the
+                predictions and labels.
 
         Returns:
             list of pairs of NumPy arrays:
@@ -251,21 +245,38 @@ class NamedEntityRecognition(Task):
                 contains one element and multiple metrics are present, then the same
                 predictions and labels will be used for all the metrics.
         """
+        # Extract the `id2label` mapping
+        id2label = kwargs["id2label"]
 
+        # Extract the labels from the prepared dataset
+        labels = np.asarray(prepared_dataset[self.task_config.label_column_name])
+
+        # Remove ignored index (special tokens)
         if id2label is not None:
-            # Remove ignored index (special tokens)
-            predictions = [
+            predictions = np.stack(
                 [
-                    id2label[pred_id]
-                    for pred_id, lbl_id in zip(pred, label)
-                    if lbl_id != -100
+                    np.array(
+                        [
+                            id2label[pred_id]
+                            for pred_id, lbl_id in zip(pred, label)
+                            if lbl_id != -100
+                        ]
+                    )
+                    for pred, label in zip(predictions, labels)
                 ]
-                for pred, label in zip(predictions_np, labels_np)
-            ]
-            labels = [
-                [id2label[lbl_id] for _, lbl_id in zip(pred, label) if lbl_id != -100]
-                for pred, label in zip(predictions_np, labels_np)
-            ]
+            )
+            labels = np.stack(
+                [
+                    np.array(
+                        [
+                            id2label[lbl_id]
+                            for _, lbl_id in zip(pred, label)
+                            if lbl_id != -100
+                        ]
+                    )
+                    for pred, label in zip(predictions, labels)
+                ]
+            )
 
         # Replace predicted tag with either MISC or O tags if they are not part of the
         # dataset
@@ -275,9 +286,9 @@ class NamedEntityRecognition(Task):
         for i, prediction_list in enumerate(predictions):
             for j, ner_tag in enumerate(prediction_list):
                 if ner_tag not in id2label_without_misc:
-                    if self.has_misc_tags and id2label[ner_tag][:2] == "B-":  # type: ignore
+                    if id2label[ner_tag][:2] == "B-":  # type: ignore
                         predictions[i][j] = "B-MISC"
-                    elif self.has_misc_tags and id2label[ner_tag][:2] == "I-":  # type: ignore
+                    elif id2label[ner_tag][:2] == "I-":  # type: ignore
                         predictions[i][j] = "I-MISC"
                     else:
                         predictions[i][j] = "O"

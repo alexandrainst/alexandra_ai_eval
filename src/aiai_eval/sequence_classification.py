@@ -2,8 +2,9 @@
 
 from functools import partial
 
-from datasets import Dataset
-from transformers import DataCollatorWithPadding, PreTrainedTokenizerBase
+from datasets.arrow_dataset import Dataset
+from transformers.data.data_collator import DataCollatorWithPadding
+from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
 from .exceptions import InvalidEvaluation, MissingLabel, WrongFeatureColumnName
 from .task import Task
@@ -25,22 +26,21 @@ class SequenceClassification(Task):
             The configuration of the evaluation.
     """
 
-    def _preprocess_data_transformer(
-        self, dataset: Dataset, framework: str, **kwargs
-    ) -> Dataset:
-        """Preprocess a dataset by tokenizing and aligning the labels.
-
-        For use by a transformer model.
+    def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
+        """Preprocess the data.
 
         Args:
-            dataset (Hugging Face dataset):
+            dataset (Hugging Face Dataset):
                 The dataset to preprocess.
+            framework (str):
+                The framework used for the model.
             kwargs:
                 Extra keyword arguments containing objects used in preprocessing the
                 dataset.
 
         Returns:
-            Hugging Face dataset: The preprocessed dataset.
+            Hugging Face Dataset:
+                The preprocessed dataset.
         """
         if framework == "spacy":
             raise InvalidEvaluation(
@@ -95,11 +95,12 @@ class SequenceClassification(Task):
             MissingLabel:
                 If a label is missing in the `label2id` mapping.
         """
+        lbl_col = self.task_config.label_column_name
         try:
-            examples["label"] = [label2id[lbl.upper()] for lbl in examples["label"]]
+            examples[lbl_col] = [label2id[lbl.upper()] for lbl in examples[lbl_col]]
         except KeyError:
             missing_label = [
-                lbl.upper() for lbl in examples["label"] if lbl.upper() not in label2id
+                lbl.upper() for lbl in examples[lbl_col] if lbl.upper() not in label2id
             ][0]
             raise MissingLabel(label=missing_label, label2id=label2id)
         return examples

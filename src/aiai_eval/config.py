@@ -56,12 +56,8 @@ class TaskConfig:
             The labels used in the task.
         feature_column_names (list of str):
             The names of the feature columns for the dataset.
-        train_name (str or None):
-            The name of the train split of the task. If None, the task has no train
-            split.
-        val_name (str or None):
-            The name of the validation split of the task. If None, the task has no
-            validation split.
+        label_column_name (str):
+            The name of the label column for the dataset.
         test_name (str or None):
             The name of the test split of the task. If None, the task has no test
             split.
@@ -83,8 +79,7 @@ class TaskConfig:
     metrics: List[MetricConfig]
     labels: List[Label]
     feature_column_names: List[str]
-    train_name: Optional[str]
-    val_name: Optional[str]
+    label_column_name: str
     test_name: Optional[str]
 
     @property

@@ -39,8 +39,7 @@ SENT = TaskConfig(
         ),
     ],
     feature_column_names=["text"],
-    train_name="train",
-    val_name=None,
+    label_column_name="label",
     test_name="test",
 )
 
@@ -177,31 +176,29 @@ NER = TaskConfig(
         ),
     ],
     feature_column_names=["text"],
-    train_name="train",
-    val_name="validation",
+    label_column_name="ner_tags",
     test_name="test",
 )
 
 
-QA = TaskConfig(
-    name="qa",
-    pretty_name="question answering",
-    huggingface_id="alexandrainst/scandiqa",
-    huggingface_subset="da",
-    supertask="question-answering",
-    metrics=[MCC, MACRO_F1],
-    labels=[
-        Label(
-            name="START_POSITIONS",
-            synonyms=[],
-        ),
-        Label(
-            name="END_POSITIONS",
-            synonyms=[],
-        ),
-    ],
-    feature_column_names=["question", "context"],
-    train_name="train",
-    val_name="val",
-    test_name="test",
-)
+# QA = TaskConfig(
+#     name="qa",
+#     pretty_name="question answering",
+#     huggingface_id="alexandrainst/scandiqa",
+#     huggingface_subset="da",
+#     supertask="question-answering",
+#     metrics=[MCC, MACRO_F1],
+#     labels=[
+#         Label(
+#             name="START_POSITIONS",
+#             synonyms=[],
+#         ),
+#         Label(
+#             name="END_POSITIONS",
+#             synonyms=[],
+#         ),
+#     ],
+#     feature_column_names=["question", "context"],
+#     label_column_name="labels",
+#     test_name="test",
+# )
