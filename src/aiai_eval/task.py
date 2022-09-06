@@ -302,7 +302,7 @@ class Task(ABC):
             dataloader = DataLoader(
                 prepared_dataset,
                 batch_size=batch_size,
-                shuffle=True,
+                shuffle=False,
                 collate_fn=data_collator,
             )
 
