@@ -94,7 +94,7 @@ class TestPreprocessData:
 class TestCreateNumericalLabels:
     @pytest.fixture(scope="class")
     def examples(self):
-        yield dict(label=["POSITIVE", "POSITIVE", "NEGATIVE", "NEUTRAL"])
+        yield dict(labels=["POSITIVE", "POSITIVE", "NEGATIVE", "NEUTRAL"])
 
     @pytest.fixture(scope="class")
     def label2id(self):
@@ -109,7 +109,7 @@ class TestCreateNumericalLabels:
     def throw_exception_if_label_is_missing(self, seq_clf, label2id):
         with pytest.raises(MissingLabel):
             seq_clf._create_numerical_labels(
-                examples=dict(label=["not-a-label"]),
+                examples=dict(labels=["not-a-label"]),
                 label2id=label2id,
             )
 
