@@ -62,10 +62,10 @@ class TestPreprocessData:
 
     def test_preprocessed_columns(self, preprocessed):
         assert list(preprocessed.features.keys()) == [
-            "labels",
             "input_ids",
             "token_type_ids",
             "attention_mask",
+            "labels",
         ]
 
     def test_throw_exception_if_feature_column_name_is_wrong(
