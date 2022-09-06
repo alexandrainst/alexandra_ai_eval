@@ -8,7 +8,11 @@ from pathlib import Path
 from typing import Dict, List, Sequence, Union
 
 from .config import Device, EvaluationConfig, TaskConfig
-from .exceptions import InvalidEvaluation, ModelDoesNotExistOnHuggingFaceHub
+from .exceptions import (
+    InvalidArchitectureForTask,
+    InvalidEvaluation,
+    ModelDoesNotExistOnHuggingFaceHub,
+)
 from .hf_hub import model_exists_on_hf_hub
 from .task_configs import get_all_task_configs
 from .task_factory import TaskFactory
@@ -149,10 +153,16 @@ class Evaluator:
         # Evaluate all the models in `model_ids` on all the datasets in `dataset_tasks`
         for task_config in task_configs:
             for m_id in model_ids:
-                self._evaluate_single(
-                    task_config=task_config,
-                    model_id=m_id,
-                )
+                try:
+                    self._evaluate_single(
+                        task_config=task_config,
+                        model_id=m_id,
+                    )
+                except InvalidArchitectureForTask:
+                    logger.warning(
+                        f"Skipping evaluation of {m_id} on {task_config.pretty_name} "
+                        "as the architecture is not supported by the task."
+                    )
 
         # Save the evaluation results
         if self.evaluation_config.save_results:
