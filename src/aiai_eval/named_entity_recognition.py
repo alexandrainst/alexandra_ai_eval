@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 from functools import partial
-from typing import List, Tuple
+from typing import List, Sequence, Tuple
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
@@ -207,16 +207,17 @@ class NamedEntityRecognition(Task):
 
     def _prepare_predictions_and_labels(
         self,
-        predictions: np.ndarray,
+        predictions: Sequence,
         dataset: Dataset,
         prepared_dataset: Dataset,
         **kwargs,
-    ) -> List[Tuple[np.ndarray, np.ndarray]]:
+    ) -> List[Tuple[Sequence, Sequence]]:
         """Prepare predictions and labels for output.
 
         Args:
-            predictions (NumPy array):
-                The predictions of the model.
+            predictions (sequence of either ints or floats):
+                The predictions of the model, which can be either class labels or
+                logits.
             dataset (Dataset):
                 The raw dataset.
             prepared_dataset (Dataset):
@@ -226,51 +227,42 @@ class NamedEntityRecognition(Task):
                 predictions and labels.
 
         Returns:
-            list of pairs of NumPy arrays:
-                The prepared predictions and labels. Each list entry is a pair of NumPy
-                arrays associated with each metric, with the first array being the
-                predictions and the second array being the labels. If the list only
-                contains one element and multiple metrics are present, then the same
-                predictions and labels will be used for all the metrics.
+            list of pairs of sequences:
+                The prepared predictions and labels.
         """
         # Extract the `id2label` mapping
-        id2label = kwargs["id2label"]
+        model_id2label = kwargs["id2label"]
 
         # Extract the labels from the dataset
-        labels = np.asarray(prepared_dataset["labels"])
+        labels = dataset[self.task_config.label_column_name]
+
+        # Remove ignored index from labels
+        labels = [
+            [
+                self.task_config.id2label[lbl_id]
+                for _, lbl_id in zip(pred, label)
+                if lbl_id != -100
+            ]
+            for pred, label in zip(predictions, labels)
+        ]
 
         # Collapse the logits into single predictions for every sample
         if any(
-            predictions.dtype == dtype for dtype in {np.float16, np.float32, np.float64}
+            np.asarray(predictions).dtype == dtype
+            for dtype in {np.float16, np.float32, np.float64}
         ):
             predictions = np.argmax(predictions, axis=-1)
 
-        # Remove ignored index (special tokens)
-        if id2label is not None:
-            predictions = np.stack(
+        # Remove ignored index from predictions
+        if model_id2label is not None:
+            predictions = [
                 [
-                    np.array(
-                        [
-                            id2label[pred_id]
-                            for pred_id, lbl_id in zip(pred, label)
-                            if lbl_id != -100
-                        ]
-                    )
-                    for pred, label in zip(predictions, labels)
+                    model_id2label[pred_id]
+                    for pred_id, lbl_id in zip(pred, label)
+                    if lbl_id != -100
                 ]
-            )
-            labels = np.stack(
-                [
-                    np.array(
-                        [
-                            id2label[lbl_id]
-                            for _, lbl_id in zip(pred, label)
-                            if lbl_id != -100
-                        ]
-                    )
-                    for pred, label in zip(predictions, labels)
-                ]
-            )
+                for pred, label in zip(predictions, labels)
+            ]
 
         # Replace predicted tag with either MISC or O tags if they are not part of the
         # dataset
@@ -280,9 +272,9 @@ class NamedEntityRecognition(Task):
         for i, prediction_list in enumerate(predictions):
             for j, ner_tag in enumerate(prediction_list):
                 if ner_tag not in id2label_without_misc:
-                    if id2label[ner_tag][:2] == "B-":  # type: ignore
+                    if ner_tag[:2] == "B-":
                         predictions[i][j] = "B-MISC"
-                    elif id2label[ner_tag][:2] == "I-":  # type: ignore
+                    elif ner_tag[:2] == "I-":
                         predictions[i][j] = "I-MISC"
                     else:
                         predictions[i][j] = "O"
