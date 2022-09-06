@@ -70,8 +70,8 @@ class QuestionAnswering(Task):
             type=prepared.format["type"], columns=list(prepared.features.keys())
         )
 
-        # Return the preprocessed dataset
-        return prepared
+        # Remove unused columns
+        return prepared.remove_columns(dataset.column_names)
 
     def _prepare_test_examples(
         self, examples: dict, tokenizer: PreTrainedTokenizerBase
@@ -125,25 +125,27 @@ class QuestionAnswering(Task):
 
         for i in range(len(tokenized_examples["input_ids"])):
 
-            # Grab the sequence corresponding to that example (to know what is
-            # the context and what is the question).
+            # Grab the sequence corresponding to that example (to know what is the
+            # context and what is the question).
             sequence_ids = tokenized_examples.sequence_ids(i)
             context_index = 1
 
-            # One example can give several spans, this is the index of the
-            # example containing this span of text.
+            # One example can give several spans, this is the index of the example
+            # containing this span of text.
             sample_index = sample_mapping[i]
             tokenized_examples["example_id"].append(
                 examples["example_id"][sample_index]
             )
 
-            # Set to None the offset_mapping that are not part of the context
-            # so it's easy to determine if a token position is part of the
-            # context or not.
+            # Set to None the offset_mapping that are not part of the context so it's
+            # easy to determine if a token position is part of the context or not.
             tokenized_examples["offset_mapping"][i] = [
                 (o if sequence_ids[k] == context_index else None)
                 for k, o in enumerate(tokenized_examples["offset_mapping"][i])
             ]
+
+        # Create column with labels (i.e., answers in this case)
+        tokenized_examples["labels"] = examples[self.task_config.label_column_name]
 
         return tokenized_examples
 
