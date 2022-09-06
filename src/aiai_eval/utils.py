@@ -2,13 +2,14 @@
 
 import enum
 import gc
+import importlib
 import logging
 import os
 import random
 import re
 import warnings
 from dataclasses import dataclass
-from typing import List, Sequence
+from typing import List, Sequence, Union
 
 import numpy as np
 import pkg_resources
@@ -193,22 +194,82 @@ def check_supertask(architectures: Sequence[str], supertask: str):
         architectures (list of str):
             The model architecture names.
         supertask (str):
-            The supertask associated to a task, e.g. text-classification.
+            The supertask associated to a task written in kebab-case, e.g.,
+            text-classification.
 
     Raises:
         InvalidArchitectureForTask:
-            If the search_str is not found in any of the architectures.
+            If the PascalCase version of the supertask is not found in any of the
+            architectures.
     """
-    # Convert the supertask into a search string, by converting kebab case to title
-    # case; e.g., text-classification -> TextClassification
-    search_str = "".join(word.title() for word in supertask.split("-"))
-
     # Create boolean variable that checks if the supertask exists among the
     # available architectures
-    supertask_is_an_architecture = any(search_str in arc for arc in architectures)
+    supertask_is_an_architecture = any(
+        kebab_to_pascal(supertask) in architecture for architecture in architectures
+    )
 
     # If the supertask is not an architecture, raise an error
     if not supertask_is_an_architecture:
         raise InvalidArchitectureForTask(
             architectures=architectures, supertask=supertask
         )
+
+
+def get_class_by_name(class_name: Union[str, Sequence[str]]) -> Union[None, type]:
+    """Get a class by its name.
+
+    This assumes that the class is located in a module with the same name as the class,
+    albeit in snake_case.
+
+    Args:
+        class_name (str):
+            The name of the class, written in kebab-case. The corresponding class name
+            must be the same, but written in PascalCase, and lying in a module with the
+            same name, but written in snake_case.
+
+    Returns:
+        type or None:
+            The class. If the class is not found, None is returned.
+    """
+    # Ensure that `class_name` is a sequence
+    if isinstance(class_name, str):
+        class_name = [class_name]
+
+    # Loop over the class names
+    for name in class_name:
+
+        # Get the snake_case and PascalCase version of the class name
+        name_snake = name.replace("-", "_")
+        name_pascal = kebab_to_pascal(name)
+
+        # Import the module
+        try:
+            module = importlib.import_module(f"aiai_eval.{name_snake}")
+        except ModuleNotFoundError:
+            continue
+
+        # Get the class from the module
+        try:
+            class_ = getattr(module, name_pascal)
+        except AttributeError:
+            continue
+
+        # Return the class
+        return class_
+
+    # If the class could not be found, return None
+    return None
+
+
+def kebab_to_pascal(kebab_string: str) -> str:
+    """Converts a kebab-case string to PascalCase.
+
+    Args:
+        kebab_string (str):
+            The kebab-case string.
+
+    Returns:
+        str:
+            The PascalCase string.
+    """
+    return "".join(word.title() for word in kebab_string.split("-"))
