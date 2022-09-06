@@ -43,14 +43,6 @@ class TestPreprocessDataTransformer:
             config=model_config,
         )
 
-    def test_spacy_framework_throws_exception(self, dataset, ner, tokenizer):
-        with pytest.raises(InvalidEvaluation):
-            ner._preprocess_data_transformer(
-                dataset=dataset,
-                framework="spacy",
-                tokenizer=tokenizer,
-            )
-
     def test_preprocessed_is_dataset(self, preprocessed):
         assert isinstance(preprocessed, Dataset)
 
