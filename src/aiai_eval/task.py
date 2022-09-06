@@ -211,7 +211,7 @@ class Task(ABC):
         scores = list()
         for idx in itr:
             while True:
-                test_itr_scores = self._evaluate_pytorch_jax_single_iteration(
+                test_itr_scores_or_err = self._evaluate_pytorch_jax_single_iteration(
                     idx=idx,
                     model_config=model_config,
                     dataset=bootstrapped_datasets[idx],
@@ -220,7 +220,7 @@ class Task(ABC):
                 )
 
                 # If the iteration was successful then break the while-loop
-                if isinstance(test_itr_scores, dict):
+                if isinstance(test_itr_scores_or_err, dict):
                     break
 
                 # Otherwise we encountered an error
@@ -228,10 +228,10 @@ class Task(ABC):
                     raise InvalidEvaluation(
                         "An unknown error occurred during the evaluation of the "
                         f"{idx} iteration. The error message returned was: "
-                        f"{str(test_itr_scores)}"
+                        f"{str(test_itr_scores_or_err)}"
                     )
 
-            scores.append(test_itr_scores)
+            scores.append(test_itr_scores_or_err)
 
         # If track_carbon_emissions is true append metrics, to correctly log emissions
         # data. We avoid mutating, so any downstream evaluations will not try to use
