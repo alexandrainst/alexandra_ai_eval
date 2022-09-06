@@ -11,7 +11,7 @@ from src.aiai_eval.exceptions import (
     InvalidArchitectureForTask,
     ModelDoesNotExistOnHuggingFaceHub,
 )
-from src.aiai_eval.task_configs import SENT
+from src.aiai_eval.task_configs import NER, SENT
 from src.aiai_eval.task_factory import TaskFactory
 
 
@@ -156,26 +156,20 @@ class TestEvaluate:
 
         # Get results from evaluate
         evaluator.evaluate(
-            model_id=["pin/senda", "DaNLP/da-bert-tone-sentiment-polarity"],
-            task=["sent", "sent"],
+            model_id=["pin/senda", "DaNLP/da-bert-ner"],
+            task=["sent", "ner"],
         )
         pin_results = evaluator.evaluation_results["sent"]["pin/senda"]
-        danlp_results = evaluator.evaluation_results["sent"][
-            "DaNLP/da-bert-tone-sentiment-polarity"
-        ]
+        danlp_results = evaluator.evaluation_results["ner"]["DaNLP/da-bert-ner"]
 
         # Reset evaluation results
         evaluator.evaluation_results: Dict[str, dict] = defaultdict(dict)
 
         # Get results from evaluate_single
         evaluator._evaluate_single(task_config=SENT, model_id="pin/senda")
-        evaluator._evaluate_single(
-            task_config=SENT, model_id="DaNLP/da-bert-tone-sentiment-polarity"
-        )
+        evaluator._evaluate_single(task_config=NER, model_id="DaNLP/da-bert-ner")
         pin_results_single = evaluator.evaluation_results["sent"]["pin/senda"]
-        danlp_results_single = evaluator.evaluation_results["sent"][
-            "DaNLP/da-bert-tone-sentiment-polarity"
-        ]
+        danlp_results_single = evaluator.evaluation_results["ner"]["DaNLP/da-bert-ner"]
 
         # Check that the results are the same
         assert pin_results_single == pin_results
