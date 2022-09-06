@@ -7,10 +7,7 @@ import pytest
 
 from aiai_eval.utils import Device
 from src.aiai_eval.evaluator import Evaluator
-from src.aiai_eval.exceptions import (
-    InvalidArchitectureForTask,
-    ModelDoesNotExistOnHuggingFaceHub,
-)
+from src.aiai_eval.exceptions import InvalidArchitectureForTask, ModelDoesNotExist
 from src.aiai_eval.task_configs import SENT
 from src.aiai_eval.task_factory import TaskFactory
 
@@ -91,9 +88,9 @@ class TestEvaluateSingle:
     def test_evaluate_single_raise_exception_model_not_found(
         self, evaluator, non_existing_model_id, task_config
     ):
-        with pytest.raises(ModelDoesNotExistOnHuggingFaceHub):
+        with pytest.raises(ModelDoesNotExist):
             evaluator._evaluate_single(
-                task_config=task_config, model_id=[non_existing_model_id]
+                task_config=task_config, model_id=non_existing_model_id
             )
 
     def test_evaluate_single_raise_exception_invalid_task(
