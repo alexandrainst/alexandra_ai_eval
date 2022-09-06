@@ -72,7 +72,6 @@ class TaskConfig:
     """
 
     name: str
-    pretty_name: str
     huggingface_id: str
     huggingface_subset: Optional[str]
     supertask: str
@@ -81,6 +80,10 @@ class TaskConfig:
     feature_column_names: List[str]
     label_column_name: str
     test_name: Optional[str]
+
+    @property
+    def pretty_name(self) -> str:
+        return self.name.replace("-", " ")
 
     @property
     def id2label(self) -> List[str]:

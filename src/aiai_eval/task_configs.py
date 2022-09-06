@@ -18,8 +18,7 @@ def get_all_task_configs() -> Dict[str, TaskConfig]:
 
 
 SENT = TaskConfig(
-    name="sent",
-    pretty_name="sentiment classification",
+    name="sentiment-classification",
     huggingface_id="DDSC/angry-tweets",
     huggingface_subset=None,
     supertask="sequence-classification",
@@ -45,8 +44,7 @@ SENT = TaskConfig(
 
 
 NER = TaskConfig(
-    name="ner",
-    pretty_name="named entity recognition",
+    name="named-entity-recognition",
     huggingface_id="dane",
     huggingface_subset=None,
     supertask="token-classification",
@@ -181,24 +179,23 @@ NER = TaskConfig(
 )
 
 
-# QA = TaskConfig(
-#     name="qa",
-#     pretty_name="question answering",
-#     huggingface_id="alexandrainst/scandiqa",
-#     huggingface_subset="da",
-#     supertask="question-answering",
-#     metrics=[MCC, MACRO_F1],
-#     labels=[
-#         Label(
-#             name="START_POSITIONS",
-#             synonyms=[],
-#         ),
-#         Label(
-#             name="END_POSITIONS",
-#             synonyms=[],
-#         ),
-#     ],
-#     feature_column_names=["question", "context"],
-#     label_column_name="labels",
-#     test_name="test",
-# )
+QA = TaskConfig(
+    name="question-answering",
+    huggingface_id="alexandrainst/scandiqa",
+    huggingface_subset="da",
+    supertask="question-answering",
+    metrics=[MCC, MACRO_F1],
+    labels=[
+        Label(
+            name="START_POSITIONS",
+            synonyms=[],
+        ),
+        Label(
+            name="END_POSITIONS",
+            synonyms=[],
+        ),
+    ],
+    feature_column_names=["question", "context"],
+    label_column_name="labels",
+    test_name="test",
+)
