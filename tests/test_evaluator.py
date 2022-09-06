@@ -11,7 +11,7 @@ from src.aiai_eval.exceptions import (
     InvalidArchitectureForTask,
     ModelDoesNotExistOnHuggingFaceHub,
 )
-from src.aiai_eval.task_configs import SENT
+from src.aiai_eval.task_configs import OFFENSIVE, SENT
 from src.aiai_eval.task_factory import TaskFactory
 
 
@@ -22,7 +22,7 @@ def evaluator():
         save_results=False,
         raise_error_on_invalid_model=False,
         cache_dir=".aiai_cache",
-        use_auth_token=False,
+        use_auth_token=True,
         track_carbon_emissions=False,
         country_iso_code="",
         prefer_device=Device.CPU,
@@ -139,8 +139,28 @@ class TestEvaluateSingle:
                     },
                 },
             ),
+            (
+                "DaNLP/da-electra-hatespeech-detection",
+                OFFENSIVE,
+                {
+                    "raw": [
+                        {"macro_f1": 1.0, "mcc": 0.0},
+                        {"macro_f1": 1.0, "mcc": 0.0},
+                    ],
+                    "total": {
+                        "macro_f1": 1.0,
+                        "macro_f1_se": 0.0,
+                        "mcc": 0.0,
+                        "mcc_se": 0.0,
+                    },
+                },
+            ),
         ],
-        ids=["sent_pin-senda", "sent_DaNLP-da-bert-tone-sentiment-polarity"],
+        ids=[
+            "sent_pin-senda",
+            "sent_DaNLP-da-bert-tone-sentiment-polarity",
+            "offensive_DaNLP-da-electra-hatespeech-detection",
+        ],
     )
     def test_evaluate_single(self, evaluator, model_id, task_config, expected_results):
         evaluator._evaluate_single(task_config=task_config, model_id=model_id)
