@@ -150,3 +150,10 @@ class InvalidTokenizer(Exception):
             )
         )
         super().__init__(self.message)
+
+
+class InvalidTask(Exception):
+    def __init__(self, task: str):
+        self.task = task
+        self.message = f"The task '{task}' is not supported."
+        super().__init__(self.message)
