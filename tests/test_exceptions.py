@@ -278,18 +278,19 @@ class TestWrongFeatureColumnName:
 
     @pytest.fixture(scope="class")
     def exception(self, feature_column_name):
-        yield WrongFeatureColumnName(feature_column_name=feature_column_name)
+        yield WrongFeatureColumnName(feature_column_names=feature_column_name)
 
     def test_wrong_feature_column_name_is_an_exception(self, exception):
         with pytest.raises(WrongFeatureColumnName):
             raise exception
 
     def test_model_type_is_stored(self, exception, feature_column_name):
-        assert exception.feature_column_name == feature_column_name
+        assert exception.feature_column_names == [feature_column_name]
 
     def test_message_is_stored(self, exception, feature_column_name):
         message = (
-            f"The provided feature column name: {feature_column_name} was incorrect."
+            f"The provided feature column name(s) '{feature_column_name}' were "
+            "incorrect."
         )
         assert exception.message == message
 

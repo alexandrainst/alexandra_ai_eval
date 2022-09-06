@@ -32,12 +32,12 @@ def task_config(metric_config, label):
         name="task_name",
         pretty_name="Task name",
         huggingface_id="dataset_id",
+        huggingface_subset=None,
         supertask="supertask_name",
         metrics=[metric_config],
         labels=[label],
-        feature_column_name="column_name",
-        train_name="train",
-        val_name="val",
+        feature_column_names=["column_name"],
+        label_column_name="label",
         test_name="test",
     )
 
@@ -75,12 +75,12 @@ class TestTaskConfig:
         assert task_config.name == "task_name"
         assert task_config.pretty_name == "Task name"
         assert task_config.huggingface_id == "dataset_id"
+        assert task_config.huggingface_subset is None
         assert task_config.supertask == "supertask_name"
         assert task_config.metrics == [metric_config]
         assert task_config.labels == [label]
-        assert task_config.feature_column_name == "column_name"
-        assert task_config.train_name == "train"
-        assert task_config.val_name == "val"
+        assert task_config.feature_column_names == ["column_name"]
+        assert task_config.label_column_name == "label"
         assert task_config.test_name == "test"
 
     def test_id2label(self, task_config, label):

@@ -2,9 +2,13 @@
 
 from functools import partial
 
+import numpy as np
 import pytest
-from datasets import Dataset, load_dataset
-from transformers import AutoConfig, AutoTokenizer, DataCollatorForTokenClassification
+from datasets.arrow_dataset import Dataset
+from datasets.load import load_dataset
+from transformers.data.data_collator import DataCollatorForTokenClassification
+from transformers.models.auto.configuration_auto import AutoConfig
+from transformers.models.auto.tokenization_auto import AutoTokenizer
 
 from src.aiai_eval.exceptions import InvalidEvaluation
 from src.aiai_eval.named_entity_recognition import NamedEntityRecognition
@@ -33,10 +37,10 @@ def model_config():
     yield config
 
 
-class TestPreprocessDataTransformer:
+class TestPreprocessData:
     @pytest.fixture(scope="class")
     def preprocessed(self, dataset, ner, tokenizer, model_config):
-        yield ner._preprocess_data_transformer(
+        yield ner._preprocess_data(
             dataset=dataset,
             framework="pytorch",
             tokenizer=tokenizer,
@@ -45,7 +49,7 @@ class TestPreprocessDataTransformer:
 
     def test_spacy_framework_throws_exception(self, dataset, ner, tokenizer):
         with pytest.raises(InvalidEvaluation):
-            ner._preprocess_data_transformer(
+            ner._preprocess_data(
                 dataset=dataset,
                 framework="spacy",
                 tokenizer=tokenizer,
@@ -56,7 +60,7 @@ class TestPreprocessDataTransformer:
 
     def test_preprocessed_columns(self, preprocessed):
         assert set(preprocessed.features.keys()) == {
-            "labels",
+            "ner_tags",
             "input_ids",
             "token_type_ids",
             "attention_mask",
@@ -76,7 +80,7 @@ class TestTokenizeAndAlignLabels:
     def test_tokenize_and_align_labels_length(self, tokenised_dataset, dataset):
         tokenised_dataset = tokenised_dataset.remove_columns(
             [
-                "labels",
+                "ner_tags",
                 "input_ids",
                 "token_type_ids",
                 "attention_mask",
@@ -87,7 +91,7 @@ class TestTokenizeAndAlignLabels:
     def test_tokenize_and_align_labels_columns(self, tokenised_dataset):
         assert set(tokenised_dataset.features.keys()) == {
             "text",
-            "labels",
+            "ner_tags",
             "input_ids",
             "token_type_ids",
             "attention_mask",
@@ -103,19 +107,6 @@ class TestTokenizeAndAlignLabels:
         }
 
 
-class TestPreprocessDataPyTorch:
-    @pytest.fixture(scope="class")
-    def preprocessed(self, dataset, ner, tokenizer, model_config):
-        yield ner._preprocess_data_pytorch(
-            dataset=dataset,
-            tokenizer=tokenizer,
-            config=model_config,
-        )
-
-    def test_preprocessed_is_list(self, preprocessed):
-        assert isinstance(preprocessed, list)
-
-
 class TestLoadDataCollator:
     @pytest.fixture(scope="class")
     def data_collator(self, ner, tokenizer):
@@ -126,3 +117,31 @@ class TestLoadDataCollator:
 
     def test_label_pad_token_id_is_minus_hundred(self, data_collator):
         assert data_collator.label_pad_token_id == -100
+
+
+def test_compute_metrics(ner):
+
+    # Define predictions and labels
+    predictions = [
+        ["O", "O", "B-MISC", "I-MISC", "I-MISC", "I-MISC", "O"],
+        ["B-PER", "I-PER", "O"],
+    ]
+    labels = [
+        ["O", "O", "O", "B-MISC", "I-MISC", "I-MISC", "O"],
+        ["B-PER", "I-PER", "O"],
+    ]
+
+    # Set up predictions and labels as arrays
+    predictions_and_labels = [
+        (np.asarray(predictions), np.array(labels)),
+    ]
+
+    # Compute metrics
+    metrics = ner._compute_metrics(
+        predictions_and_labels=predictions_and_labels,
+    )
+
+    # Check metrics
+    assert isinstance(metrics, dict)
+    for value in metrics.values():
+        assert isinstance(value, float)

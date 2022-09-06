@@ -2,7 +2,9 @@
 
 from copy import deepcopy
 
+import numpy as np
 import pytest
+import torch
 from datasets import Dataset, load_dataset
 from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding
 
@@ -37,10 +39,10 @@ def model_config():
     yield config
 
 
-class TestPreprocessDataTransformer:
+class TestPreprocessData:
     @pytest.fixture(scope="class")
     def preprocessed(self, dataset, seq_clf, tokenizer, model_config):
-        yield seq_clf._preprocess_data_transformer(
+        yield seq_clf._preprocess_data(
             dataset=dataset,
             framework="pytorch",
             tokenizer=tokenizer,
@@ -49,7 +51,7 @@ class TestPreprocessDataTransformer:
 
     def test_spacy_framework_throws_exception(self, dataset, seq_clf, tokenizer):
         with pytest.raises(InvalidEvaluation):
-            seq_clf._preprocess_data_transformer(
+            seq_clf._preprocess_data(
                 dataset=dataset,
                 framework="spacy",
                 tokenizer=tokenizer,
@@ -67,12 +69,12 @@ class TestPreprocessDataTransformer:
         ]
 
     def test_throw_exception_if_feature_column_name_is_wrong(
-        self, dataset, evaluation_config, tokenizer, task_config
+        self, dataset, evaluation_config, tokenizer, task_config, model_config
     ):
         # Create copy of the sentiment analysis task config, with a wrong feature
         # column name
         sent_cfg_copy = deepcopy(task_config)
-        sent_cfg_copy.feature_column_name = "wrong_name"
+        sent_cfg_copy.feature_column_names = "wrong_name"
 
         # Create a text classification task with the wrong feature column name
         seq_clf_copy = SequenceClassification(
@@ -81,24 +83,12 @@ class TestPreprocessDataTransformer:
 
         # Attempt to preprocess the dataset with the wrong feature column name
         with pytest.raises(WrongFeatureColumnName):
-            seq_clf_copy._preprocess_data_transformer(
+            seq_clf_copy._preprocess_data(
                 dataset=dataset,
                 framework="pytorch",
                 tokenizer=tokenizer,
+                config=model_config,
             )
-
-
-class TestPreprocessDataPyTorch:
-    @pytest.fixture(scope="class")
-    def preprocessed(self, dataset, seq_clf, tokenizer, model_config):
-        yield seq_clf._preprocess_data_pytorch(
-            dataset=dataset,
-            tokenizer=tokenizer,
-            config=model_config,
-        )
-
-    def test_preprocessed_is_list(self, preprocessed):
-        assert isinstance(preprocessed, list)
 
 
 class TestCreateNumericalLabels:
@@ -139,3 +129,19 @@ class TestLoadDataCollator:
 def test_get_spacy_predictions_and_labels_raises_exception(seq_clf):
     with pytest.raises(InvalidEvaluation):
         seq_clf._get_spacy_predictions_and_labels(model=None, dataset=None)
+
+
+def test_compute_metrics(seq_clf):
+
+    # Define predictions and labels
+    predictions_and_labels = [
+        (np.array([1, 1, 0]), np.array([1, 2, 2])),
+    ]
+
+    # Compute metrics
+    metrics = seq_clf._compute_metrics(predictions_and_labels=predictions_and_labels)
+
+    # Check metrics
+    assert isinstance(metrics, dict)
+    for value in metrics.values():
+        assert isinstance(value, float)

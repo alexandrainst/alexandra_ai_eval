@@ -1,7 +1,6 @@
 """Unit tests for the `evaluator` module."""
 
 from collections import defaultdict
-from typing import Dict
 
 import pytest
 
@@ -11,7 +10,7 @@ from src.aiai_eval.exceptions import (
     InvalidArchitectureForTask,
     ModelDoesNotExistOnHuggingFaceHub,
 )
-from src.aiai_eval.task_configs import SENT
+from src.aiai_eval.task_configs import NER, SENT
 from src.aiai_eval.task_factory import TaskFactory
 
 
@@ -112,13 +111,13 @@ class TestEvaluateSingle:
                 SENT,
                 {
                     "raw": [
-                        {"macro_f1": 1.0, "mcc": 0.5},
-                        {"macro_f1": 1.0, "mcc": 0.5},
+                        {"macro_f1": 0.3333333333333333, "mcc": -0.3333333333333333},
+                        {"macro_f1": 0.3333333333333333, "mcc": -0.3333333333333333},
                     ],
                     "total": {
-                        "macro_f1": 1.0,
+                        "macro_f1": 0.3333333333333333,
                         "macro_f1_se": 0.0,
-                        "mcc": 0.5,
+                        "mcc": -0.3333333333333333,
                         "mcc_se": 0.0,
                     },
                 },
@@ -128,13 +127,13 @@ class TestEvaluateSingle:
                 SENT,
                 {
                     "raw": [
-                        {"macro_f1": 1.0, "mcc": 0.5},
-                        {"macro_f1": 1.0, "mcc": 0.5},
+                        {"macro_f1": 0.3333333333333333, "mcc": -0.3333333333333333},
+                        {"macro_f1": 0.3333333333333333, "mcc": -0.3333333333333333},
                     ],
                     "total": {
-                        "macro_f1": 1.0,
+                        "macro_f1": 0.3333333333333333,
                         "macro_f1_se": 0.0,
-                        "mcc": 0.5,
+                        "mcc": -0.3333333333333333,
                         "mcc_se": 0.0,
                     },
                 },
@@ -149,34 +148,39 @@ class TestEvaluateSingle:
 
 
 class TestEvaluate:
+    @pytest.fixture(scope="class")
+    def tasks_models(self):
+        yield [
+            (SENT, "pin/senda", "DaNLP/da-bert-tone-sentiment-polarity"),
+            (NER, "DaNLP/da-bert-ner", "saattrupdan/nbailab-base-ner-scandi"),
+        ]
 
-    # TODO: Once we have more than one type of task, this should test a combination of tasks,
-    # instead of just one type of task.
-    def test_evaluate_is_identical_to_evaluate_single(self, evaluator):
+    @pytest.mark.parametrize(
+        argnames="task_config, model_ids",
+        argvalues=[
+            (SENT, ["pin/senda", "DaNLP/da-bert-tone-sentiment-polarity"]),
+            (NER, ["DaNLP/da-bert-ner", "saattrupdan/nbailab-base-ner-scandi"]),
+        ],
+        ids=["sent", "ner"],
+    )
+    def test_evaluate_is_identical_to_evaluate_single(
+        self, evaluator, task_config, model_ids
+    ):
 
         # Get results from evaluate
-        evaluator.evaluate(
-            model_id=["pin/senda", "DaNLP/da-bert-tone-sentiment-polarity"],
-            task=["sent", "sent"],
-        )
-        pin_results = evaluator.evaluation_results["sent"]["pin/senda"]
-        danlp_results = evaluator.evaluation_results["sent"][
-            "DaNLP/da-bert-tone-sentiment-polarity"
-        ]
+        evaluator.evaluate(model_id=model_ids, task=task_config.name)
+        results1 = evaluator.evaluation_results[task_config.name][model_ids[0]]
+        results2 = evaluator.evaluation_results[task_config.name][model_ids[1]]
 
         # Reset evaluation results
-        evaluator.evaluation_results: Dict[str, dict] = defaultdict(dict)
+        evaluator.evaluation_results = defaultdict(dict)
 
         # Get results from evaluate_single
-        evaluator._evaluate_single(task_config=SENT, model_id="pin/senda")
-        evaluator._evaluate_single(
-            task_config=SENT, model_id="DaNLP/da-bert-tone-sentiment-polarity"
-        )
-        pin_results_single = evaluator.evaluation_results["sent"]["pin/senda"]
-        danlp_results_single = evaluator.evaluation_results["sent"][
-            "DaNLP/da-bert-tone-sentiment-polarity"
-        ]
+        evaluator._evaluate_single(task_config=task_config, model_id=model_ids[0])
+        evaluator._evaluate_single(task_config=task_config, model_id=model_ids[1])
+        results1_single = evaluator.evaluation_results[task_config.name][model_ids[0]]
+        results2_single = evaluator.evaluation_results[task_config.name][model_ids[1]]
 
         # Check that the results are the same
-        assert pin_results_single == pin_results
-        assert danlp_results_single == danlp_results
+        assert results1 == results1_single
+        assert results2 == results2_single
