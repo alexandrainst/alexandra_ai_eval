@@ -62,7 +62,7 @@ class SequenceClassification(Task):
                     truncation=True,
                     padding=True,
                 )
-                tokenised_examples["labels"] = tokenised_examples[
+                tokenised_examples["labels"] = examples[
                     self.task_config.label_column_name
                 ]
                 return tokenised_examples
