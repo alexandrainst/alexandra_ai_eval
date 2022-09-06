@@ -54,7 +54,7 @@ class SequenceClassification(Task):
         # Tokenizer helper
         def tokenise(examples: dict) -> dict:
             try:
-                return tokenizer(
+                tokenised_examples = tokenizer(
                     *[
                         examples[feat_col]
                         for feat_col in self.task_config.feature_column_names
@@ -62,6 +62,10 @@ class SequenceClassification(Task):
                     truncation=True,
                     padding=True,
                 )
+                tokenised_examples["labels"] = tokenised_examples[
+                    self.task_config.label_column_name
+                ]
+                return tokenised_examples
             except KeyError:
                 raise WrongFeatureColumnName(self.task_config.feature_column_names)
 
@@ -77,7 +81,7 @@ class SequenceClassification(Task):
         )
 
         # Remove unused columns
-        return preprocessed.remove_columns(self.task_config.feature_column_names)
+        return preprocessed.remove_columns(dataset.column_names)
 
     def _create_numerical_labels(self, examples: dict, label2id: dict) -> dict:
         """Create numerical labels from the labels.
@@ -95,12 +99,11 @@ class SequenceClassification(Task):
             MissingLabel:
                 If a label is missing in the `label2id` mapping.
         """
-        lbl_col = self.task_config.label_column_name
         try:
-            examples[lbl_col] = [label2id[lbl.upper()] for lbl in examples[lbl_col]]
+            examples["labels"] = [label2id[lbl.upper()] for lbl in examples["labels"]]
         except KeyError:
             missing_label = [
-                lbl.upper() for lbl in examples[lbl_col] if lbl.upper() not in label2id
+                lbl.upper() for lbl in examples["labels"] if lbl.upper() not in label2id
             ][0]
             raise MissingLabel(label=missing_label, label2id=label2id)
         return examples

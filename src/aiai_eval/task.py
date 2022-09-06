@@ -512,7 +512,7 @@ class Task(ABC):
                 contains one element and multiple metrics are present, then the same
                 predictions and labels will be used for all the metrics.
         """
-        labels = np.asarray(prepared_dataset[self.task_config.label_column_name])
+        labels = np.asarray(prepared_dataset["labels"])
         return [(predictions, labels)]
 
     def __call__(self, *args, **kwargs):

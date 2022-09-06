@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 from functools import partial
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
@@ -62,19 +62,7 @@ class NamedEntityRecognition(Task):
         )
 
         # Remove unused columns
-        return tokenised_dataset.remove_columns(
-            [
-                *self.task_config.feature_column_names,
-                "tokens",
-                "lemmas",
-                "sent_id",
-                "tok_ids",
-                "pos_tags",
-                "morph_tags",
-                "dep_ids",
-                "dep_labels",
-            ]
-        )
+        return tokenised_dataset.remove_columns(dataset.column_names)
 
     def _tokenize_and_align_labels(
         self, examples: dict, tokenizer, label2id: dict
@@ -199,7 +187,7 @@ class NamedEntityRecognition(Task):
                 previous_word_idx = word_idx
 
             all_labels.append(label_ids)
-        tokenized_inputs[self.task_config.label_column_name] = all_labels
+        tokenized_inputs["labels"] = all_labels
         return tokenized_inputs
 
     def _load_data_collator(
@@ -248,8 +236,8 @@ class NamedEntityRecognition(Task):
         # Extract the `id2label` mapping
         id2label = kwargs["id2label"]
 
-        # Extract the labels from the prepared dataset
-        labels = np.asarray(prepared_dataset[self.task_config.label_column_name])
+        # Extract the labels from the dataset
+        labels = np.asarray(prepared_dataset["labels"])
 
         # Remove ignored index (special tokens)
         if id2label is not None:
