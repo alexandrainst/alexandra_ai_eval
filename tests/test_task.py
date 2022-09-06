@@ -45,8 +45,7 @@ class TestTaskAttributes:
 
 def test_prepare_predictions_and_labels_output_is_trivial(task):
     predictions = np.array([1, 2, 3])
-    label_col = task.task_config.label_column_name
-    dataset = Dataset.from_dict({label_col: [1, 2, 2]})
+    dataset = Dataset.from_dict(dict(labels=[1, 2, 2]))
     prepared = task._prepare_predictions_and_labels(
         predictions=predictions,
         dataset=dataset,
@@ -54,7 +53,7 @@ def test_prepare_predictions_and_labels_output_is_trivial(task):
     )
     np.testing.assert_equal(
         actual=prepared,
-        desired=[(predictions, np.array(dataset[label_col]))],
+        desired=[(predictions, np.array(dataset["labels"]))],
     )
 
 

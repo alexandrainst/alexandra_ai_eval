@@ -62,7 +62,7 @@ class TestPreprocessData:
 
     def test_preprocessed_columns(self, preprocessed):
         assert list(preprocessed.features.keys()) == [
-            "label",
+            "labels",
             "input_ids",
             "token_type_ids",
             "attention_mask",

@@ -60,10 +60,10 @@ class TestPreprocessData:
 
     def test_preprocessed_columns(self, preprocessed):
         assert set(preprocessed.features.keys()) == {
-            "ner_tags",
             "input_ids",
             "token_type_ids",
             "attention_mask",
+            "labels",
         }
 
 
@@ -78,14 +78,6 @@ class TestTokenizeAndAlignLabels:
         yield dataset.map(map_fn, batched=True, load_from_cache_file=False)
 
     def test_tokenize_and_align_labels_length(self, tokenised_dataset, dataset):
-        tokenised_dataset = tokenised_dataset.remove_columns(
-            [
-                "ner_tags",
-                "input_ids",
-                "token_type_ids",
-                "attention_mask",
-            ]
-        )
         assert len(tokenised_dataset) == len(dataset)
 
     def test_tokenize_and_align_labels_columns(self, tokenised_dataset):
@@ -103,7 +95,7 @@ class TestTokenizeAndAlignLabels:
             "morph_tags",
             "dep_ids",
             "dep_labels",
-            "ner_tags",
+            "labels",
         }
 
 
