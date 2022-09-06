@@ -299,7 +299,7 @@ class Task(ABC):
 
             # Create dataloader
             dataloader = DataLoader(
-                prepared_dataset,  # type: ignore
+                prepared_dataset,
                 batch_size=batch_size,
                 shuffle=True,
                 collate_fn=data_collator,
@@ -358,7 +358,7 @@ class Task(ABC):
                 predictions=all_predictions,
                 dataset=dataset,
                 prepared_dataset=prepared_dataset,
-                id2label=model.config.id2label,  # type: ignore
+                id2label=model.config.id2label,
                 cls_token_index=tokenizer.cls_token_id,
             )
 
@@ -529,7 +529,7 @@ class Task(ABC):
             InvalidEvaluation:
                 If the split names specified are incorrect.
         """
-        return load_dataset(  # type: ignore
+        return load_dataset(
             path=self.task_config.huggingface_id,
             name=self.task_config.huggingface_subset,
             use_auth_token=self.evaluation_config.use_auth_token,
