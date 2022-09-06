@@ -13,7 +13,7 @@ def evaluation_config():
     yield EvaluationConfig(
         raise_error_on_invalid_model=True,
         cache_dir=".aiai_cache",
-        use_auth_token=False,
+        use_auth_token=True,
         progress_bar=False,
         save_results=True,
         verbose=True,
