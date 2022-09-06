@@ -298,3 +298,12 @@ class TestAbstractMethods:
 
     def test_load_data_collator_is_abstract(self, abstract_metods):
         assert "_load_data_collator" in abstract_metods
+
+    def test_get_spacy_predictions_and_labels_is_abstract(self, abstract_metods):
+        assert "_get_spacy_predictions_and_labels" in abstract_metods
+
+    def test_extract_spacy_predictions_is_abstract(self, abstract_metods):
+        assert "_extract_spacy_predictions" in abstract_metods
+
+    def test_preprocess_data_spacy_is_abstract(self, abstract_metods):
+        assert "_preprocess_data_spacy" in abstract_metods
