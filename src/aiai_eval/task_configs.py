@@ -196,6 +196,6 @@ QA = TaskConfig(
         ),
     ],
     feature_column_names=["question", "context"],
-    label_column_name="labels",
+    label_column_name="answers",
     test_name="test",
 )
