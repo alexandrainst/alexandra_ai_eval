@@ -6,17 +6,14 @@ from subprocess import CalledProcessError
 from typing import Any, Dict
 
 import spacy
+import transformers.models.auto.modeling_auto as auto_module
 from transformers.models.auto.configuration_auto import AutoConfig
-from transformers.models.auto.modeling_auto import (
-    AutoModelForSequenceClassification,
-    AutoModelForTokenClassification,
-)
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
 from .config import EvaluationConfig, ModelConfig, TaskConfig
 from .exceptions import InvalidEvaluation, InvalidFramework, ModelFetchFailed
 from .model_adjustment import adjust_model_to_task
-from .utils import check_supertask, is_module_installed
+from .utils import check_supertask, get_class_by_name, is_module_installed
 
 # Ignore warnings from spaCy. This has to be called after the import,
 # as the __init__.py file of spaCy sets the warning levels of spaCy
@@ -105,15 +102,16 @@ def load_pytorch_model(
         check_supertask(architectures=config.architectures, supertask=supertask)
 
         # Get the model class associated with the supertask
-        if supertask == "token-classification":
-            model_cls = AutoModelForTokenClassification
-        elif supertask == "sequence-classification":
-            model_cls = AutoModelForSequenceClassification
-        else:
+        model_cls = get_class_by_name(
+            class_name=f"auto-model-for-{supertask}",
+            module_name="transformers",
+        )
+
+        if not model_cls:
             raise ValueError(f"The supertask `{supertask}` was not recognised.")
 
         # Load the model with the correct model class
-        model = model_cls.from_pretrained(
+        model = model_cls.from_pretrained(  # type: ignore[attr-defined]
             model_config.model_id,
             revision=model_config.revision,
             use_auth_token=evaluation_config.use_auth_token,
