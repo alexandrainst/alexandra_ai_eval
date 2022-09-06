@@ -9,7 +9,7 @@ import random
 import re
 import warnings
 from dataclasses import dataclass
-from typing import List, Sequence, Union
+from typing import List, Optional, Sequence, Union
 
 import numpy as np
 import pkg_resources
@@ -215,17 +215,22 @@ def check_supertask(architectures: Sequence[str], supertask: str):
         )
 
 
-def get_class_by_name(class_name: Union[str, Sequence[str]]) -> Union[None, type]:
+def get_class_by_name(
+    class_name: Union[str, Sequence[str]],
+    module_name: Optional[str] = None,
+) -> Union[None, type]:
     """Get a class by its name.
 
-    This assumes that the class is located in a module with the same name as the class,
-    albeit in snake_case.
-
     Args:
-        class_name (str):
+        class_name (str or list of str):
             The name of the class, written in kebab-case. The corresponding class name
             must be the same, but written in PascalCase, and lying in a module with the
-            same name, but written in snake_case.
+            same name, but written in snake_case. If a list of strings is passed, the
+            first class that is found is returned.
+        module_name (str, optional):
+            The name of the module where the class is located. If None then the module
+            name is assumed to be the same as the class name, but written in
+            snake_case. Defaults to None.
 
     Returns:
         type or None:
@@ -244,14 +249,18 @@ def get_class_by_name(class_name: Union[str, Sequence[str]]) -> Union[None, type
 
         # Import the module
         try:
-            module = importlib.import_module(f"aiai_eval.{name_snake}")
+            if not module_name:
+                module_name = f"aiai_eval.{name_snake}"
+            module = importlib.import_module(module_name)
         except ModuleNotFoundError:
+            module_name = None
             continue
 
         # Get the class from the module
         try:
             class_ = getattr(module, name_pascal)
         except AttributeError:
+            module_name = None
             continue
 
         # Return the class
