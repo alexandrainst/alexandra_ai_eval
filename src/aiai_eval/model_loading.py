@@ -106,9 +106,9 @@ def load_pytorch_model(
 
         # Get the model class associated with the supertask
         if supertask == "token-classification":
-            model_cls = AutoModelForTokenClassification  # type: ignore
+            model_cls = AutoModelForTokenClassification
         elif supertask == "sequence-classification":
-            model_cls = AutoModelForSequenceClassification  # type: ignore
+            model_cls = AutoModelForSequenceClassification
         else:
             raise ValueError(f"The supertask `{supertask}` was not recognised.")
 
