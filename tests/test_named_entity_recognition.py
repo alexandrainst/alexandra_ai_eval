@@ -169,3 +169,37 @@ class TestExtractSpacyPredictions:
             "dep_labels",
             "ner_tags",
         }
+
+
+class TestGetSpacyPredictionsAndLabels:
+    @pytest.fixture(scope="class")
+    def batch_size(self):
+        yield 2
+
+    @pytest.fixture(scope="class")
+    def preprocessed_spacy(self, preprocessed_spacy, ner, spacy_model, batch_size):
+        yield ner._get_spacy_predictions_and_labels(
+            model=spacy_model, dataset=preprocessed_spacy, batch_size=batch_size
+        )
+
+    def test_preprocessed_spacy_is_tuple(self, preprocessed_spacy):
+        assert isinstance(preprocessed_spacy, tuple)
+
+    def test_preprocessed_spacy_predictions_are_list(self, preprocessed_spacy):
+        assert isinstance(preprocessed_spacy[0], list)
+
+    def test_preprocessed_spacy_labels_are_list(self, preprocessed_spacy):
+        assert isinstance(preprocessed_spacy[1], list)
+
+    def test_preprocessed_spacy_predictions_and_labels_have_same_length(
+        self, preprocessed_spacy
+    ):
+        assert len(preprocessed_spacy[0]) == len(preprocessed_spacy[1])
+
+    def test_preprocessed_spacy_predictions_are_lists_of_lists(
+        self, preprocessed_spacy
+    ):
+        assert isinstance(preprocessed_spacy[0][0], list)
+
+    def test_preprocessed_spacy_labels_are_lists_of_lists(self, preprocessed_spacy):
+        assert isinstance(preprocessed_spacy[1][0], list)
