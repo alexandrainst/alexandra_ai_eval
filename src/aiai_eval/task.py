@@ -4,7 +4,7 @@ import logging
 import random
 import warnings
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Sequence, Tuple, Union
 
 import numpy as np
 import torch
@@ -218,6 +218,7 @@ class Task(ABC):
                     prepared_dataset=prepared_datasets[idx],
                     data_collator=data_collator,
                 )
+
                 # If the iteration was successful then break the while-loop
                 if isinstance(test_itr_scores, dict):
                     break
@@ -345,13 +346,10 @@ class Task(ABC):
 
                     # Move the predictions back to the CPU and convert it to a NumPy
                     # array
-                    model_predictions = model_predictions.cpu().numpy()
+                    model_predictions = model_predictions.cpu().numpy().tolist()
 
                     # Collect predictions
-                    all_predictions.append(model_predictions)
-
-            # Concatenate all the predictions
-            all_predictions = np.concatenate(all_predictions, axis=0)
+                    all_predictions.extend(model_predictions)
 
             # Perform post-processing of predictions
             prepared_predictions_and_labels = self._prepare_predictions_and_labels(
@@ -477,7 +475,7 @@ class Task(ABC):
 
     def _prepare_predictions_and_labels(
         self,
-        predictions: np.ndarray,
+        predictions: Sequence,
         dataset: Dataset,
         prepared_dataset: Dataset,
         **kwargs,
@@ -505,7 +503,8 @@ class Task(ABC):
         """
         # Collapse the logits into single predictions for every sample
         if any(
-            predictions.dtype == dtype for dtype in {np.float16, np.float32, np.float64}
+            np.asarray(predictions).dtype == dtype
+            for dtype in {np.float16, np.float32, np.float64}
         ):
             predictions = np.argmax(predictions, axis=-1)
 
