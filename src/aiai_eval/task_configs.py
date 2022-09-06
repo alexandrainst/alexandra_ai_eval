@@ -179,3 +179,25 @@ SENT = TaskConfig(
     val_name=None,
     test_name="test",
 )
+
+OFFENSIVE = TaskConfig(
+    name="offensive",
+    pretty_name="offensive text classification",
+    huggingface_id="DDSC/dkhate",
+    supertask="sequence-classification",
+    metrics=[MCC, MACRO_F1],
+    labels=[
+        Label(
+            name="OFFENSIVE",
+            synonyms=["OFF"],
+        ),
+        Label(
+            name="NOT_OFFENSIVE",
+            synonyms=["NOT", "NOT OFFENSIVE"],
+        ),
+    ],
+    feature_column_name="text",
+    train_name="train",
+    val_name=None,
+    test_name="test",
+)
