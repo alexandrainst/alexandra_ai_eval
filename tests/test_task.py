@@ -1,6 +1,7 @@
 """Unit tests for the `task` module."""
 
 from copy import deepcopy
+from typing import Any
 
 import numpy as np
 import pytest
@@ -32,6 +33,17 @@ class TaskDummy(Task):
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
         return None
+
+    def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
+        return list()
+
+    def _get_spacy_predictions_and_labels(
+        self, model: Any, dataset: Dataset, batch_size: int
+    ) -> tuple:
+        return list(), list()
+
+    def _preprocess_data_spacy(self, dataset: Dataset) -> Dataset:
+        return Dataset.from_dict(dict(a=[1, 2, 3], b=[4, 5, 6]))
 
 
 @pytest.fixture(scope="module")
