@@ -56,11 +56,12 @@ class SequenceClassification(Task):
                 raise WrongFeatureColumnName(self.task_config.feature_column_names)
 
         # Tokenise
-        tokenised = dataset.map(tokenise, batched=True, load_from_cache_file=False)
+        tokenised = dataset.map(tokenise, batched=True)
 
         # Translate labels to ids
         numericalise = partial(
-            self._create_numerical_labels, label2id=kwargs["config"].label2id
+            self._create_numerical_labels,
+            model_label2id=kwargs["model_config"].label2id,
         )
         preprocessed = tokenised.map(
             numericalise,
@@ -70,14 +71,18 @@ class SequenceClassification(Task):
 
         return preprocessed
 
-    def _create_numerical_labels(self, examples: dict, label2id: dict) -> dict:
+    def _create_numerical_labels(self, examples: dict, model_label2id: dict) -> dict:
         try:
-            examples["labels"] = [label2id[lbl.upper()] for lbl in examples["labels"]]
+            examples["labels"] = [
+                model_label2id[lbl.upper()] for lbl in examples["labels"]
+            ]
         except KeyError:
             missing_label = [
-                lbl.upper() for lbl in examples["labels"] if lbl.upper() not in label2id
+                lbl.upper()
+                for lbl in examples["labels"]
+                if lbl.upper() not in model_label2id
             ][0]
-            raise MissingLabel(label=missing_label, label2id=label2id)
+            raise MissingLabel(label=missing_label, label2id=model_label2id)
         return examples
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
