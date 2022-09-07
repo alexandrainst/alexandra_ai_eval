@@ -77,11 +77,12 @@ class SequenceClassification(Task):
             self._create_numerical_labels, label2id=kwargs["config"].label2id
         )
         preprocessed = tokenised.map(
-            numericalise, batched=True, load_from_cache_file=False
+            numericalise,
+            batched=True,
+            remove_columns=dataset.column_names,
         )
 
-        # Remove unused columns
-        return preprocessed.remove_columns(dataset.column_names)
+        return preprocessed
 
     def _create_numerical_labels(self, examples: dict, label2id: dict) -> dict:
         """Create numerical labels from the labels.
