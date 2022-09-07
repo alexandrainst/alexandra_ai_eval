@@ -357,6 +357,16 @@ class Task(ABC):
                 else:
                     raise UnsupportedModelType(str(type(model)))
 
+                # In the first iteration we do a check to see if the model outputs
+                # fit the expected format. If not, we raise an exception.
+                if idx == 0:
+                    if not self._check_if_model_is_trained_for_task(
+                        model_predictions=model_predictions
+                    ):
+                        raise ModelNotTrainedForTask(
+                            task=self.task_config.name, framework=model_config.framework
+                        )
+
                 # Compute the metrics
                 metrics = self._compute_metrics(
                     predictions=model_predictions,
