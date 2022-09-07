@@ -13,7 +13,7 @@ from tqdm import tqdm
 from transformers.data.data_collator import DataCollatorForTokenClassification
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
-from .exceptions import InvalidEvaluation, InvalidTokenizer, MissingLabel
+from .exceptions import InvalidTokenizer, MissingLabel
 from .task import Task
 
 
