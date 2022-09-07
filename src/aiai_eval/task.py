@@ -344,7 +344,31 @@ class Task(ABC):
                     # If we are dealing with a Hugging Face model then we will use the
                     # entire batch dictionary
                     if isinstance(model, PreTrainedModel):
-                        model_predictions = model(**batch).logits
+
+                        # Get the model predictions
+                        model_predictions = model(**batch)
+
+                        # If we are dealing with a classification model then we will
+                        # take the logits
+                        if hasattr(model_predictions, "logits"):
+                            model_predictions = model_predictions.logits
+
+                        # If we are dealing with a question answering model then we
+                        # will take the start and end logits and merge them
+                        elif hasattr(model_predictions, "start_logits") and hasattr(
+                            model_predictions, "end_logits"
+                        ):
+                            model_predictions = torch.stack(
+                                model_predictions.start_logits,
+                                model_predictions.end_logits,
+                            )
+
+                        # Otherwise, we raise an error
+                        else:
+                            raise ValueError(
+                                "The model predictions are not in the correct format."
+                                f"Received outputs with keys {model_predictions.keys()}"
+                            )
 
                     # If we are dealing with a PyTorch model, then we will only use the
                     # input_ids
