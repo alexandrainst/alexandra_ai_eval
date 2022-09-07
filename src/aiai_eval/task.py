@@ -329,6 +329,18 @@ class Task(ABC):
                         for key, value in batch.items()
                     }
 
+                    # Create a view of the batch with only desired features
+                    accepted_transformer_features = [
+                        "input_ids",
+                        "attention_mask",
+                        "token_type_ids",
+                    ]
+                    batch = {
+                        key: value
+                        for key, value in batch.items()
+                        if key in accepted_transformer_features
+                    }
+
                     # If we are dealing with a Hugging Face model then we will use the
                     # entire batch dictionary
                     if isinstance(model, PreTrainedModel):
