@@ -136,10 +136,10 @@ class QuestionAnswering(Task):
                 examples["example_id"][sample_index]
             )
 
-            # Set to None the offset_mapping that are not part of the context so it's
-            # easy to determine if a token position is part of the context or not.
+            # Set to (-1, -1) the offset_mapping that are not part of the context so
+            # it's easy to determine if a token position is part of the context or not.
             tokenized_examples["offset_mapping"][i] = [
-                (o if sequence_ids[k] == context_index else None)
+                (o if sequence_ids[k] == context_index else (-1, -1))
                 for k, o in enumerate(tokenized_examples["offset_mapping"][i])
             ]
 
@@ -255,8 +255,8 @@ class QuestionAnswering(Task):
                         if (
                             start_index >= len(offset_mapping)
                             or end_index >= len(offset_mapping)
-                            or offset_mapping[start_index] is None
-                            or offset_mapping[end_index] is None
+                            or offset_mapping[start_index] == -1
+                            or offset_mapping[end_index] == -1
                         ):
                             continue
 
