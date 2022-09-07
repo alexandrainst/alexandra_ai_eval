@@ -6,7 +6,6 @@ from subprocess import CalledProcessError
 from typing import Any, Dict
 
 import spacy
-import transformers.models.auto.modeling_auto as auto_module
 from transformers.models.auto.configuration_auto import AutoConfig
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
