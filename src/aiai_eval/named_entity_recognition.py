@@ -212,7 +212,7 @@ class NamedEntityRecognition(Task):
         dataset: Dataset,
         prepared_dataset: Dataset,
         **kwargs,
-    ) -> List[Tuple[Sequence, Sequence]]:
+    ) -> List[Tuple[list, list]]:
         """Prepare predictions and labels for output.
 
         Args:
@@ -228,7 +228,7 @@ class NamedEntityRecognition(Task):
                 predictions and labels.
 
         Returns:
-            list of pairs of sequences:
+            list of pairs of lists:
                 The prepared predictions and labels.
         """
         # Extract the `model_id2label` mapping
@@ -290,4 +290,7 @@ class NamedEntityRecognition(Task):
                 if ner_tag[-4:] == "MISC":
                     labels_no_misc[i][j] = "O"
 
-        return [(predictions, labels), (predictions_no_misc, labels_no_misc)]
+        return [
+            (list(predictions), labels),
+            (list(predictions_no_misc), labels_no_misc),
+        ]
