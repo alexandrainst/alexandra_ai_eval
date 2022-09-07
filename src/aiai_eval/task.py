@@ -490,8 +490,9 @@ class Task(ABC):
         model_config: ModelConfig,
         tests: Sequence[Dataset],
     ) -> Union[dict, Exception]:
-        """
-            Args:
+        """Evaluate a spaCy model for a single iteration.
+        
+        Args:
             idx (int):
                 The index of the current iteration.
             model_dict (dict):
