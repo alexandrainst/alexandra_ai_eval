@@ -139,6 +139,7 @@ class SequenceClassification(Task):
 
     def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
         """Helper function that extracts the predictions from a SpaCy model.
+        
         Aside from extracting the predictions from the model, it also aligns the
         predictions with the gold tokens, in case the SpaCy tokeniser tokenises the
         text different from those.
