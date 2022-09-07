@@ -142,8 +142,8 @@ class QuestionAnswering(Task):
     ) -> List[Tuple[list, list]]:
 
         # Extract the logits from the predictions
-        all_start_logits = predictions[0]
-        all_end_logits = predictions[1]
+        all_start_logits = np.asarray(predictions)[:, :, 0]
+        all_end_logits = np.asarray(predictions)[:, :, 1]
 
         # Build a map from an example to its corresponding features
         example_id_to_index = {k: i for i, k in enumerate(dataset["example_id"])}
