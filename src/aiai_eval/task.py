@@ -821,41 +821,6 @@ class Task(ABC):
         pass
 
     @abstractmethod
-    def _preprocess_data_spacy(self, dataset: Dataset) -> Dataset:
-        """Process the data for use by a transformer model.
-
-        For use by a transformer model.
-
-        Args:
-            dataset (Dataset):
-                The dataset.
-
-        Returns:
-            Dataset:
-                The processed dataset.
-        """
-        pass
-
-    @abstractmethod
-    def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
-        """Helper function that extracts the predictions from a SpaCy model.
-        Aside from extracting the predictions from the model, it also aligns the
-        predictions with the gold tokens, in case the SpaCy tokeniser tokenises the
-        text different from those.
-
-        Args:
-            tokens_processed (tuple):
-                A pair of the labels, being a list of strings, and the SpaCy processed
-                document, being a Spacy `Doc` instance.
-
-        Returns:
-            list:
-                A list of predictions for each token, of the same length as the gold
-                tokens (first entry of `tokens_processed`).
-        """
-        pass
-
-    @abstractmethod
     def _get_spacy_predictions_and_labels(
         self, model, prepared_dataset: Dataset, batch_size: int
     ) -> tuple:
