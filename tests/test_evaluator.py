@@ -1,5 +1,6 @@
 """Unit tests for the `evaluator` module."""
 
+import logging
 from collections import defaultdict
 from typing import Dict
 
@@ -7,10 +8,7 @@ import pytest
 
 from aiai_eval.utils import Device
 from src.aiai_eval.evaluator import Evaluator
-from src.aiai_eval.exceptions import (
-    InvalidArchitectureForTask,
-    ModelDoesNotExistOnHuggingFaceHub,
-)
+from src.aiai_eval.exceptions import ModelDoesNotExistOnHuggingFaceHub
 from src.aiai_eval.task_configs import NER, SENT
 from src.aiai_eval.task_factory import TaskFactory
 
@@ -96,13 +94,17 @@ class TestEvaluateSingle:
                 task_config=task_config, model_id=[non_existing_model_id]
             )
 
-    def test_evaluate_single_raise_exception_invalid_task(
-        self, evaluator, existing_model_id, task_config
+    def test_evaluate_single_raise_warning_invalid_task(
+        self, evaluator, existing_model_id, task_config, caplog
     ):
-        with pytest.raises(InvalidArchitectureForTask):
+        with caplog.at_level(logging.WARNING):
             evaluator._evaluate_single(
                 task_config=task_config, model_id=existing_model_id
             )
+        assert (
+            f"Skipping evaluation of {existing_model_id} on {task_config.pretty_name} "
+            "as the architecture is not supported by the task."
+        ) in caplog.text
 
     @pytest.mark.parametrize(
         argnames="model_id, task_config, expected_results",
