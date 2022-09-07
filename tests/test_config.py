@@ -13,7 +13,7 @@ from src.aiai_eval.config import (
 
 @pytest.fixture(scope="module")
 def label():
-    yield Label(name="label_name", synonyms=["synonym1", "synonym2"])
+    yield Label(name="label-name", synonyms=["synonym1", "synonym2"])
 
 
 @pytest.fixture(scope="class")
