@@ -27,21 +27,7 @@ class SequenceClassification(Task):
     """
 
     def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
-        """Preprocess the data.
 
-        Args:
-            dataset (Hugging Face Dataset):
-                The dataset to preprocess.
-            framework (str):
-                The framework used for the model.
-            kwargs:
-                Extra keyword arguments containing objects used in preprocessing the
-                dataset.
-
-        Returns:
-            Hugging Face Dataset:
-                The preprocessed dataset.
-        """
         if framework == "spacy":
             raise InvalidEvaluation(
                 "Evaluation of text predictions for SpaCy models is not yet "
@@ -85,21 +71,6 @@ class SequenceClassification(Task):
         return preprocessed
 
     def _create_numerical_labels(self, examples: dict, label2id: dict) -> dict:
-        """Create numerical labels from the labels.
-
-        Args:
-            examples (dict):
-                The examples to create numerical labels for.
-            label2id (dict):
-                The mapping from labels to ids.
-
-        Returns:
-            dict: The examples with numerical labels.
-
-        Raises:
-            MissingLabel:
-                If a label is missing in the `label2id` mapping.
-        """
         try:
             examples["labels"] = [label2id[lbl.upper()] for lbl in examples["labels"]]
         except KeyError:
@@ -110,17 +81,6 @@ class SequenceClassification(Task):
         return examples
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
-        """Load the data collator used to prepare samples during evaluation.
-
-        Args:
-            tokenizer (Hugging Face tokenizer or None, optional):
-                A pretrained tokenizer. Can be None if the tokenizer is not used in the
-                initialisation of the data collator. Defaults to None.
-
-        Returns:
-            Hugging Face data collator:
-                The data collator.
-        """
         return DataCollatorWithPadding(tokenizer, padding="longest")
 
     def _get_spacy_predictions_and_labels(self, model, dataset: Dataset) -> tuple:
