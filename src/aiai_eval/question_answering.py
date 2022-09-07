@@ -70,8 +70,7 @@ class QuestionAnswering(Task):
             type=prepared.format["type"], columns=list(prepared.features.keys())
         )
 
-        # Remove unused columns
-        return prepared.remove_columns(dataset.column_names)
+        return prepared
 
     def _prepare_test_examples(
         self, examples: dict, tokenizer: PreTrainedTokenizerBase
