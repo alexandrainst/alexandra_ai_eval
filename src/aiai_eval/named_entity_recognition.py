@@ -7,6 +7,8 @@ from typing import List, Sequence, Tuple
 import numpy as np
 import torch
 from datasets.arrow_dataset import Dataset
+from spacy.language import Language
+from spacy.tokens import Token
 from tqdm import tqdm
 from transformers.data.data_collator import DataCollatorForTokenClassification
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
