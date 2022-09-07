@@ -111,6 +111,7 @@ class InvalidArchitectureForTask(Exception):
             f"{supertask}-type model, or provide another task which fits the "
             f"aforementioned architectures."
         )
+        super().__init__(self.message)
 
 
 class WrongFeatureColumnName(Exception):
