@@ -152,6 +152,41 @@ def tokenize_and_align_labels(
     return tokenized_inputs
 
 
+def get_ent(token: Token, dataset_id2label: list, dataset_label2id: dict) -> str:
+    """Extracts the entity from a SpaCy token.
+
+    Args:
+        token (spaCy Token):
+            The inputted token from spaCy.
+        dataset_id2label (list):
+            A list that maps IDs to NER tags.
+        dataset_label2id (dict):
+            A dictionary that converts NER tags (and their synonyms) to IDs.
+
+    Returns:
+        str:
+            The entity of the token.
+    """
+
+    # Deal with the O tag separately, as it is the only tag not of the form
+    # B-tag or I-tag
+    if token.ent_iob_ == "O":
+        return "O"
+
+    # Otherwise the tag is of the form B-tag or I-tag for some NER tag
+    else:
+        # Extract tag from spaCy token
+        ent = f"{token.ent_iob_}-{token.ent_type_}"
+
+        # Get the ID of the MISC tag, which we will use as a backup, in case the
+        # given tag is not in the dataset
+        misc_idx = dataset_label2id[f"{token.ent_iob_}-MISC".upper()]
+
+        # Convert the tag to the its canonical synonym, or to the MISC tag if it
+        # is not in the dataset
+        return dataset_id2label[dataset_label2id.get(ent, misc_idx)]
+
+
 class NamedEntityRecognition(Task):
     """Named entity recognition task.
 
@@ -170,13 +205,19 @@ class NamedEntityRecognition(Task):
 
     def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
 
+        # Preprocess the data if the framework is spaCy
         if framework == "spacy":
-            raise InvalidEvaluation(
-                "Evaluation of named entity recognition for SpaCy models is not yet "
-                "implemented."
-            )
 
-        # We are now assuming we are using pytorch
+            def create_label_col(example):
+                example["labels"] = [
+                    self.task_config.id2label[x] for x in example["labels"]
+                ]
+                return example
+
+            dataset = dataset.add_column("labels", dataset["ner_tags"])
+            return dataset.map(create_label_col)
+
+        # We are now assuming we are using PyTorch
         map_fn = partial(
             tokenize_and_align_labels,
             tokenizer=kwargs["tokenizer"],
@@ -192,45 +233,10 @@ class NamedEntityRecognition(Task):
 
         return tokenised_dataset
 
-    def _preprocess_data_spacy(self, dataset: Dataset) -> Dataset:
-        """Preprocess the given Huggingface dataset for use by a SpaCy model.
-
-        Args:
-            dataset (Dataset): The dataset to preprocess.
-
-        Returns:
-            Dataset:
-                The preprocessed dataset.
-        """
-        # Add a labels column to the dataset
-        def create_label_col(example):
-            example["labels"] = [
-                self.task_config.id2label[x] for x in example["labels"]
-            ]
-            return example
-
-        dataset = dataset.add_column("labels", dataset["ner_tags"])
-        return dataset.map(create_label_col)
-
     def _get_spacy_predictions_and_labels(
-        self, model, dataset: Dataset, batch_size: int
+        self, model: Language, dataset: Dataset, batch_size: int
     ) -> tuple:
-        """Get predictions from SpaCy model on dataset.
 
-        Args:
-            model (SpaCy model):
-                The model.
-            dataset (Hugging Face dataset):
-                The dataset.
-            batch_size (int):
-                The batch size to use.
-
-        Returns:
-            A pair of arrays:
-                The first array contains the probability predictions and the second
-                array contains the true labels.
-        """
-        # Initialise progress bar
         if self.evaluation_config.progress_bar:
             itr = tqdm(
                 dataset[self.task_config.feature_column_names[0]],
@@ -263,10 +269,18 @@ class NamedEntityRecognition(Task):
                 A list of predictions for each token, of the same length as the gold
                 tokens (first entry of `tokens_processed`).
         """
+
         tokens, processed = tokens_processed
 
         # Get the token labels
-        token_labels = self._get_spacy_token_labels(processed)
+        token_labels = [
+            get_ent(
+                token=token,
+                dataset_id2label=self.task_config.id2label,
+                dataset_label2id=self.task_config.label2id,
+            )
+            for token in processed
+        ]
 
         # Get the alignment between the SpaCy model's tokens and the gold tokens
         token_idxs = [tok_idx for tok_idx, tok in enumerate(tokens) for _ in str(tok)]
@@ -286,50 +300,6 @@ class NamedEntityRecognition(Task):
             predictions.append(token_labels[aligned_pred_token])
 
         return predictions
-
-    def _get_spacy_token_labels(self, processed) -> Sequence[str]:
-        """Get predictions from SpaCy model on dataset.
-
-        Args:
-            model (SpaCy model):
-                The model.
-            dataset (Hugging Face dataset):
-                The dataset.
-
-        Returns:
-            A list of strings:
-                The predicted NER labels.
-        """
-
-        def get_ent(token) -> str:
-            """Helper function that extracts the entity from a SpaCy token.
-
-            Args:
-                token (spaCy Token):
-                    The inputted token from spaCy.
-
-            Returns:
-                str:
-                    The entity of the token.
-            """
-
-            # Deal with the O tag separately, as it is the only tag not of the form
-            # B-tag or I-tag
-            if token.ent_iob_ == "O":
-                return "O"
-
-            # In general return a tag of the form B-tag or I-tag
-            else:
-                # Extract tag from spaCy token
-                ent = f"{token.ent_iob_}-{token.ent_type_}"
-
-                # Convert the tag to the its canonical synonym
-                alt_idx = self.task_config.label2id[f"{token.ent_iob_}-MISC".upper()]
-                return self.task_config.id2label[
-                    self.task_config.label2id.get(ent, alt_idx)
-                ]
-
-        return [get_ent(token) for token in processed]
 
     def _load_data_collator(
         self, tokenizer: PreTrainedTokenizerBase
