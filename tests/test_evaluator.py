@@ -1,5 +1,6 @@
 """Unit tests for the `evaluator` module."""
 
+import os
 from collections import defaultdict
 from typing import Dict
 
@@ -22,7 +23,7 @@ def evaluator():
         save_results=False,
         raise_error_on_invalid_model=False,
         cache_dir=".aiai_cache",
-        use_auth_token=True,
+        use_auth_token=os.environ["HUGGINGFACE_HUB_TOKEN"],
         track_carbon_emissions=False,
         country_iso_code="",
         prefer_device=Device.CPU,
