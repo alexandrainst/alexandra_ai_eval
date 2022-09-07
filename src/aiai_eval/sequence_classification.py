@@ -2,6 +2,7 @@
 
 from functools import partial
 
+import torch
 from datasets import Dataset
 from transformers import DataCollatorWithPadding, PreTrainedTokenizerBase
 
@@ -137,7 +138,30 @@ class SequenceClassification(Task):
         """
         return DataCollatorWithPadding(tokenizer, padding="longest")
 
-    def _get_spacy_predictions_and_labels(self, model, dataset: Dataset) -> tuple:
+    def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
+        """Helper function that extracts the predictions from a SpaCy model.
+
+        Aside from extracting the predictions from the model, it also aligns the
+        predictions with the gold tokens, in case the SpaCy tokeniser tokenises the
+        text different from those.
+
+        Args:
+            tokens_processed (tuple):
+                A pair of the labels, being a list of strings, and the SpaCy processed
+                document, being a Spacy `Doc` instance.
+
+        Returns:
+            list:
+                A list of predictions for each token, of the same length as the gold
+                tokens (first entry of `tokens_processed`).
+        """
+        raise InvalidEvaluation(
+            "Evaluation of text classification tasks for SpaCy models is not possible."
+        )
+
+    def _get_spacy_predictions_and_labels(
+        self, model, dataset: Dataset, batch_size: int
+    ) -> tuple:
         """Get predictions from SpaCy model on dataset.
 
         Args:
@@ -145,6 +169,8 @@ class SequenceClassification(Task):
                 The model.
             dataset (Hugging Face dataset):
                 The dataset.
+            batch_size (int):
+                The batch size to use.
 
         Returns:
             A pair of arrays:
@@ -153,4 +179,37 @@ class SequenceClassification(Task):
         """
         raise InvalidEvaluation(
             "Evaluation of text classification tasks for SpaCy models is not possible."
+        )
+
+    def _preprocess_data_spacy(self, dataset: Dataset) -> Dataset:
+        """Process the data for use by a SpaCy model.
+
+        For use by a SpaCy model.
+
+        Args:
+            dataset (Dataset):
+                The dataset.
+
+        Returns:
+            Dataset:
+                The processed dataset.
+        """
+        raise InvalidEvaluation(
+            "Evaluation of text classification tasks for SpaCy models is not possible."
+        )
+
+    def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
+        """Check if the model is trained for the task.
+
+        Args:
+            model_predictions (list):
+                The predictions of the model.
+
+        Returns:
+            bool:
+                True if the model is trained for the task, False otherwise.
+        """
+        sample_preds = model_predictions[0]
+        return isinstance(sample_preds, torch.Tensor) and isinstance(
+            sample_preds[0].item(), float
         )

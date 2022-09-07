@@ -1,7 +1,8 @@
 """Functions related to the Hugging Face Hub."""
 
-from typing import Optional
+from typing import Optional, Tuple
 
+import spacy
 from huggingface_hub import HfApi, ModelFilter
 from huggingface_hub.utils import RepositoryNotFoundError
 from requests.exceptions import RequestException
@@ -10,7 +11,7 @@ from .config import EvaluationConfig, ModelConfig
 from .exceptions import (
     HuggingFaceHubDown,
     InvalidFramework,
-    ModelDoesNotExistOnHuggingFaceHub,
+    ModelDoesNotExist,
     NoInternetConnection,
 )
 from .utils import internet_connection_available
@@ -33,6 +34,28 @@ def model_exists_on_hf_hub(model_id: str) -> bool:
         return True
     except RepositoryNotFoundError:
         return False
+
+
+def check_if_model_exist(model_id: str) -> Tuple[bool, bool]:
+    """Checks if a model exists on Huggingface or as an available spacy model.
+
+    Args:
+        model_id (str):
+            The name of the model.
+
+    Returns:
+        tuple of bools:
+            A bool specifying whether the model exists on Huggingface Hub and bool a
+            specifying if model the exists as an available spacy model.
+    """
+    model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
+    try:
+        spacy.load(model_id)
+        model_is_spacy = True
+    except OSError:
+        model_is_spacy = False
+
+    return model_on_hf_hub, model_is_spacy
 
 
 def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> ModelConfig:
@@ -76,8 +99,10 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
 
     # Attempt to fetch model data from the Hugging Face Hub.
     # Check if id exists, before creating model config, for more clear exception handling.
-    if not model_exists_on_hf_hub(model_id=model_id):
-        raise ModelDoesNotExistOnHuggingFaceHub(model_id)
+    model_on_hf_hub, model_is_spacy = check_if_model_exist(model_id=model_id)
+
+    if not model_on_hf_hub and not model_is_spacy:
+        raise ModelDoesNotExist(model_id=model_id)
 
     try:
 
