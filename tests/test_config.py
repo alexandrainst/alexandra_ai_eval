@@ -12,16 +12,6 @@ from src.aiai_eval.config import (
 
 
 @pytest.fixture(scope="module")
-def metric_config():
-    yield MetricConfig(
-        name="metric_name",
-        pretty_name="Metric name",
-        huggingface_id="metric_id",
-        results_key="metric_key",
-    )
-
-
-@pytest.fixture(scope="module")
 def label():
     yield Label(name="label_name", synonyms=["synonym1", "synonym2"])
 
@@ -30,7 +20,6 @@ def label():
 def task_config(metric_config, label):
     yield TaskConfig(
         name="task_name",
-        pretty_name="Task name",
         huggingface_id="dataset_id",
         huggingface_subset=None,
         supertask="supertask_name",

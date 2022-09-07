@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.aiai_eval.config import EvaluationConfig
+from src.aiai_eval.config import EvaluationConfig, MetricConfig
 from src.aiai_eval.hf_hub import get_model_config
 from src.aiai_eval.task_configs import get_all_task_configs
 from src.aiai_eval.utils import Device
@@ -41,3 +41,14 @@ def model_configs(evaluation_config, task_config):
         get_model_config(model_id=model_id, evaluation_config=evaluation_config)
         for model_id in model_id_mapping[task_config.name]
     ]
+
+
+@pytest.fixture(scope="session")
+def metric_config():
+    yield MetricConfig(
+        name="metric_name",
+        pretty_name="Metric name",
+        huggingface_id="metric_id",
+        results_key="metric_key",
+        postprocessing_fn=lambda x: f"{x:.2f}",
+    )
