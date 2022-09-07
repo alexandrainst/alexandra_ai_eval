@@ -39,7 +39,7 @@ class TestInvalidEvaluation:
 
 
 class TestModelDoesNotExist:
-    """Unit tests for the ModelDoesNot exception class."""
+    """Unit tests for the ModelDoesNotExist exception class."""
 
     @pytest.fixture(scope="class")
     def model_id(self):
