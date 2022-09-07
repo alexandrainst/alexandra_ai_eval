@@ -126,11 +126,6 @@ class TestLoadDataCollator:
         assert data_collator.padding == "longest"
 
 
-def test_get_spacy_predictions_and_labels_raises_exception(seq_clf):
-    with pytest.raises(InvalidEvaluation):
-        seq_clf._get_spacy_predictions_and_labels(model=None, dataset=None)
-
-
 def test_compute_metrics(seq_clf):
 
     # Define predictions and labels
