@@ -171,11 +171,13 @@ class NamedEntityRecognition(Task):
 
     def _get_spacy_token_labels(self, processed) -> Sequence[str]:
         """Get predictions from SpaCy model on dataset.
+        
         Args:
             model (SpaCy model):
                 The model.
             dataset (Hugging Face dataset):
                 The dataset.
+                
         Returns:
             A list of strings:
                 The predicted NER labels.
