@@ -359,8 +359,10 @@ class Task(ABC):
                             model_predictions, "end_logits"
                         ):
                             model_predictions = torch.stack(
-                                model_predictions.start_logits,
-                                model_predictions.end_logits,
+                                [
+                                    model_predictions.start_logits,
+                                    model_predictions.end_logits,
+                                ]
                             )
 
                         # Otherwise, we raise an error
