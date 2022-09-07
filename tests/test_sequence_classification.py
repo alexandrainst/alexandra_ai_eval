@@ -4,7 +4,6 @@ from copy import deepcopy
 
 import numpy as np
 import pytest
-import torch
 from datasets import Dataset, load_dataset
 from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding
 
