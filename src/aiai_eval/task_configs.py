@@ -3,7 +3,14 @@
 from typing import Dict
 
 from .config import TaskConfig
-from .metric_configs import MACRO_F1, MCC, SEQEVAL_MICRO_F1, SEQEVAL_MICRO_F1_NO_MISC
+from .metric_configs import (
+    EXACT_MATCH,
+    MACRO_F1,
+    MCC,
+    QA_F1,
+    SEQEVAL_MICRO_F1,
+    SEQEVAL_MICRO_F1_NO_MISC,
+)
 from .utils import Label
 
 
@@ -184,7 +191,7 @@ QA = TaskConfig(
     huggingface_id="alexandrainst/scandiqa",
     huggingface_subset="da",
     supertask="question-answering",
-    metrics=[MCC, MACRO_F1],
+    metrics=[EXACT_MATCH, QA_F1],
     labels=[
         Label(
             name="START_POSITIONS",
