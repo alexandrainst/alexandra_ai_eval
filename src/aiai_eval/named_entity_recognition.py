@@ -1,14 +1,15 @@
 """Class for the named entity recognition task."""
 from copy import deepcopy
 from functools import partial
-from typing import Any, List, Optional, Sequence, Tuple
+from typing import Any, List, Optional, Sequence, Tuple, Type
 
 import numpy as np
+import torch
 from datasets import Dataset
 from tqdm import tqdm
 from transformers import DataCollatorForTokenClassification, PreTrainedTokenizerBase
 
-from .exceptions import InvalidTokenizer, MissingLabel, ModelNotTrainedForTask
+from .exceptions import InvalidTokenizer, MissingLabel
 from .task import Task
 from .utils import numpy_array_dtype_int_or_float
 
@@ -474,4 +475,21 @@ class NamedEntityRecognition(Task):
                 True if the model is trained for the task, False otherwise.
         """
         sample_preds = model_predictions[0]
-        return isinstance(sample_preds, list) and "" in sample_preds
+
+        # Check if output comes from a pytorch or spacy model.
+        if isinstance(sample_preds, torch.Tensor):
+            try:
+                if (
+                    isinstance(sample_preds[0], torch.Tensor)
+                    and len(sample_preds[0]) > 0
+                    and isinstance(sample_preds[0][0].item(), float)
+                ):
+                    return True
+                else:
+                    return False
+            except TypeError:
+                # This happens if the output is a torch.Tensor with no length, i.e. the
+                # model output fits sequence classification and not token classification.
+                return False
+        else:
+            return isinstance(sample_preds, list) and isinstance(sample_preds[0], str)
