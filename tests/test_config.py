@@ -19,13 +19,13 @@ def label():
 @pytest.fixture(scope="class")
 def task_config(metric_config, label):
     yield TaskConfig(
-        name="task_name",
-        huggingface_id="dataset_id",
+        name="task-name",
+        huggingface_id="dataset-id",
         huggingface_subset=None,
-        supertask="supertask_name",
+        supertask="supertask-name",
         metrics=[metric_config],
         labels=[label],
-        feature_column_names=["column_name"],
+        feature_column_names=["column-name"],
         label_column_name="label",
         test_name="test",
     )
@@ -36,10 +36,10 @@ class TestMetricConfig:
         assert isinstance(metric_config, MetricConfig)
 
     def test_attributes_correspond_to_arguments(self, metric_config):
-        assert metric_config.name == "metric_name"
+        assert metric_config.name == "metric-name"
         assert metric_config.pretty_name == "Metric name"
-        assert metric_config.huggingface_id == "metric_id"
-        assert metric_config.results_key == "metric_key"
+        assert metric_config.huggingface_id == "metric-id"
+        assert metric_config.results_key == "metric-key"
 
     def test_default_value_of_compute_kwargs(self, metric_config):
         assert metric_config.compute_kwargs == dict()
@@ -50,7 +50,7 @@ class TestLabel:
         assert isinstance(label, Label)
 
     def test_attributes_correspond_to_arguments(self, label):
-        assert label.name == "label_name"
+        assert label.name == "label-name"
         assert label.synonyms == ["synonym1", "synonym2"]
 
 
@@ -61,14 +61,14 @@ class TestTaskConfig:
     def test_attributes_correspond_to_arguments(
         self, task_config, metric_config, label
     ):
-        assert task_config.name == "task_name"
-        assert task_config.pretty_name == "Task name"
-        assert task_config.huggingface_id == "dataset_id"
+        assert task_config.name == "task-name"
+        assert task_config.pretty_name == "task name"
+        assert task_config.huggingface_id == "dataset-id"
         assert task_config.huggingface_subset is None
-        assert task_config.supertask == "supertask_name"
+        assert task_config.supertask == "supertask-name"
         assert task_config.metrics == [metric_config]
         assert task_config.labels == [label]
-        assert task_config.feature_column_names == ["column_name"]
+        assert task_config.feature_column_names == ["column-name"]
         assert task_config.label_column_name == "label"
         assert task_config.test_name == "test"
 
@@ -113,7 +113,7 @@ class TestModelConfig:
     @pytest.fixture(scope="class")
     def model_config(self):
         yield ModelConfig(
-            model_id="model_id",
+            model_id="model-id",
             revision="revision",
             framework="framework",
         )
@@ -122,6 +122,6 @@ class TestModelConfig:
         assert isinstance(model_config, ModelConfig)
 
     def test_attributes_correspond_to_arguments(self, model_config):
-        assert model_config.model_id == "model_id"
+        assert model_config.model_id == "model-id"
         assert model_config.revision == "revision"
         assert model_config.framework == "framework"

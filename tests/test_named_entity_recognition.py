@@ -11,7 +11,10 @@ from transformers.models.auto.configuration_auto import AutoConfig
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
 from src.aiai_eval.exceptions import InvalidEvaluation
-from src.aiai_eval.named_entity_recognition import NamedEntityRecognition
+from src.aiai_eval.named_entity_recognition import (
+    NamedEntityRecognition,
+    tokenize_and_align_labels,
+)
 from src.aiai_eval.task_configs import NER
 
 
@@ -71,9 +74,11 @@ class TestTokenizeAndAlignLabels:
     @pytest.fixture(scope="class")
     def tokenised_dataset(self, ner, model_config, tokenizer, dataset):
         map_fn = partial(
-            ner._tokenize_and_align_labels,
+            tokenize_and_align_labels,
             tokenizer=tokenizer,
-            label2id=model_config.label2id,
+            model_label2id=model_config.label2id,
+            dataset_id2label=ner.task_config.id2label,
+            label_column_name=ner.task_config.label_column_name,
         )
         yield dataset.map(map_fn, batched=True, load_from_cache_file=False)
 

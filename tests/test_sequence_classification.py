@@ -102,7 +102,7 @@ class TestCreateNumericalLabels:
 
     def test_output_is_dict(self, seq_clf, examples, label2id):
         numerical_labels = seq_clf._create_numerical_labels(
-            examples=examples, label2id=label2id
+            examples=examples, model_label2id=label2id
         )
         assert isinstance(numerical_labels, dict)
 
@@ -110,7 +110,7 @@ class TestCreateNumericalLabels:
         with pytest.raises(MissingLabel):
             seq_clf._create_numerical_labels(
                 examples=dict(labels=["not-a-label"]),
-                label2id=label2id,
+                model_label2id=label2id,
             )
 
 

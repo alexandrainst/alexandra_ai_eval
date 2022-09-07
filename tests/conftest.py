@@ -36,7 +36,7 @@ def model_configs(evaluation_config, task_config):
     model_id_mapping = {
         "sentiment-classification": ["pin/senda"],
         "named-entity-recognition": ["DaNLP/da-bert-ner"],
-        "question-answering": ["deepset/xlm-roberta-base-squad2"],
+        "question-answering": ["deepset/minilm-uncased-squad2"],
     }
     yield [
         get_model_config(model_id=model_id, evaluation_config=evaluation_config)
@@ -47,9 +47,9 @@ def model_configs(evaluation_config, task_config):
 @pytest.fixture(scope="session")
 def metric_config():
     yield MetricConfig(
-        name="metric_name",
+        name="metric-name",
         pretty_name="Metric name",
-        huggingface_id="metric_id",
-        results_key="metric_key",
+        huggingface_id="metric-id",
+        results_key="metric-key",
         postprocessing_fn=lambda x: f"{x:.2f}",
     )
