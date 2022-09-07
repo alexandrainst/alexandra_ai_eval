@@ -73,23 +73,27 @@ def main(cache_examples: bool):
             ),
             gr.Dropdown(
                 label="Task",
-                value="Danish sentiment analysis",
-                choices=["Danish sentiment analysis"],
+                value="Sentiment analysis",
+                choices=[
+                    "Sentiment analysis",
+                    "Named entity recognition",
+                    "Question answering",
+                ],
             ),
         ],
         outputs=gr.Text(label="Evaluation results"),
         examples=[
             [
-                "DaNLP/da-bert-tone-sentiment-polarity",
-                "Danish sentiment analysis",
-            ],
-            [
                 "pin/senda",
-                "Danish sentiment analysis",
+                "Sentiment analysis",
             ],
             [
-                "cardiffnlp/twitter-roberta-base-sentiment",
-                "Danish sentiment analysis",
+                "saattrupdan/nbailab-base-ner-scandi",
+                "Named entity recognition",
+            ],
+            [
+                "saattrupdan/xlmr-base-texas-squad-da",
+                "Question answering",
             ],
         ],
         cache_examples=cache_examples,
