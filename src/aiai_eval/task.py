@@ -362,7 +362,8 @@ class Task(ABC):
                                 [
                                     model_predictions.start_logits,
                                     model_predictions.end_logits,
-                                ]
+                                ],
+                                dim=-1,
                             )
 
                         # Otherwise, we raise an error
