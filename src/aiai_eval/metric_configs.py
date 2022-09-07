@@ -37,6 +37,22 @@ MACRO_F1 = MetricConfig(
 )
 
 
+EXACT_MATCH = MetricConfig(
+    name="exact_match",
+    pretty_name="Exact match",
+    huggingface_id="squad_v2",
+    results_key="exact",
+)
+
+
+QA_F1 = MetricConfig(
+    name="qa_f1",
+    pretty_name="F1-score",
+    huggingface_id="squad_v2",
+    results_key="f1",
+)
+
+
 EMISSIONS = MetricConfig(
     name="carbon_emissions",
     pretty_name="Carbon emissions, in milligrams of CO2 equivalent per sample",
