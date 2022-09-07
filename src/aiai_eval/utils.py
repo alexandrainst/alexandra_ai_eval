@@ -59,7 +59,7 @@ def numpy_array_dtype_int_or_float(array: np.ndarray) -> bool:
         bool:
             Whether the dtype is int or float.
     """
-    return numpy_array_dtype_float(array) and numpy_array_dtype_int(array)
+    return numpy_array_dtype_float(array) or numpy_array_dtype_int(array)
 
 
 def clear_memory():
