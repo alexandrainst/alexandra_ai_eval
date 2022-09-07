@@ -11,6 +11,7 @@ import torch
 import torch.nn as nn
 from datasets.arrow_dataset import Dataset
 from datasets.load import load_dataset, load_metric
+from spacy.language import Language
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from transformers.data.data_collator import DataCollator
@@ -22,7 +23,6 @@ from .config import EvaluationConfig, ModelConfig, TaskConfig
 from .exceptions import (
     InvalidEvaluation,
     InvalidFramework,
-    ModelFetchFailed,
     ModelNotTrainedForTask,
     MPSFallbackNotEnabled,
     PreprocessingFailed,
@@ -33,12 +33,7 @@ from .hf_hub import get_model_config
 from .metric_configs import EMISSIONS, POWER
 from .model_loading import load_model
 from .scoring import log_scores
-from .utils import (
-    clear_memory,
-    enforce_reproducibility,
-    is_module_installed,
-    numpy_array_dtype_float,
-)
+from .utils import clear_memory, enforce_reproducibility
 
 # Set up a logger
 logger = logging.getLogger(__name__)
