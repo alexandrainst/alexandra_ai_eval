@@ -13,6 +13,79 @@ from .exceptions import InvalidEvaluation
 from .task import Task
 
 
+def prepare_test_examples(
+    examples: dict,
+    tokenizer: PreTrainedTokenizerBase,
+) -> BatchEncoding:
+    """Prepare test examples.
+
+    Args:
+        examples (dict):
+            Dictionary of test examples.
+        tokenizer (Hugging Face tokenizer):
+            The tokenizer used to preprocess the examples.
+
+    Returns:
+        BatchEncoding:
+            Dictionary of prepared test examples.
+    """
+    # Some of the questions have lots of whitespace on the left, which is
+    # not useful and will make the truncation of the context fail (the
+    # tokenized question will take a lots of space). So we remove that left
+    # whitespace
+    examples["question"] = [q.lstrip() for q in examples["question"]]
+
+    # Compute the stride, being a quarter of the context length
+    stride = tokenizer.model_max_length // 4
+    max_length = tokenizer.model_max_length - stride
+
+    # Tokenize our examples with truncation and maybe padding, but keep the
+    # overflows using a stride. This results in one example possible giving
+    # several features when a context is long, each of those features
+    # having a context that overlaps a bit the context of the previous
+    # feature.
+    tokenized_examples = tokenizer(
+        examples["question"],
+        examples["context"],
+        truncation="only_second",
+        max_length=max_length,
+        stride=stride,
+        return_overflowing_tokens=True,
+        return_offsets_mapping=True,
+        padding="max_length",
+    )
+
+    # Since one example might give us several features if it has a long
+    # context, we need a map from a feature to its corresponding example.
+    # This key gives us just that.
+    sample_mapping = tokenized_examples.pop("overflow_to_sample_mapping")
+
+    # We keep the example_id that gave us this feature and we will store
+    # the offset mappings.
+    tokenized_examples["example_id"] = list()
+
+    for i in range(len(tokenized_examples["input_ids"])):
+
+        # Grab the sequence corresponding to that example (to know what is the
+        # context and what is the question).
+        sequence_ids = tokenized_examples.sequence_ids(i)
+        context_index = 1
+
+        # One example can give several spans, this is the index of the example
+        # containing this span of text.
+        sample_index = sample_mapping[i]
+        tokenized_examples["example_id"].append(examples["example_id"][sample_index])
+
+        # Set to (-1, -1) the offset_mapping that are not part of the context so
+        # it's easy to determine if a token position is part of the context or not.
+        tokenized_examples["offset_mapping"][i] = [
+            (o if sequence_ids[k] == context_index else (-1, -1))
+            for k, o in enumerate(tokenized_examples["offset_mapping"][i])
+        ]
+
+    return tokenized_examples
+
+
 class QuestionAnswering(Task):
     """Question answering task.
 
@@ -56,7 +129,7 @@ class QuestionAnswering(Task):
         tokenizer = kwargs["tokenizer"]
 
         # Define the function to preprocess the dataset
-        map_fn = partial(self._prepare_test_examples, tokenizer=tokenizer)
+        map_fn = partial(prepare_test_examples, tokenizer=tokenizer)
 
         # Preprocess the dataset
         prepared = dataset.map(
@@ -71,79 +144,6 @@ class QuestionAnswering(Task):
         )
 
         return prepared
-
-    def _prepare_test_examples(
-        self, examples: dict, tokenizer: PreTrainedTokenizerBase
-    ) -> BatchEncoding:
-        """Prepare test examples.
-
-        Args:
-            examples (dict):
-                Dictionary of test examples.
-            tokenizer (Hugging Face tokenizer):
-                The tokenizer used to preprocess the examples.
-
-        Returns:
-            BatchEncoding:
-                Dictionary of prepared test examples.
-        """
-        # Some of the questions have lots of whitespace on the left, which is
-        # not useful and will make the truncation of the context fail (the
-        # tokenized question will take a lots of space). So we remove that left
-        # whitespace
-        examples["question"] = [q.lstrip() for q in examples["question"]]
-
-        # Compute the stride, being a quarter of the context length
-        stride = tokenizer.model_max_length // 4
-        max_length = tokenizer.model_max_length - stride
-
-        # Tokenize our examples with truncation and maybe padding, but keep the
-        # overflows using a stride. This results in one example possible giving
-        # several features when a context is long, each of those features
-        # having a context that overlaps a bit the context of the previous
-        # feature.
-        tokenized_examples = tokenizer(
-            examples["question"],
-            examples["context"],
-            truncation="only_second",
-            max_length=max_length,
-            stride=stride,
-            return_overflowing_tokens=True,
-            return_offsets_mapping=True,
-            padding="max_length",
-        )
-
-        # Since one example might give us several features if it has a long
-        # context, we need a map from a feature to its corresponding example.
-        # This key gives us just that.
-        sample_mapping = tokenized_examples.pop("overflow_to_sample_mapping")
-
-        # We keep the example_id that gave us this feature and we will store
-        # the offset mappings.
-        tokenized_examples["example_id"] = list()
-
-        for i in range(len(tokenized_examples["input_ids"])):
-
-            # Grab the sequence corresponding to that example (to know what is the
-            # context and what is the question).
-            sequence_ids = tokenized_examples.sequence_ids(i)
-            context_index = 1
-
-            # One example can give several spans, this is the index of the example
-            # containing this span of text.
-            sample_index = sample_mapping[i]
-            tokenized_examples["example_id"].append(
-                examples["example_id"][sample_index]
-            )
-
-            # Set to (-1, -1) the offset_mapping that are not part of the context so
-            # it's easy to determine if a token position is part of the context or not.
-            tokenized_examples["offset_mapping"][i] = [
-                (o if sequence_ids[k] == context_index else (-1, -1))
-                for k, o in enumerate(tokenized_examples["offset_mapping"][i])
-            ]
-
-        return tokenized_examples
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
         """Load the data collator used to prepare samples during evaluation.
