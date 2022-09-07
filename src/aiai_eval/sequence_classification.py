@@ -139,7 +139,7 @@ class SequenceClassification(Task):
 
     def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
         """Helper function that extracts the predictions from a SpaCy model.
-        
+
         Aside from extracting the predictions from the model, it also aligns the
         predictions with the gold tokens, in case the SpaCy tokeniser tokenises the
         text different from those.
@@ -181,9 +181,9 @@ class SequenceClassification(Task):
         )
 
     def _preprocess_data_spacy(self, dataset: Dataset) -> Dataset:
-        """Process the data for use by a transformer model.
+        """Process the data for use by a SpaCy model.
 
-        For use by a transformer model.
+        For use by a SpaCy model.
 
         Args:
             dataset (Dataset):
@@ -196,3 +196,18 @@ class SequenceClassification(Task):
         raise InvalidEvaluation(
             "Evaluation of text classification tasks for SpaCy models is not possible."
         )
+
+    def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
+        """Check if the model is trained for the task.
+
+        Args:
+            model_predictions (list):
+                The predictions of the model.
+
+        Returns:
+            bool:
+                True if the model is trained for the task, False otherwise.
+        """
+        # this is only used when using a SpaCy model, for further checking, which is done
+        # before this point for Pytorch and HuggingFace models.
+        return True

@@ -537,15 +537,15 @@ class Task(ABC):
                 model=model, dataset=test, batch_size=batch_size
             )
 
-            # Check if the spaCy model has been trained on the task at hand. If
-            # not, then skip this benchmark.
-            sample_preds = model_predictions[0]
-            pos_ner_test = isinstance(sample_preds, list) and "" in sample_preds
-            dep_test = isinstance(sample_preds[0], list) and "" in sample_preds[0]
-            if pos_ner_test or dep_test:
-                raise ModelNotTrainedForTask(
-                    task=self.task_config.name, framework="spacy"
-                )
+            # In the first iteration we do a check to see if the model outputs
+            # fit the expected format. If not, we raise an exception.
+            if idx == 0:
+                if not self._check_if_model_is_trained_for_task(
+                    model_predictions=model_predictions
+                ):
+                    raise ModelNotTrainedForTask(
+                        task=self.task_config.name, framework="spacy"
+                    )
 
             # Compute the metrics
             metrics = self._compute_metrics(
@@ -1274,5 +1274,19 @@ class Task(ABC):
         Returns:
             Hugging Face data collator:
                 The data collator.
+        """
+        pass
+
+    @abstractmethod
+    def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
+        """Check if the model is trained for the task.
+
+        Args:
+            model_predictions (list):
+                The model predictions.
+
+        Returns:
+            bool:
+                Whether the model is trained for the task.
         """
         pass

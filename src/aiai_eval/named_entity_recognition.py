@@ -8,7 +8,7 @@ from datasets import Dataset
 from tqdm import tqdm
 from transformers import DataCollatorForTokenClassification, PreTrainedTokenizerBase
 
-from .exceptions import InvalidTokenizer, MissingLabel
+from .exceptions import InvalidTokenizer, MissingLabel, ModelNotTrainedForTask
 from .task import Task
 from .utils import numpy_array_dtype_int_or_float
 
@@ -461,3 +461,17 @@ class NamedEntityRecognition(Task):
             dataset=dataset, framework="pytorch", **kwargs
         )
         return full_preprocessed["input_ids"]
+
+    def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
+        """Check if the model is trained for the task.
+
+        Args:
+            model_predictions (list):
+                The predictions of the model.
+
+        Returns:
+            bool:
+                True if the model is trained for the task, False otherwise.
+        """
+        sample_preds = model_predictions[0]
+        return isinstance(sample_preds, list) and "" in sample_preds
