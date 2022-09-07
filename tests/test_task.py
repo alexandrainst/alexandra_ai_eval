@@ -307,3 +307,6 @@ class TestAbstractMethods:
 
     def test_preprocess_data_spacy_is_abstract(self, abstract_metods):
         assert "_preprocess_data_spacy" in abstract_metods
+
+    def test_check_if_model_is_trained_for_task_is_abstract(self, abstract_metods):
+        assert "_check_if_model_is_trained_for_task" in abstract_metods
