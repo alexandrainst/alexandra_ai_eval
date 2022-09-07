@@ -21,10 +21,7 @@ def evaluate(model_id: str, task: str) -> str:
     """
 
     # Convert task to the standard task names
-    task_translation_mapping = {
-        "Danish sentiment analysis": "sent",
-    }
-    task = task_translation_mapping[task]
+    task = task.lower().replace(" ", "-")
 
     # Create the evaluator
     evaluator = Evaluator(
