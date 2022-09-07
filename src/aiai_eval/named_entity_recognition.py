@@ -8,8 +8,9 @@ from datasets import Dataset
 from tqdm import tqdm
 from transformers import DataCollatorForTokenClassification, PreTrainedTokenizerBase
 
-from .exceptions import InvalidEvaluation, InvalidTokenizer, MissingLabel
+from .exceptions import InvalidTokenizer, MissingLabel
 from .task import Task
+from .utils import numpy_array_dtype_int_or_float
 
 
 class NamedEntityRecognition(Task):
@@ -130,16 +131,16 @@ class NamedEntityRecognition(Task):
 
     def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
         """Helper function that extracts the predictions from a SpaCy model.
-        
+
         Aside from extracting the predictions from the model, it also aligns the
         predictions with the gold tokens, in case the SpaCy tokeniser tokenises the
         text different from those.
-        
+
         Args:
             tokens_processed (tuple):
                 A pair of the labels, being a list of strings, and the SpaCy processed
                 document, being a Spacy `Doc` instance.
-                
+
         Returns:
             list:
                 A list of predictions for each token, of the same length as the gold
@@ -171,13 +172,13 @@ class NamedEntityRecognition(Task):
 
     def _get_spacy_token_labels(self, processed) -> Sequence[str]:
         """Get predictions from SpaCy model on dataset.
-        
+
         Args:
             model (SpaCy model):
                 The model.
             dataset (Hugging Face dataset):
                 The dataset.
-                
+
         Returns:
             A list of strings:
                 The predicted NER labels.
@@ -185,11 +186,11 @@ class NamedEntityRecognition(Task):
 
         def get_ent(token) -> str:
             """Helper function that extracts the entity from a SpaCy token.
-            
+
             Args:
                 token (spaCy Token):
                     The inputted token from spaCy.
-                    
+
             Returns:
                 str:
                     The entity of the token.
@@ -382,27 +383,9 @@ class NamedEntityRecognition(Task):
         # In case we have received predictions and labels which are already converted
         # from ids to label tags, we do not need to convert them again.
         # This is the case when the model is a spacy model.
-        if any(
-            predictions_np.dtype == dtype
-            for dtype in {
-                np.float16,
-                np.float32,
-                np.float64,
-                np.int16,
-                np.int32,
-                np.int64,
-            }
-        ) and any(
-            labels_np.dtype == dtype
-            for dtype in {
-                np.float16,
-                np.float32,
-                np.float64,
-                np.int16,
-                np.int32,
-                np.int64,
-            }
-        ):
+        if numpy_array_dtype_int_or_float(
+            predictions_np
+        ) and numpy_array_dtype_int_or_float(labels_np):
 
             if id2label is not None:
                 # Remove ignored index (special tokens)
