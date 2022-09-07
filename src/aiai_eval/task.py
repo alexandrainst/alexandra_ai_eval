@@ -822,12 +822,12 @@ class Task(ABC):
 
     @abstractmethod
     def _get_spacy_predictions_and_labels(
-        self, model, prepared_dataset: Dataset, batch_size: int
+        self, model: Language, prepared_dataset: Dataset, batch_size: int
     ) -> tuple:
         """Get predictions from SpaCy model on dataset.
 
         Args:
-            model (SpaCy model):
+            model (spaCy Language):
                 The model.
             prepared_dataset (Hugging Face dataset):
                 The dataset.
