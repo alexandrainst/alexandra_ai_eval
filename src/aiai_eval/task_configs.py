@@ -188,12 +188,12 @@ OFFENSIVE = TaskConfig(
     metrics=[MCC, MACRO_F1],
     labels=[
         Label(
-            name="OFFENSIVE",
-            synonyms=["OFF"],
+            name="NOT_OFFENSIVE",
+            synonyms=["NOT", "NOT OFFENSIVE", "LABEL_0"],
         ),
         Label(
-            name="NOT_OFFENSIVE",
-            synonyms=["NOT", "NOT OFFENSIVE"],
+            name="OFFENSIVE",
+            synonyms=["OFF", "LABEL_1"],
         ),
     ],
     feature_column_name="text",
