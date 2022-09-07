@@ -45,6 +45,9 @@ class TaskDummy(Task):
     def _preprocess_data_spacy(self, dataset: Dataset) -> Dataset:
         return Dataset.from_dict(dict(a=[1, 2, 3], b=[4, 5, 6]))
 
+    def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
+        return True
+
 
 @pytest.fixture(scope="module")
 def task(evaluation_config, task_config):
