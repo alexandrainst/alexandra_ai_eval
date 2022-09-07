@@ -143,9 +143,6 @@ class QuestionAnswering(Task):
                 for k, o in enumerate(tokenized_examples["offset_mapping"][i])
             ]
 
-        # Create column with labels (i.e., answers in this case)
-        tokenized_examples["labels"] = examples[self.task_config.label_column_name]
-
         return tokenized_examples
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
