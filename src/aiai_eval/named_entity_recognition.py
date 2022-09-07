@@ -184,7 +184,16 @@ class NamedEntityRecognition(Task):
         """
 
         def get_ent(token) -> str:
-            """Helper function that extracts the entity from a SpaCy token"""
+            """Helper function that extracts the entity from a SpaCy token.
+            
+            Args:
+                token (spaCy Token):
+                    The inputted token from spaCy.
+                    
+            Returns:
+                str:
+                    The entity of the token.
+            """
 
             # Deal with the O tag separately, as it is the only tag not of the form
             # B-tag or I-tag
