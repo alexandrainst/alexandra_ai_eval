@@ -17,176 +17,6 @@ from .exceptions import InvalidTokenizer, MissingLabel
 from .task import Task
 
 
-def tokenize_and_align_labels(
-    examples: dict,
-    tokenizer: PreTrainedTokenizerBase,
-    model_label2id: dict,
-    dataset_id2label: list,
-    label_column_name: str,
-) -> BatchEncoding:
-    """Tokenise all texts and align the labels with them.
-
-    Args:
-        examples (dict):
-            The examples to be tokenised.
-        tokenizer (Hugging Face tokenizer):
-            A pretrained tokenizer.
-        model_label2id (dict):
-            A dictionary that converts NER tags to IDs.
-        dataset_id2label (list):
-            A list that maps IDs to NER tags.
-        label_column_name (str):
-            The name of the label column.
-
-    Returns:
-        BatchEncoding:
-            The tokenized data as well as labels.
-    """
-
-    tokenized_inputs = tokenizer(
-        examples["tokens"],
-        is_split_into_words=True,
-        truncation=True,
-        padding=True,
-    )
-    all_labels: List[List[int]] = []
-    for i, ner_tags in enumerate(examples[label_column_name]):
-        labels = [dataset_id2label[ner_tag] for ner_tag in ner_tags]
-        try:
-            word_ids = tokenized_inputs.word_ids(batch_index=i)
-
-        # This happens if the tokenizer is not of the fast variant, in which case
-        # the `word_ids` method is not available, so we have to extract this
-        # manually. It's slower, but it works, and it should only occur rarely,
-        # when the Hugging Face team has not implemented a fast variant of the
-        # tokenizer yet.
-        except ValueError:
-
-            # Get the list of words in the document
-            words = examples["tokens"][i]
-
-            # Get the list of token IDs in the document
-            tok_ids = tokenized_inputs.input_ids[i]
-
-            # Decode the token IDs
-            tokens = tokenizer.convert_ids_to_tokens(tok_ids)
-
-            # Remove prefixes from the tokens
-            prefixes_to_remove = ["▁", "##"]
-            for tok_idx, tok in enumerate(tokens):
-                for prefix in prefixes_to_remove:
-                    tok = tok.lstrip(prefix)
-                tokens[tok_idx] = tok
-
-            # Replace special tokens with `None`
-            sp_toks = tokenizer.special_tokens_map.values()
-            tokens = [None if tok in sp_toks else tok for tok in tokens]
-
-            # Get the alignment between the words and the tokens, on a character
-            # level
-            word_idxs = [
-                word_idx for word_idx, word in enumerate(words) for _ in str(word)
-            ]
-            token_idxs = [
-                tok_idx
-                for tok_idx, tok in enumerate(tokens)
-                for _ in str(tok)
-                if tok is not None
-            ]
-            alignment = list(zip(word_idxs, token_idxs))
-
-            # Raise error if there are not as many characters in the words as in
-            # the tokens. This can be due to the use of a different prefix.
-            if len(word_idxs) != len(token_idxs):
-                tokenizer_type = type(tokenizer).__name__
-                raise InvalidTokenizer(
-                    tokenizer_type=tokenizer_type,
-                    message=(
-                        "The tokens could not be aligned with the words during "
-                        "manual word-token alignment. It seems that the tokenizer "
-                        "is neither of the fast variant nor of a SentencePiece/"
-                        "WordPiece variant. The tokenizer type is "
-                        f"{tokenizer_type}."
-                    ),
-                )
-
-            # Get the aligned word IDs
-            word_ids = list()
-            for tok_idx, tok in enumerate(tokens):
-                if tok is None or tok == "":
-                    word_ids.append(None)
-                else:
-                    word_idx = [
-                        word_idx
-                        for word_idx, token_idx in alignment
-                        if token_idx == tok_idx
-                    ][0]
-                    word_ids.append(word_idx)
-
-        previous_word_idx = None
-        label_ids: List[int] = list()
-        for word_idx in word_ids:
-
-            # Special tokens have a word id that is None. We set the label to -100
-            # so they are automatically ignored in the loss function
-            if word_idx is None:
-                label_ids.append(-100)
-
-            # We set the label for the first token of each word
-            elif word_idx != previous_word_idx:
-                label = labels[word_idx]
-                try:
-                    label_id = model_label2id[label.upper()]
-                except KeyError:
-                    raise MissingLabel(label=label, label2id=model_label2id)
-                label_ids.append(label_id)
-
-            # For the other tokens in a word, we set the label to -100
-            else:
-                label_ids.append(-100)
-
-            previous_word_idx = word_idx
-
-        all_labels.append(label_ids)
-    tokenized_inputs["labels"] = all_labels
-    return tokenized_inputs
-
-
-def get_ent(token: Token, dataset_id2label: list, dataset_label2id: dict) -> str:
-    """Extracts the entity from a SpaCy token.
-
-    Args:
-        token (spaCy Token):
-            The inputted token from spaCy.
-        dataset_id2label (list):
-            A list that maps IDs to NER tags.
-        dataset_label2id (dict):
-            A dictionary that converts NER tags (and their synonyms) to IDs.
-
-    Returns:
-        str:
-            The entity of the token.
-    """
-
-    # Deal with the O tag separately, as it is the only tag not of the form
-    # B-tag or I-tag
-    if token.ent_iob_ == "O":
-        return "O"
-
-    # Otherwise the tag is of the form B-tag or I-tag for some NER tag
-    else:
-        # Extract tag from spaCy token
-        ent = f"{token.ent_iob_}-{token.ent_type_}"
-
-        # Get the ID of the MISC tag, which we will use as a backup, in case the
-        # given tag is not in the dataset
-        misc_idx = dataset_label2id[f"{token.ent_iob_}-MISC".upper()]
-
-        # Convert the tag to the its canonical synonym, or to the MISC tag if it
-        # is not in the dataset
-        return dataset_id2label[dataset_label2id.get(ent, misc_idx)]
-
-
 class NamedEntityRecognition(Task):
     """Named entity recognition task.
 
@@ -410,3 +240,173 @@ class NamedEntityRecognition(Task):
                 return False
         else:
             return isinstance(sample_preds, list) and isinstance(sample_preds[0], str)
+
+
+def tokenize_and_align_labels(
+    examples: dict,
+    tokenizer: PreTrainedTokenizerBase,
+    model_label2id: dict,
+    dataset_id2label: list,
+    label_column_name: str,
+) -> BatchEncoding:
+    """Tokenise all texts and align the labels with them.
+
+    Args:
+        examples (dict):
+            The examples to be tokenised.
+        tokenizer (Hugging Face tokenizer):
+            A pretrained tokenizer.
+        model_label2id (dict):
+            A dictionary that converts NER tags to IDs.
+        dataset_id2label (list):
+            A list that maps IDs to NER tags.
+        label_column_name (str):
+            The name of the label column.
+
+    Returns:
+        BatchEncoding:
+            The tokenized data as well as labels.
+    """
+
+    tokenized_inputs = tokenizer(
+        examples["tokens"],
+        is_split_into_words=True,
+        truncation=True,
+        padding=True,
+    )
+    all_labels: List[List[int]] = []
+    for i, ner_tags in enumerate(examples[label_column_name]):
+        labels = [dataset_id2label[ner_tag] for ner_tag in ner_tags]
+        try:
+            word_ids = tokenized_inputs.word_ids(batch_index=i)
+
+        # This happens if the tokenizer is not of the fast variant, in which case
+        # the `word_ids` method is not available, so we have to extract this
+        # manually. It's slower, but it works, and it should only occur rarely,
+        # when the Hugging Face team has not implemented a fast variant of the
+        # tokenizer yet.
+        except ValueError:
+
+            # Get the list of words in the document
+            words = examples["tokens"][i]
+
+            # Get the list of token IDs in the document
+            tok_ids = tokenized_inputs.input_ids[i]
+
+            # Decode the token IDs
+            tokens = tokenizer.convert_ids_to_tokens(tok_ids)
+
+            # Remove prefixes from the tokens
+            prefixes_to_remove = ["▁", "##"]
+            for tok_idx, tok in enumerate(tokens):
+                for prefix in prefixes_to_remove:
+                    tok = tok.lstrip(prefix)
+                tokens[tok_idx] = tok
+
+            # Replace special tokens with `None`
+            sp_toks = tokenizer.special_tokens_map.values()
+            tokens = [None if tok in sp_toks else tok for tok in tokens]
+
+            # Get the alignment between the words and the tokens, on a character
+            # level
+            word_idxs = [
+                word_idx for word_idx, word in enumerate(words) for _ in str(word)
+            ]
+            token_idxs = [
+                tok_idx
+                for tok_idx, tok in enumerate(tokens)
+                for _ in str(tok)
+                if tok is not None
+            ]
+            alignment = list(zip(word_idxs, token_idxs))
+
+            # Raise error if there are not as many characters in the words as in
+            # the tokens. This can be due to the use of a different prefix.
+            if len(word_idxs) != len(token_idxs):
+                tokenizer_type = type(tokenizer).__name__
+                raise InvalidTokenizer(
+                    tokenizer_type=tokenizer_type,
+                    message=(
+                        "The tokens could not be aligned with the words during "
+                        "manual word-token alignment. It seems that the tokenizer "
+                        "is neither of the fast variant nor of a SentencePiece/"
+                        "WordPiece variant. The tokenizer type is "
+                        f"{tokenizer_type}."
+                    ),
+                )
+
+            # Get the aligned word IDs
+            word_ids = list()
+            for tok_idx, tok in enumerate(tokens):
+                if tok is None or tok == "":
+                    word_ids.append(None)
+                else:
+                    word_idx = [
+                        word_idx
+                        for word_idx, token_idx in alignment
+                        if token_idx == tok_idx
+                    ][0]
+                    word_ids.append(word_idx)
+
+        previous_word_idx = None
+        label_ids: List[int] = list()
+        for word_idx in word_ids:
+
+            # Special tokens have a word id that is None. We set the label to -100
+            # so they are automatically ignored in the loss function
+            if word_idx is None:
+                label_ids.append(-100)
+
+            # We set the label for the first token of each word
+            elif word_idx != previous_word_idx:
+                label = labels[word_idx]
+                try:
+                    label_id = model_label2id[label.upper()]
+                except KeyError:
+                    raise MissingLabel(label=label, label2id=model_label2id)
+                label_ids.append(label_id)
+
+            # For the other tokens in a word, we set the label to -100
+            else:
+                label_ids.append(-100)
+
+            previous_word_idx = word_idx
+
+        all_labels.append(label_ids)
+    tokenized_inputs["labels"] = all_labels
+    return tokenized_inputs
+
+
+def get_ent(token: Token, dataset_id2label: list, dataset_label2id: dict) -> str:
+    """Extracts the entity from a SpaCy token.
+
+    Args:
+        token (spaCy Token):
+            The inputted token from spaCy.
+        dataset_id2label (list):
+            A list that maps IDs to NER tags.
+        dataset_label2id (dict):
+            A dictionary that converts NER tags (and their synonyms) to IDs.
+
+    Returns:
+        str:
+            The entity of the token.
+    """
+
+    # Deal with the O tag separately, as it is the only tag not of the form
+    # B-tag or I-tag
+    if token.ent_iob_ == "O":
+        return "O"
+
+    # Otherwise the tag is of the form B-tag or I-tag for some NER tag
+    else:
+        # Extract tag from spaCy token
+        ent = f"{token.ent_iob_}-{token.ent_type_}"
+
+        # Get the ID of the MISC tag, which we will use as a backup, in case the
+        # given tag is not in the dataset
+        misc_idx = dataset_label2id[f"{token.ent_iob_}-MISC".upper()]
+
+        # Convert the tag to the its canonical synonym, or to the MISC tag if it
+        # is not in the dataset
+        return dataset_id2label[dataset_label2id.get(ent, misc_idx)]
