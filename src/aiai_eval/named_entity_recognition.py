@@ -239,8 +239,9 @@ class NamedEntityRecognition(Task):
 
         # Collapse the logits into single predictions for every sample
         if any(
-            np.asarray(predictions).dtype == dtype
+            np.asarray(pred).dtype == dtype
             for dtype in {np.float16, np.float32, np.float64}
+            for pred in predictions
         ):
             predictions = np.argmax(predictions, axis=-1)
 
