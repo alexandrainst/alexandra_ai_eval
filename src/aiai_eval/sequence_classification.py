@@ -2,6 +2,7 @@
 
 from functools import partial
 
+import torch
 from datasets import Dataset
 from transformers import DataCollatorWithPadding, PreTrainedTokenizerBase
 
@@ -208,6 +209,7 @@ class SequenceClassification(Task):
             bool:
                 True if the model is trained for the task, False otherwise.
         """
-        # this is only used when using a SpaCy model, for further checking, which is done
-        # before this point for Pytorch and HuggingFace models.
-        return True
+        sample_preds = model_predictions[0]
+        return isinstance(sample_preds, torch.Tensor) and isinstance(
+            sample_preds[0].item(), float
+        )
