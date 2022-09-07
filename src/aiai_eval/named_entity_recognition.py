@@ -177,6 +177,8 @@ class NamedEntityRecognition(Task):
             tokenize_and_align_labels,
             tokenizer=kwargs["tokenizer"],
             model_label2id=kwargs["model_config"].label2id,
+            dataset_id2label=self.task_config.id2label,
+            label_column_name=self.task_config.label_column_name,
         )
         tokenised_dataset = dataset.map(
             map_fn,
