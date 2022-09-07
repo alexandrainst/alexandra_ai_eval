@@ -1,6 +1,7 @@
 """Unit tests for the `task` module."""
 
 from copy import deepcopy
+from typing import Any
 
 import numpy as np
 import pytest
@@ -32,6 +33,20 @@ class TaskDummy(Task):
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
         return None
+
+    def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
+        return list()
+
+    def _get_spacy_predictions_and_labels(
+        self, model: Any, dataset: Dataset, batch_size: int
+    ) -> tuple:
+        return list(), list()
+
+    def _preprocess_data_spacy(self, dataset: Dataset) -> Dataset:
+        return Dataset.from_dict(dict(a=[1, 2, 3], b=[4, 5, 6]))
+
+    def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
+        return True
 
 
 @pytest.fixture(scope="module")
@@ -286,3 +301,15 @@ class TestAbstractMethods:
 
     def test_load_data_collator_is_abstract(self, abstract_metods):
         assert "_load_data_collator" in abstract_metods
+
+    def test_get_spacy_predictions_and_labels_is_abstract(self, abstract_metods):
+        assert "_get_spacy_predictions_and_labels" in abstract_metods
+
+    def test_extract_spacy_predictions_is_abstract(self, abstract_metods):
+        assert "_extract_spacy_predictions" in abstract_metods
+
+    def test_preprocess_data_spacy_is_abstract(self, abstract_metods):
+        assert "_preprocess_data_spacy" in abstract_metods
+
+    def test_check_if_model_is_trained_for_task_is_abstract(self, abstract_metods):
+        assert "_check_if_model_is_trained_for_task" in abstract_metods

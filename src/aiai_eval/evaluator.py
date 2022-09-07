@@ -8,8 +8,8 @@ from pathlib import Path
 from typing import Dict, List, Sequence, Union
 
 from .config import Device, EvaluationConfig, TaskConfig
-from .exceptions import InvalidEvaluation, ModelDoesNotExistOnHuggingFaceHub
-from .hf_hub import model_exists_on_hf_hub
+from .exceptions import InvalidEvaluation, ModelDoesNotExist
+from .hf_hub import check_if_model_exist
 from .task_configs import get_all_task_configs
 from .task_factory import TaskFactory
 
@@ -226,8 +226,11 @@ class Evaluator:
             f"Evaluating the {model_id} model on the {task_config.pretty_name} task."
         )
 
-        if not model_exists_on_hf_hub(model_id=model_id):
-            raise ModelDoesNotExistOnHuggingFaceHub(model_id)
+        # check if model exists on HuggingFace Hub or as a spacy model
+        model_on_hf_hub, model_is_spacy = check_if_model_exist(model_id=model_id)
+
+        if not model_on_hf_hub and not model_is_spacy:
+            raise ModelDoesNotExist(model_id=model_id)
 
         try:
             task = self.task_factory.build_task(task_config)
