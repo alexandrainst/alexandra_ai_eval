@@ -124,7 +124,7 @@ def tokenize_and_align_labels(
                     word_ids.append(word_idx)
 
         previous_word_idx = None
-        label_ids: List[int] = []
+        label_ids: List[int] = list()
         for word_idx in word_ids:
 
             # Special tokens have a word id that is None. We set the label to -100
