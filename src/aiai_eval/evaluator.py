@@ -153,16 +153,10 @@ class Evaluator:
         # Evaluate all the models in `model_ids` on all the datasets in `dataset_tasks`
         for task_config in task_configs:
             for m_id in model_ids:
-                try:
-                    self._evaluate_single(
-                        task_config=task_config,
-                        model_id=m_id,
-                    )
-                except InvalidArchitectureForTask:
-                    logger.warning(
-                        f"Skipping evaluation of {m_id} on {task_config.pretty_name} "
-                        "as the architecture is not supported by the task."
-                    )
+                self._evaluate_single(
+                    task_config=task_config,
+                    model_id=m_id,
+                )
 
         # Save the evaluation results
         if self.evaluation_config.save_results:
@@ -244,12 +238,18 @@ class Evaluator:
             results = task(model_id)
             self.evaluation_results[task_config.name][model_id] = results
             logger.debug(f"Results:\n{results}")
-        except InvalidEvaluation as e:
-            logger.info(
-                f"{model_id} could not be evaluated on {task_config.pretty_name}. "
-                "Skipping."
-            )
-            logger.debug(f'The error message was "{e}".')
+        except (InvalidEvaluation, InvalidArchitectureForTask) as e:
+            if type(e) == InvalidEvaluation:
+                logger.info(
+                    f"{model_id} could not be evaluated on {task_config.pretty_name}. "
+                    "Skipping."
+                )
+                logger.debug(f'The error message was "{e}".')
+            elif type(e) == InvalidArchitectureForTask:
+                logger.warning(
+                    f"Skipping evaluation of {model_id} on {task_config.pretty_name} "
+                    "as the architecture is not supported by the task."
+                )
 
     def __call__(
         self, model_id: Union[Sequence[str], str], task: Union[Sequence[str], str]
