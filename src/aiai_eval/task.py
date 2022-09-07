@@ -434,12 +434,12 @@ class Task(ABC):
 
     def _compute_metrics(
         self,
-        predictions_and_labels: List[Tuple[np.ndarray, np.ndarray]],
+        predictions_and_labels: List[Tuple[list, list]],
     ) -> Dict[str, float]:
         """Compute the metrics needed for evaluation.
 
         Args:
-            predictions_and_labels (list of pairs of NumPy arrays):
+            predictions_and_labels (list of pairs of lists):
                 The predictions and labels for each metric.
 
         Returns:
@@ -483,7 +483,7 @@ class Task(ABC):
         """Prepare predictions and labels for output.
 
         Args:
-            predictions (NumPy array):
+            predictions (sequence of either ints or floats):
                 The predictions of the model.
             dataset (Dataset):
                 The raw dataset.
@@ -494,12 +494,8 @@ class Task(ABC):
                 predictions and labels.
 
         Returns:
-            list of pairs of NumPy arrays:
-                The prepared predictions and labels. Each list entry is a pair of NumPy
-                arrays associated with each metric, with the first array being the
-                predictions and the second array being the labels. If the list only
-                contains one element and multiple metrics are present, then the same
-                predictions and labels will be used for all the metrics.
+            list of pairs of lists:
+                The prepared predictions and labels.
         """
         # Collapse the logits into single predictions for every sample
         if any(
