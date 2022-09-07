@@ -11,10 +11,19 @@ class InvalidEvaluation(Exception):
         super().__init__(self.message)
 
 
-class ModelDoesNotExistOnHuggingFaceHub(Exception):
-    def __init__(self, model_id: str):
+class ModelDoesNotExist(Exception):
+    def __init__(self, model_id: str, message=""):
         self.model_id = model_id
-        self.message = f"The model {model_id} does not exist on the Hugging Face Hub."
+        self.message = (
+            message
+            if message
+            else (
+                f"The model ID '{model_id}' is not a valid model ID on the Hugging Face Hub, "
+                f"nor is it a valid spaCy model ID. In case of a Huggingface model, Please check "
+                "the model ID, and try again. In case of a spaCy model, please make sure that you "
+                "have spaCy installed, and that the model is installed on your system."
+            )
+        )
         super().__init__(self.message)
 
 
@@ -157,4 +166,12 @@ class InvalidTask(Exception):
     def __init__(self, task: str):
         self.task = task
         self.message = f"The task '{task}' is not supported."
+        super().__init__(self.message)
+
+
+class ModelNotTrainedForTask(Exception):
+    def __init__(self, framework: str, task: str):
+        self.task = task
+        self.framework = framework
+        self.message = f"The {framework} model is not trained for the task {self.task}."
         super().__init__(self.message)

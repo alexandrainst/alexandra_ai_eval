@@ -3,7 +3,7 @@
 import pytest
 
 from src.aiai_eval.config import ModelConfig
-from src.aiai_eval.exceptions import ModelDoesNotExistOnHuggingFaceHub
+from src.aiai_eval.exceptions import ModelDoesNotExist
 from src.aiai_eval.hf_hub import get_model_config, model_exists_on_hf_hub
 
 
@@ -23,7 +23,7 @@ class TestGetModelConfig:
         assert model_config.framework == "pytorch"
 
     def test_invalid_model_id(self, evaluation_config):
-        with pytest.raises(ModelDoesNotExistOnHuggingFaceHub):
+        with pytest.raises(ModelDoesNotExist):
             get_model_config(
                 model_id="invalid-model-id", evaluation_config=evaluation_config
             )

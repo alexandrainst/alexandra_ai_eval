@@ -9,8 +9,9 @@ from src.aiai_eval.exceptions import (
     InvalidFramework,
     InvalidTokenizer,
     MissingLabel,
-    ModelDoesNotExistOnHuggingFaceHub,
+    ModelDoesNotExist,
     ModelFetchFailed,
+    ModelNotTrainedForTask,
     NoInternetConnection,
     PreprocessingFailed,
     UnsupportedModelType,
@@ -37,27 +38,53 @@ class TestInvalidEvaluation:
         assert exception.message == message
 
 
-class TestModelDoesNotExistOnHuggingFaceHub:
-    """Unit tests for the ModelDoesNotExistOnHuggingFaceHub exception class."""
+class TestModelDoesNotExist:
+    """Unit tests for the ModelDoesNotExist exception class."""
 
     @pytest.fixture(scope="class")
     def model_id(self):
         yield "test_model_id"
 
     @pytest.fixture(scope="class")
-    def exception(self, model_id):
-        yield ModelDoesNotExistOnHuggingFaceHub(model_id=model_id)
+    def message(self):
+        yield "test_message"
 
-    def test_model_does_not_exist_on_hugging_face_hub_is_an_exception(self, exception):
-        with pytest.raises(ModelDoesNotExistOnHuggingFaceHub):
-            raise exception
+    @pytest.fixture(scope="class")
+    def exception_without_message(self, model_id):
+        yield ModelDoesNotExist(model_id=model_id)
 
-    def test_model_id_is_stored(self, exception, model_id):
-        assert exception.model_id == model_id
+    @pytest.fixture(scope="class")
+    def exception_with_message(self, model_id, message):
+        yield ModelDoesNotExist(model_id=model_id, message=message)
 
-    def test_message_is_stored(self, exception, model_id):
-        message = f"The model {model_id} does not exist on the Hugging Face Hub."
-        assert exception.message == message
+    def test_model_does_not_exist_is_an_exception_without_message(
+        self, exception_without_message
+    ):
+        with pytest.raises(ModelDoesNotExist):
+            raise exception_without_message
+
+    def test_model_does_not_exist_is_an_exception_with_message(
+        self, exception_with_message
+    ):
+        with pytest.raises(ModelDoesNotExist):
+            raise exception_with_message
+
+    def test_model_id_is_stored(self, exception_with_message, model_id):
+        assert exception_with_message.model_id == model_id
+
+    def test_message_is_stored_with_message(self, exception_with_message, message):
+        assert exception_with_message.message == message
+
+    def test_message_is_stored_without_message(
+        self, exception_without_message, model_id
+    ):
+        message = (
+            f"The model ID '{model_id}' is not a valid model ID on the Hugging Face Hub, "
+            f"nor is it a valid spaCy model ID. In case of a Huggingface model, Please check "
+            "the model ID, and try again. In case of a spaCy model, please make sure that you "
+            "have spaCy installed, and that the model is installed on your system."
+        )
+        assert exception_without_message.message == message
 
 
 class TestModelFetchFailed:
@@ -352,4 +379,34 @@ class TestInvalidTokenizer:
 
     def test_message_is_stored(self, exception, tokenizer_type):
         message = f"The provided tokenizer type: {tokenizer_type} is not supported."
+        assert exception.message == message
+
+
+class TestModelNotTrainedForTask:
+    """Unit tests for the ModelNotTrainedForTask exception class."""
+
+    @pytest.fixture(scope="class")
+    def framework(self):
+        yield "test_framework"
+
+    @pytest.fixture(scope="class")
+    def task(self):
+        yield "test_task"
+
+    @pytest.fixture(scope="class")
+    def exception(self, framework, task):
+        yield ModelNotTrainedForTask(framework=framework, task=task)
+
+    def test_model_not_trained_for_task_is_an_exception(self, exception):
+        with pytest.raises(ModelNotTrainedForTask):
+            raise exception
+
+    def test_model_id_is_stored(self, exception, framework):
+        assert exception.framework == framework
+
+    def test_task_is_stored(self, exception, task):
+        assert exception.task == task
+
+    def test_message_is_stored(self, exception, framework, task):
+        message = f"The {framework} model is not trained for the task {task}."
         assert exception.message == message

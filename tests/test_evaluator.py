@@ -6,10 +6,7 @@ import pytest
 
 from aiai_eval.utils import Device
 from src.aiai_eval.evaluator import Evaluator
-from src.aiai_eval.exceptions import (
-    InvalidArchitectureForTask,
-    ModelDoesNotExistOnHuggingFaceHub,
-)
+from src.aiai_eval.exceptions import InvalidArchitectureForTask, ModelDoesNotExist
 from src.aiai_eval.task_configs import NER, QA, SENT
 from src.aiai_eval.task_factory import TaskFactory
 
@@ -90,9 +87,9 @@ class TestEvaluateSingle:
     def test_evaluate_single_raise_exception_model_not_found(
         self, evaluator, non_existing_model_id, task_config
     ):
-        with pytest.raises(ModelDoesNotExistOnHuggingFaceHub):
+        with pytest.raises(ModelDoesNotExist):
             evaluator._evaluate_single(
-                task_config=task_config, model_id=[non_existing_model_id]
+                task_config=task_config, model_id=non_existing_model_id
             )
 
     def test_evaluate_single_raise_exception_invalid_task(
@@ -139,7 +136,7 @@ class TestEvaluateSingle:
                 },
             ),
             (
-                "saattrupdan/nbailab-base-ner-scandi",
+                "spacy/da_core_news_md",
                 NER,
                 {
                     "raw": [
@@ -148,9 +145,9 @@ class TestEvaluateSingle:
                     ],
                     "total": {
                         "micro_f1": 0.8615384615384616,
-                        "micro_f1_se": 0.12061538461538451,
                         "micro_f1_no_misc": 1.0,
                         "micro_f1_no_misc_se": 0.0,
+                        "micro_f1_se": 0.12061538461538451,
                     },
                 },
             ),

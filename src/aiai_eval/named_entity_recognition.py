@@ -5,7 +5,9 @@ from functools import partial
 from typing import List, Sequence, Tuple
 
 import numpy as np
+import torch
 from datasets.arrow_dataset import Dataset
+from tqdm import tqdm
 from transformers.data.data_collator import DataCollatorForTokenClassification
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
@@ -188,6 +190,145 @@ class NamedEntityRecognition(Task):
 
         return tokenised_dataset
 
+    def _preprocess_data_spacy(self, dataset: Dataset) -> Dataset:
+        """Preprocess the given Huggingface dataset for use by a SpaCy model.
+
+        Args:
+            dataset (Dataset): The dataset to preprocess.
+
+        Returns:
+            Dataset:
+                The preprocessed dataset.
+        """
+        # Add a labels column to the dataset
+        def create_label_col(example):
+            example["labels"] = [
+                self.task_config.id2label[x] for x in example["labels"]
+            ]
+            return example
+
+        dataset = dataset.add_column("labels", dataset["ner_tags"])
+        return dataset.map(create_label_col)
+
+    def _get_spacy_predictions_and_labels(
+        self, model, dataset: Dataset, batch_size: int
+    ) -> tuple:
+        """Get predictions from SpaCy model on dataset.
+
+        Args:
+            model (SpaCy model):
+                The model.
+            dataset (Hugging Face dataset):
+                The dataset.
+            batch_size (int):
+                The batch size to use.
+
+        Returns:
+            A pair of arrays:
+                The first array contains the probability predictions and the second
+                array contains the true labels.
+        """
+        # Initialise progress bar
+        if self.evaluation_config.progress_bar:
+            itr = tqdm(
+                dataset[self.task_config.feature_column_names[0]],
+                desc="Evaluating model",
+                leave=False,
+            )
+        else:
+            itr = dataset[self.task_config.feature_column_names[0]]
+
+        processed = model.pipe(itr, batch_size=batch_size)
+        map_fn = self._extract_spacy_predictions
+        predictions = map(map_fn, zip(dataset["tokens"], processed))
+
+        return list(predictions), dataset["labels"]
+
+    def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
+        """Helper function that extracts the predictions from a SpaCy model.
+
+        Aside from extracting the predictions from the model, it also aligns the
+        predictions with the gold tokens, in case the SpaCy tokeniser tokenises the
+        text different from those.
+
+        Args:
+            tokens_processed (tuple):
+                A pair of the labels, being a list of strings, and the SpaCy processed
+                document, being a Spacy `Doc` instance.
+
+        Returns:
+            list:
+                A list of predictions for each token, of the same length as the gold
+                tokens (first entry of `tokens_processed`).
+        """
+        tokens, processed = tokens_processed
+
+        # Get the token labels
+        token_labels = self._get_spacy_token_labels(processed)
+
+        # Get the alignment between the SpaCy model's tokens and the gold tokens
+        token_idxs = [tok_idx for tok_idx, tok in enumerate(tokens) for _ in str(tok)]
+        pred_token_idxs = [
+            tok_idx for tok_idx, tok in enumerate(processed) for _ in str(tok)
+        ]
+        alignment = list(zip(token_idxs, pred_token_idxs))
+
+        # Get the aligned predictions
+        predictions = list()
+        for tok_idx, _ in enumerate(tokens):
+            aligned_pred_token = [
+                pred_token_idx
+                for token_idx, pred_token_idx in alignment
+                if token_idx == tok_idx
+            ][0]
+            predictions.append(token_labels[aligned_pred_token])
+
+        return predictions
+
+    def _get_spacy_token_labels(self, processed) -> Sequence[str]:
+        """Get predictions from SpaCy model on dataset.
+
+        Args:
+            model (SpaCy model):
+                The model.
+            dataset (Hugging Face dataset):
+                The dataset.
+
+        Returns:
+            A list of strings:
+                The predicted NER labels.
+        """
+
+        def get_ent(token) -> str:
+            """Helper function that extracts the entity from a SpaCy token.
+
+            Args:
+                token (spaCy Token):
+                    The inputted token from spaCy.
+
+            Returns:
+                str:
+                    The entity of the token.
+            """
+
+            # Deal with the O tag separately, as it is the only tag not of the form
+            # B-tag or I-tag
+            if token.ent_iob_ == "O":
+                return "O"
+
+            # In general return a tag of the form B-tag or I-tag
+            else:
+                # Extract tag from spaCy token
+                ent = f"{token.ent_iob_}-{token.ent_type_}"
+
+                # Convert the tag to the its canonical synonym
+                alt_idx = self.task_config.label2id[f"{token.ent_iob_}-MISC".upper()]
+                return self.task_config.id2label[
+                    self.task_config.label2id.get(ent, alt_idx)
+                ]
+
+        return [get_ent(token) for token in processed]
+
     def _load_data_collator(
         self, tokenizer: PreTrainedTokenizerBase
     ) -> DataCollatorForTokenClassification:
@@ -266,3 +407,34 @@ class NamedEntityRecognition(Task):
             (list(predictions), labels),
             (list(predictions_no_misc), labels_no_misc),
         ]
+
+    def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
+        """Check if the model is trained for the task.
+
+        Args:
+            model_predictions (list):
+                The predictions of the model.
+
+        Returns:
+            bool:
+                True if the model is trained for the task, False otherwise.
+        """
+        sample_preds = model_predictions[0]
+
+        # Check if output comes from a pytorch or spacy model.
+        if isinstance(sample_preds, torch.Tensor):
+            try:
+                if (
+                    isinstance(sample_preds[0], torch.Tensor)
+                    and len(sample_preds[0]) > 0
+                    and isinstance(sample_preds[0][0].item(), float)
+                ):
+                    return True
+                else:
+                    return False
+            except TypeError:
+                # This happens if the output is a torch.Tensor with no length, i.e. the
+                # model output fits sequence classification and not token classification.
+                return False
+        else:
+            return isinstance(sample_preds, list) and isinstance(sample_preds[0], str)

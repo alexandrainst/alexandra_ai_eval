@@ -23,6 +23,48 @@ from .exceptions import InvalidArchitectureForTask
 logger = logging.getLogger(__name__)
 
 
+def numpy_array_dtype_int(array: np.ndarray) -> bool:
+    """Checks if the dtype of a NumPy array is int or float.
+
+    Args:
+        array (np.ndarray):
+            The array to check.
+
+    Returns:
+        bool:
+            Whether the dtype is int or float.
+    """
+    return array.dtype.kind == "i"
+
+
+def numpy_array_dtype_float(array: np.ndarray) -> bool:
+    """Checks if the dtype of a NumPy array is float.
+
+    Args:
+        array (np.ndarray):
+            The array to check.
+
+    Returns:
+        bool:
+            Whether the dtype is float.
+    """
+    return array.dtype.kind == "f"
+
+
+def numpy_array_dtype_int_or_float(array: np.ndarray) -> bool:
+    """Checks if the dtype of a NumPy array is int or float.
+
+    Args:
+        array (np.ndarray):
+            The array to check.
+
+    Returns:
+        bool:
+            Whether the dtype is int or float.
+    """
+    return numpy_array_dtype_float(array) or numpy_array_dtype_int(array)
+
+
 def clear_memory():
     """Clears the memory of unused items."""
 

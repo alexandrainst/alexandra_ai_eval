@@ -140,3 +140,29 @@ def test_compute_metrics(seq_clf):
     assert isinstance(metrics, dict)
     for value in metrics.values():
         assert isinstance(value, float)
+
+
+def test_get_spacy_predictions_and_labels_raises_exception(seq_clf):
+    with pytest.raises(InvalidEvaluation):
+        seq_clf._get_spacy_predictions_and_labels(
+            model=None, dataset=None, batch_size=None
+        )
+
+
+def test_extract_spacy_predictions_throws_exception(seq_clf):
+    with pytest.raises(InvalidEvaluation):
+        seq_clf._extract_spacy_predictions(
+            tokens_processed=([], []),
+        )
+
+
+def test_get_spacy_predictions_and_labels_throws_exception(seq_clf):
+    with pytest.raises(InvalidEvaluation):
+        seq_clf._get_spacy_predictions_and_labels(
+            model=None, dataset=None, batch_size=None
+        )
+
+
+def test_preprocess_data_spacy_throws_exception(seq_clf):
+    with pytest.raises(InvalidEvaluation):
+        seq_clf._preprocess_data_spacy(dataset=None)
