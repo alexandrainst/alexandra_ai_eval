@@ -2,7 +2,7 @@
 
 from collections import defaultdict
 from functools import partial
-from typing import List, Optional, Tuple
+from typing import List, Sequence, Tuple
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
@@ -161,15 +161,15 @@ class QuestionAnswering(Task):
 
     def _prepare_predictions_and_labels(
         self,
-        predictions: np.ndarray,
+        predictions: Sequence,
         dataset: Dataset,
         prepared_dataset: Dataset,
         **kwargs,
-    ) -> List[Tuple[np.ndarray, np.ndarray]]:
+    ) -> List[Tuple[list, list]]:
         """Prepare predictions and labels for output.
 
         Args:
-            predictions (NumPy array):
+            predictions (sequence of either ints or floats):
                 The predictions of the model.
             dataset (Dataset):
                 The raw dataset.
@@ -180,15 +180,12 @@ class QuestionAnswering(Task):
                 predictions and labels.
 
         Returns:
-            list of pairs of NumPy arrays:
-                The prepared predictions and labels. Each list entry is a pair of NumPy
-                arrays associated with each metric, with the first array being the
-                predictions and the second array being the labels. If the list only
-                contains one element and multiple metrics are present, then the same
-                predictions and labels will be used for all the metrics.
+            list of pairs of lists:
+                The prepared predictions and labels.
         """
         # Extract the logits from the predictions
-        all_start_logits, all_end_logits = predictions[:, 0], predictions[:, 1]
+        all_start_logits = np.asarray(predictions)[:, 0]
+        all_end_logits = np.asarray(predictions)[:, 1]
 
         # Build a map from an example to its corresponding features
         example_id_to_index = {k: i for i, k in enumerate(dataset["example_id"])}
@@ -198,8 +195,9 @@ class QuestionAnswering(Task):
             example_index = example_id_to_index[example_id]
             features_per_example[example_index].append(i)
 
-        # The dictionary containing the predictions
-        predictions = dict()
+        # Initialise the lists containing the predictions and labels, respectively
+        predictions = list()
+        labels = list()
 
         # Loop over all the examples
         for example_index, example in enumerate(dataset):
@@ -212,7 +210,7 @@ class QuestionAnswering(Task):
 
             # Loop through all the features associated to the current example
             min_null_score = 0.0
-            valid_answers = []
+            valid_answers = list()
             for feature_index in feature_indices:
 
                 # Get the features associated with the current example
