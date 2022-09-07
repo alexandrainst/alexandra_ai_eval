@@ -1,5 +1,7 @@
 """Global fixtures for unit tests."""
 
+import os
+
 import pytest
 
 from src.aiai_eval.config import EvaluationConfig
@@ -13,7 +15,7 @@ def evaluation_config():
     yield EvaluationConfig(
         raise_error_on_invalid_model=True,
         cache_dir=".aiai_cache",
-        use_auth_token=True,
+        use_auth_token=os.environ["HUGGINGFACE_HUB_TOKEN"],
         progress_bar=False,
         save_results=True,
         verbose=True,
