@@ -189,7 +189,7 @@ class Task(ABC):
                 self._preprocess_data(
                     bootstrapped_dataset,
                     framework="pytorch",
-                    config=model.config,
+                    model_config=model.config,
                     tokenizer=tokenizer,
                 )
                 for bootstrapped_dataset in bootstrapped_datasets
