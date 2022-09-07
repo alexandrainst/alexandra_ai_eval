@@ -1,7 +1,7 @@
 """Configuration dataclasses."""
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from .utils import Device, Label, get_available_devices
 
@@ -21,6 +21,10 @@ class MetricConfig:
         results_key (str):
             The name of the key used to extract the metric scores from the results
             dictionary.
+        postprocessing_fn (callable):
+            A function that is applied to the metric scores after they are extracted
+            from the results dictionary. Must take a single float as input and return
+            a single string.
         compute_kwargs (dict, optional):
             Keyword arguments to pass to the metric's compute function. Defaults to
             an empty dictionary.
@@ -30,6 +34,7 @@ class MetricConfig:
     pretty_name: str
     huggingface_id: str
     results_key: str
+    postprocessing_fn: Callable[[float], str]
     compute_kwargs: Dict[str, Any] = field(default_factory=dict)
 
 
