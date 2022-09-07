@@ -10,7 +10,7 @@ from src.aiai_eval.exceptions import (
     InvalidArchitectureForTask,
     ModelDoesNotExistOnHuggingFaceHub,
 )
-from src.aiai_eval.task_configs import NER, SENT
+from src.aiai_eval.task_configs import NER, QA, SENT
 from src.aiai_eval.task_factory import TaskFactory
 
 
@@ -170,6 +170,22 @@ class TestEvaluateSingle:
                         "micro_f1_se": 0.4355555555555556,
                         "micro_f1_no_misc": 0.3333333333333333,
                         "micro_f1_no_misc_se": 0.6533333333333333,
+                    },
+                },
+            ),
+            (
+                "deepset/minilm-uncased-squad2",
+                QA,
+                {
+                    "raw": [
+                        {"exact_match": 100.0, "qa_f1": 100.0},
+                        {"exact_match": 50.0, "qa_f1": 50.0},
+                    ],
+                    "total": {
+                        "exact_match": 75.0,
+                        "exact_match_se": 49.0,
+                        "qa_f1": 75.0,
+                        "qa_f1_se": 49.0,
                     },
                 },
             ),
