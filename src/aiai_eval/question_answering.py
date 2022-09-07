@@ -281,12 +281,32 @@ class QuestionAnswering(Task):
 
             # We pick our final answer as the best one or the null answer
             if best_answer["score"] > min_null_score:
-                predictions[example["example_id"]] = best_answer["text"]
+                prediction_text = best_answer["text"]
             else:
-                predictions[example["example_id"]] = ""
+                prediction_text = ""
 
-        # Extract the labels
-        labels = np.asarray(dataset[self.task_config.label_column_name])
+            # Create the final prediction dictionary, to be added to the list of
+            # predictions
+            prediction = dict(
+                id=example["example_id"],
+                prediction_text=prediction_text,
+                no_answer_probability=0.0,
+            )
+
+            # Create the associated reference dictionary, to be added to the list of
+            # references
+            label = dict(
+                id=example["example_id"],
+                answers=dict(
+                    text=example["answers"]["text"],
+                    answer_start=example["answers"]["answer_start"],
+                ),
+            )
+
+            # Add the answer and label to the list of predictions and labels,
+            # respectively
+            predictions.append(prediction)
+            labels.append(label)
 
         return [(predictions, labels)]
 
