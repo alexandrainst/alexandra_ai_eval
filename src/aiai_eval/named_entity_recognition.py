@@ -130,13 +130,16 @@ class NamedEntityRecognition(Task):
 
     def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
         """Helper function that extracts the predictions from a SpaCy model.
+        
         Aside from extracting the predictions from the model, it also aligns the
         predictions with the gold tokens, in case the SpaCy tokeniser tokenises the
         text different from those.
+        
         Args:
             tokens_processed (tuple):
                 A pair of the labels, being a list of strings, and the SpaCy processed
                 document, being a Spacy `Doc` instance.
+                
         Returns:
             list:
                 A list of predictions for each token, of the same length as the gold
