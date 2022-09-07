@@ -58,11 +58,12 @@ class NamedEntityRecognition(Task):
             label2id=kwargs["config"].label2id,
         )
         tokenised_dataset = dataset.map(
-            map_fn, batched=True, load_from_cache_file=False
+            map_fn,
+            batched=True,
+            remove_columns=dataset.column_names,
         )
 
-        # Remove unused columns
-        return tokenised_dataset.remove_columns(dataset.column_names)
+        return tokenised_dataset
 
     def _tokenize_and_align_labels(
         self, examples: dict, tokenizer, label2id: dict
