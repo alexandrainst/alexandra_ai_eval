@@ -2,6 +2,7 @@
 
 from typing import Optional, Tuple
 
+import spacy
 from huggingface_hub import HfApi, ModelFilter
 from huggingface_hub.utils import RepositoryNotFoundError
 from requests.exceptions import RequestException
@@ -49,8 +50,6 @@ def check_if_model_exist(model_id: str) -> Tuple[bool, bool]:
     """
     model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
     try:
-        import spacy
-
         spacy.load(model_id)
         model_is_spacy = True
     except OSError:
