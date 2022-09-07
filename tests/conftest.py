@@ -33,10 +33,10 @@ def task_config(request):
 
 @pytest.fixture(scope="session")
 def model_configs(evaluation_config, task_config):
-    model_id_mapping = dict(
-        sent=["pin/senda"],
-        ner=["DaNLP/da-bert-ner"],
-    )
+    model_id_mapping = {
+        "sentiment-classification": ["pin/senda"],
+        "named-entity-recognition": ["DaNLP/da-bert-ner"],
+    }
     yield [
         get_model_config(model_id=model_id, evaluation_config=evaluation_config)
         for model_id in model_id_mapping[task_config.name]
