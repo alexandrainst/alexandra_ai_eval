@@ -42,7 +42,12 @@ from .exceptions import (
 from .hf_hub import get_model_config
 from .metric_configs import EMISSIONS, POWER
 from .scoring import log_scores
-from .utils import clear_memory, enforce_reproducibility, is_module_installed
+from .utils import (
+    clear_memory,
+    enforce_reproducibility,
+    is_module_installed,
+    numpy_array_dtype_float,
+)
 
 # Set up a logger
 logger = logging.getLogger(__name__)
@@ -491,7 +496,7 @@ class Task(ABC):
         tests: Sequence[Dataset],
     ) -> Union[dict, Exception]:
         """Evaluate a spaCy model for a single iteration.
-        
+
         Args:
             idx (int):
                 The index of the current iteration.
@@ -614,10 +619,7 @@ class Task(ABC):
             labels_np = np.asarray(labels)
 
         # Compute the predicted classes
-        if any(
-            predictions_np.dtype == dtype
-            for dtype in {np.float16, np.float32, np.float64}
-        ):
+        if numpy_array_dtype_float(predictions_np):
             predictions_np = np.argmax(predictions_np, axis=-1)
 
         # Prepare the predictions and labels for the given task
