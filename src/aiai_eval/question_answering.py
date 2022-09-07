@@ -103,22 +103,7 @@ class QuestionAnswering(Task):
     """
 
     def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
-        """Preprocess the data.
 
-        Args:
-            dataset (Hugging Face dataset):
-                The dataset to preprocess.
-            framework (str):
-                The framework used by the model.
-            kwargs:
-                Extra keyword arguments containing objects used in preprocessing the
-                dataset.
-
-        Returns:
-            Hugging Face dataset:
-                The preprocessed dataset.
-        """
-        # Raise error if the model is a spaCy model
         if framework == "spacy":
             raise InvalidEvaluation(
                 "Evaluation of question answering tasks for SpaCy models is currently "
@@ -146,17 +131,6 @@ class QuestionAnswering(Task):
         return prepared
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
-        """Load the data collator used to prepare samples during evaluation.
-
-        Args:
-            tokenizer (Hugging Face tokenizer or None, optional):
-                A pretrained tokenizer. Can be None if the tokenizer is not used in the
-                initialisation of the data collator. Defaults to None.
-
-        Returns:
-            Hugging Face data collator:
-                The data collator.
-        """
         return default_data_collator
 
     def _prepare_predictions_and_labels(
@@ -166,23 +140,7 @@ class QuestionAnswering(Task):
         prepared_dataset: Dataset,
         **kwargs,
     ) -> List[Tuple[list, list]]:
-        """Prepare predictions and labels for output.
 
-        Args:
-            predictions (sequence of either ints or floats):
-                The predictions of the model.
-            dataset (Dataset):
-                The raw dataset.
-            prepared_dataset (Dataset):
-                The prepared dataset.
-            kwargs:
-                Extra keyword arguments containing objects used in preparing the
-                predictions and labels.
-
-        Returns:
-            list of pairs of lists:
-                The prepared predictions and labels.
-        """
         # Extract the logits from the predictions
         all_start_logits = predictions[0]
         all_end_logits = predictions[1]
