@@ -47,7 +47,7 @@ class TestPreprocessData:
             dataset=dataset,
             framework="pytorch",
             tokenizer=tokenizer,
-            config=model_config,
+            model_config=model_config,
         )
 
     def test_spacy_framework_throws_exception(self, dataset, ner, tokenizer):
