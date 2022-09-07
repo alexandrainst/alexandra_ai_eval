@@ -82,22 +82,3 @@ class SequenceClassification(Task):
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
         return DataCollatorWithPadding(tokenizer, padding="longest")
-
-    def _get_spacy_predictions_and_labels(self, model, dataset: Dataset) -> tuple:
-        """Get predictions from SpaCy model on dataset.
-
-        Args:
-            model (SpaCy model):
-                The model.
-            dataset (Hugging Face dataset):
-                The dataset.
-
-        Returns:
-            A pair of arrays:
-                The first array contains the probability predictions and the second
-                array contains the true labels.
-        """
-        raise InvalidEvaluation(
-            "Evaluation of text classification tasks for SpaCy models is currently "
-            "not possible."
-        )
