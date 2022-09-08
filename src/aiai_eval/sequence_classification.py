@@ -3,6 +3,7 @@
 from functools import partial
 
 from datasets.arrow_dataset import Dataset
+from spacy.language import Language
 from transformers.data.data_collator import DataCollatorWithPadding
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
@@ -87,9 +88,9 @@ class SequenceClassification(Task):
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
         return DataCollatorWithPadding(tokenizer, padding="longest")
 
-    def _get_spacy_predictions_and_labels(
-        self, model, dataset: Dataset, batch_size: int
-    ) -> tuple:
+    def _get_spacy_predictions(
+        self, model: Language, prepared_dataset: Dataset, batch_size: int
+    ) -> list:
         raise FrameworkCannotHandleTask(
             framework="spaCy", task=self.task_config.pretty_name
         )
