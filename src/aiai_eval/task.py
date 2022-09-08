@@ -432,7 +432,6 @@ class Task(ABC):
         """
         # Extract the model and tokenizer
         model = model_dict["model"]
-        tokenizer = model_dict["tokenizer"]
 
         # If we are testing then truncate the test set
         if self.evaluation_config.testing:
@@ -451,7 +450,6 @@ class Task(ABC):
                     bootstrapped_dataset,
                     framework="spacy",
                     model_config=model.config,
-                    tokenizer=tokenizer,
                 )
                 for bootstrapped_dataset in bootstrapped_datasets
             ]
