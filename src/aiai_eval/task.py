@@ -33,7 +33,7 @@ from .hf_hub import get_model_config
 from .metric_configs import EMISSIONS, POWER
 from .model_loading import load_model
 from .scoring import log_scores
-from .utils import clear_memory, enforce_reproducibility
+from .utils import clear_memory, enforce_reproducibility, has_floats
 
 # Set up a logger
 logger = logging.getLogger(__name__)
@@ -680,10 +680,7 @@ class Task(ABC):
                 The prepared predictions and labels.
         """
         # Collapse the logits into single predictions for every sample
-        if any(
-            np.asarray(predictions).dtype == dtype
-            for dtype in {np.float16, np.float32, np.float64}
-        ):
+        if has_floats(predictions):
             predictions = np.argmax(predictions, axis=-1)
 
         # Extract labels from dataset

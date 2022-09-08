@@ -14,6 +14,7 @@ from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokeni
 
 from .exceptions import InvalidTokenizer, MissingLabel
 from .task import Task
+from .utils import has_floats
 
 
 class NamedEntityRecognition(Task):
@@ -151,11 +152,7 @@ class NamedEntityRecognition(Task):
         labels = prepared_dataset["labels"]
 
         # Collapse the logits into single predictions for every sample
-        if any(
-            np.asarray(pred).dtype == dtype
-            for dtype in {np.float16, np.float32, np.float64}
-            for pred in predictions
-        ):
+        if any(has_floats(pred) for pred in predictions):
             predictions = np.argmax(predictions, axis=-1)
 
         # Remove ignored index from predictions and labels
