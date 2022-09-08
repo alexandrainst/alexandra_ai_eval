@@ -195,6 +195,20 @@ class QuestionAnswering(Task):
 
         return [(predictions, labels)]
 
+    def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
+        sample_preds = model_predictions[0]
+        elements_are_pairs = len(sample_preds[0]) == 2
+        leaves_are_floats = isinstance(sample_preds[0][0], float)
+        elements_are_strings = isinstance(sample_preds[0], str)
+        return (elements_are_pairs and leaves_are_floats) or elements_are_strings
+
+    def _get_spacy_predictions_and_labels(
+        self, model: Language, prepared_dataset: Dataset, batch_size: int
+    ) -> tuple:
+        raise FrameworkCannotHandleTask(
+            framework="spaCy", task=self.task_config.pretty_name
+        )
+
 
 def prepare_test_examples(
     examples: dict,
