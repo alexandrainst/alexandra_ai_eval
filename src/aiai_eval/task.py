@@ -529,8 +529,6 @@ class Task(ABC):
                 The keys in the dict correspond to the metrics and values
                 the corresponding values.
         """
-        scores = list()
-        return_scores = dict()
         try:
             # Set random seeds to enforce reproducibility of the randomly
             # initialised weights
@@ -553,7 +551,7 @@ class Task(ABC):
                 self.carbon_tracker.start()
 
             # Get model predictions
-            model_predictions, labels = self._get_spacy_predictions_and_labels(
+            model_predictions = self._get_spacy_predictions(
                 model=model, prepared_dataset=prepared_dataset, batch_size=batch_size
             )
 
@@ -564,37 +562,45 @@ class Task(ABC):
                     model_predictions=model_predictions
                 ):
                     raise ModelNotTrainedForTask(
-                        task=self.task_config.name, framework="spacy"
+                        task=self.task_config.name, framework=model_config.framework
                     )
 
-            # Compute the metrics
-            metrics = self._compute_metrics(
-                predictions_and_labels=[(model_predictions, labels)],
+            # Perform post-processing of predictions
+            prepared_predictions_and_labels = self._prepare_predictions_and_labels(
+                predictions=model_predictions,
+                dataset=dataset,
+                prepared_dataset=prepared_dataset,
             )
-            # Append the metrics to the list of all scores
-            scores.append(metrics)
 
-            # Stop carbon emissions tracking
+            # If there are multiple metrics but only one pair in the
+            # `all_predictions_labels` list, we copy our that entry to ensure there is a
+            # pair for each metric
+            if (
+                len(prepared_predictions_and_labels) == 1
+                and len(self.task_config.metrics) > 1
+            ):
+                prepared_predictions_and_labels *= len(self.task_config.metrics)
+
+            # Compute the metrics for each prediction batch
+            scores = self._compute_metrics(
+                predictions_and_labels=prepared_predictions_and_labels,
+            )
+
+            # Stop carbon emissions tracking and store emission metrics
             if self.evaluation_config.track_carbon_emissions:
                 self.carbon_tracker.stop()
                 emissions_data = self.carbon_tracker.final_emissions_data
                 factor = 1_000_000 / len(prepared_dataset)
-                return_scores["carbon_emissions"] = factor * emissions_data.emissions
-                return_scores["energy_consumed"] = (
-                    factor * emissions_data.energy_consumed
-                )
+                scores["carbon_emissions"] = factor * emissions_data.emissions
+                scores["energy_consumed"] = factor * emissions_data.energy_consumed
 
-            if len(scores) > 0:
-                for metric_cfg in self.task_config.metrics:
-                    return_scores[metric_cfg.name] = np.mean(
-                        [score[metric_cfg.name] for score in scores]
-                    )
-            return return_scores
+            return scores
 
         except (RuntimeError, ValueError, IndexError) as e:
             if "PYTORCH_ENABLE_MPS_FALLBACK" in str(e):
                 raise MPSFallbackNotEnabled()
 
+            # Prevent memory leaks
             try:
                 del model
             except UnboundLocalError:
@@ -604,6 +610,8 @@ class Task(ABC):
             except UnboundLocalError:
                 pass
             clear_memory()
+
+            # Return the error if it wasn't caught by the above conditionals
             return e
 
     def _compute_metrics(
@@ -653,7 +661,7 @@ class Task(ABC):
         dataset: Dataset,
         prepared_dataset: Dataset,
         **kwargs,
-    ) -> List[Tuple[np.ndarray, np.ndarray]]:
+    ) -> List[Tuple[list, list]]:
         """Prepare predictions and labels for output.
 
         Args:
@@ -679,10 +687,10 @@ class Task(ABC):
             predictions = np.argmax(predictions, axis=-1)
 
         # Extract labels from dataset
-        labels = np.asarray(prepared_dataset["labels"])
+        labels = prepared_dataset["labels"]
 
         # Return the predictions and labels
-        return [(predictions, labels)]
+        return [(list(predictions), list(labels))]
 
     def __call__(self, *args, **kwargs):
         return self.evaluate(*args, **kwargs)
@@ -819,9 +827,9 @@ class Task(ABC):
         pass
 
     @abstractmethod
-    def _get_spacy_predictions_and_labels(
+    def _get_spacy_predictions(
         self, model: Language, prepared_dataset: Dataset, batch_size: int
-    ) -> tuple:
+    ) -> list:
         """Get predictions from SpaCy model on dataset.
 
         Args:
@@ -833,9 +841,8 @@ class Task(ABC):
                 The batch size to use.
 
         Returns:
-            A pair of arrays:
-                The first array contains the probability predictions and the second
-                array contains the true labels.
+            list:
+                The predictions.
         """
         pass
 
