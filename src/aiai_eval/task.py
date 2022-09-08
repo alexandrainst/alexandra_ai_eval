@@ -12,7 +12,7 @@ import numpy as np
 import spacy
 import torch
 import torch.nn as nn
-from datasets import Dataset, DatasetDict, load_dataset, load_metric
+from datasets import Dataset, DatasetDict, DownloadMode, load_dataset, load_metric
 from torch.nn.parameter import Parameter
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
@@ -706,9 +706,13 @@ class Task(ABC):
             InvalidEvaluation:
                 If the split names specified are incorrect.
         """
+        # Set the dataset to redownload if we are running unit tests
+        download_mode: Optional[DownloadMode] = None
+        if self.evaluation_config.testing:
+            download_mode = DownloadMode.FORCE_REDOWNLOAD
+
         # Download dataset from the Hugging Face Hub
         dataset_dict: DatasetDict
-        download_mode = "force_redownload" if self.evaluation_config.testing else None
         dataset_dict = load_dataset(  # type: ignore
             path=self.task_config.huggingface_id,
             use_auth_token=self.evaluation_config.use_auth_token,

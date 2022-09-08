@@ -3,7 +3,7 @@
 from copy import deepcopy
 
 import pytest
-from datasets import Dataset, load_dataset
+from datasets import Dataset, DownloadMode, load_dataset
 from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding
 
 from src.aiai_eval.exceptions import (
@@ -20,7 +20,7 @@ def dataset():
     yield load_dataset(
         path="DDSC/angry-tweets",
         split="train",
-        download_mode="force_redownload",
+        download_mode=DownloadMode.FORCE_REDOWNLOAD,
     )
 
 
