@@ -237,18 +237,17 @@ class Evaluator:
             results = task(model_id)
             self.evaluation_results[task_config.name][model_id] = results
             logger.debug(f"Results:\n{results}")
-        except (InvalidEvaluation, InvalidArchitectureForTask) as e:
-            if type(e) == InvalidEvaluation:
-                logger.info(
-                    f"{model_id} could not be evaluated on {task_config.pretty_name}. "
-                    "Skipping."
-                )
-                logger.debug(f'The error message was "{e}".')
-            elif type(e) == InvalidArchitectureForTask:
-                logger.warning(
-                    f"Skipping evaluation of {model_id} on {task_config.pretty_name} "
-                    "as the architecture is not supported by the task."
-                )
+        except InvalidEvaluation as e:
+            logger.info(
+                f"{model_id} could not be evaluated on {task_config.pretty_name}. "
+                "Skipping."
+            )
+            logger.debug(f'The error message was "{e}".')
+        except InvalidArchitectureForTask:
+            logger.info(
+                f"Skipping evaluation of {model_id} on {task_config.pretty_name} "
+                "as the architecture is not supported by the task."
+            )
 
     def __call__(
         self, model_id: Union[Sequence[str], str], task: Union[Sequence[str], str]
