@@ -5,7 +5,6 @@ from functools import partial
 from typing import List, Sequence, Tuple
 
 import numpy as np
-import torch
 from datasets.arrow_dataset import Dataset
 from spacy.language import Language
 from spacy.tokens import Token
@@ -211,35 +210,13 @@ class NamedEntityRecognition(Task):
         ]
 
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
-        """Check if the model is trained for the task.
 
-        Args:
-            model_predictions (list):
-                The predictions of the model.
-
-        Returns:
-            bool:
-                True if the model is trained for the task, False otherwise.
-        """
         sample_preds = model_predictions[0]
+        has_sequence_elements = len(sample_preds[0]) > 0
+        leaves_are_floats = isinstance(sample_preds[0][0], float)
+        elements_are_strings = isinstance(sample_preds[0], str)
 
-        # Check if output comes from a pytorch or spacy model.
-        if isinstance(sample_preds, torch.Tensor):
-            try:
-                if (
-                    isinstance(sample_preds[0], torch.Tensor)
-                    and len(sample_preds[0]) > 0
-                    and isinstance(sample_preds[0][0].item(), float)
-                ):
-                    return True
-                else:
-                    return False
-            except TypeError:
-                # This happens if the output is a torch.Tensor with no length, i.e. the
-                # model output fits sequence classification and not token classification.
-                return False
-        else:
-            return isinstance(sample_preds, list) and isinstance(sample_preds[0], str)
+        return (has_sequence_elements and leaves_are_floats) or elements_are_strings
 
 
 def tokenize_and_align_labels(
