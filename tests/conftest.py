@@ -1,11 +1,15 @@
 """Global fixtures for unit tests."""
 
 import pytest
+from datasets.fingerprint import disable_caching
 
 from src.aiai_eval.config import EvaluationConfig
 from src.aiai_eval.hf_hub import get_model_config
 from src.aiai_eval.task_configs import get_all_task_configs
 from src.aiai_eval.utils import Device
+
+# Disable `datasets` caching
+disable_caching()
 
 
 @pytest.fixture(scope="session")
