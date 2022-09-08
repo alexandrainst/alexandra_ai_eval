@@ -10,9 +10,6 @@ from transformers.data.data_collator import DataCollatorForTokenClassification
 from transformers.models.auto.configuration_auto import AutoConfig
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
-from src.aiai_eval.exceptions import InvalidEvaluation
-from src.aiai_eval.hf_hub import get_model_config
-from src.aiai_eval.model_loading import load_spacy_model
 from src.aiai_eval.named_entity_recognition import (
     NamedEntityRecognition,
     tokenize_and_align_labels,
