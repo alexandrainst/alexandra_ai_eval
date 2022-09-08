@@ -4,6 +4,7 @@
 
 import logging
 import os
+import sys
 
 import colorama
 import pkg_resources
@@ -38,3 +39,5 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 # Tell Windows machines to use UTF-8 encoding
 os.environ["ConEmuDefaultCp"] = "65001"
 os.environ["PYTHONIOENCODING"] = "UTF-8"
+sys.stdin.reconfigure(encoding="utf-8")  # type: ignore
+sys.stdout.reconfigure(encoding="utf-8")  # type: ignore
