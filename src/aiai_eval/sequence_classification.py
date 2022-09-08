@@ -2,12 +2,11 @@
 
 from functools import partial
 
-import torch
 from datasets.arrow_dataset import Dataset
 from transformers.data.data_collator import DataCollatorWithPadding
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
-from .exceptions import InvalidEvaluation, MissingLabel, WrongFeatureColumnName
+from .exceptions import FrameworkCannotHandleTask, MissingLabel, WrongFeatureColumnName
 from .task import Task
 
 
@@ -30,9 +29,8 @@ class SequenceClassification(Task):
     def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
 
         if framework == "spacy":
-            raise InvalidEvaluation(
-                "Evaluation of text predictions for SpaCy models is not yet "
-                "implemented."
+            raise FrameworkCannotHandleTask(
+                framework="spaCy", task=self.task_config.pretty_name
             )
 
         # We are now assuming we are using pytorch
@@ -89,30 +87,14 @@ class SequenceClassification(Task):
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
         return DataCollatorWithPadding(tokenizer, padding="longest")
 
-    def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
-        raise InvalidEvaluation(
-            "Evaluation of text classification tasks for SpaCy models is not possible."
-        )
-
     def _get_spacy_predictions_and_labels(
         self, model, dataset: Dataset, batch_size: int
     ) -> tuple:
-        raise InvalidEvaluation(
-            "Evaluation of text classification tasks for SpaCy models is not possible."
+        raise FrameworkCannotHandleTask(
+            framework="spaCy", task=self.task_config.pretty_name
         )
 
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
-        """Check if the model is trained for the task.
-
-        Args:
-            model_predictions (list):
-                The predictions of the model.
-
-        Returns:
-            bool:
-                True if the model is trained for the task, False otherwise.
-        """
         sample_preds = model_predictions[0]
-        return isinstance(sample_preds, torch.Tensor) and isinstance(
-            sample_preds[0].item(), float
-        )
+        elements_are_floats = isinstance(sample_preds[0], float)
+        return elements_are_floats
