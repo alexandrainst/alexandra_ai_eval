@@ -94,7 +94,7 @@ class NamedEntityRecognition(Task):
             return example
 
         dataset = dataset.add_column("labels", dataset["ner_tags"])
-        return dataset.map(create_label_col)
+        return dataset.map(create_label_col, load_from_cache_file=False)
 
     def _get_spacy_predictions_and_labels(
         self, model: Any, dataset: Dataset, batch_size: int

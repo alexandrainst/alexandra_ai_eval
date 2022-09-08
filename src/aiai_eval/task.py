@@ -708,10 +708,12 @@ class Task(ABC):
         """
         # Download dataset from the Hugging Face Hub
         dataset_dict: DatasetDict
+        download_mode = "force_redownload" if self.evaluation_config.testing else None
         dataset_dict = load_dataset(  # type: ignore
             path=self.task_config.huggingface_id,
             use_auth_token=self.evaluation_config.use_auth_token,
             cache_dir=self.evaluation_config.cache_dir,
+            download_mode=download_mode,
         )
 
         # Remove all other keys than the split names
@@ -807,6 +809,7 @@ class Task(ABC):
                 model_config.model_id,
                 revision=model_config.revision,
                 use_auth_token=self.evaluation_config.use_auth_token,
+                force_download=self.evaluation_config.testing,
             )
 
             # Check whether the supertask is a valid one
@@ -831,6 +834,7 @@ class Task(ABC):
                 config=config,
                 cache_dir=self.evaluation_config.cache_dir,
                 from_flax=from_flax,
+                force_download=self.evaluation_config.testing,
             )
 
         # If an error occured then throw an informative exception
@@ -850,12 +854,13 @@ class Task(ABC):
         # space to the tokens, by the way the model is constructed.
         m_id = model_config.model_id
         prefix = "Roberta" in type(model).__name__
-        params = dict(use_fast=True, add_prefix_space=prefix)
         tokenizer = AutoTokenizer.from_pretrained(
             m_id,
             revision=model_config.revision,
             use_auth_token=self.evaluation_config.use_auth_token,
-            **params,
+            force_download=self.evaluation_config.testing,
+            use_fast=True,
+            add_prefix_space=prefix,
         )
 
         # Set the maximal length of the tokenizer to the model's maximal length.
