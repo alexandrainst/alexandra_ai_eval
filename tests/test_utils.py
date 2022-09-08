@@ -68,7 +68,7 @@ class TestEnforceReproducibility:
         first_layers = [
             layer
             for layer in AutoModelForSequenceClassification.from_pretrained(
-                model_id
+                model_id,
             ).classifier.children()
             if hasattr(layer, "weight")
         ]
@@ -78,7 +78,7 @@ class TestEnforceReproducibility:
         second_layers = [
             layer
             for layer in AutoModelForSequenceClassification.from_pretrained(
-                model_id
+                model_id,
             ).classifier.children()
             if hasattr(layer, "weight")
         ]
@@ -89,7 +89,7 @@ class TestEnforceReproducibility:
         third_layers = [
             layer
             for layer in AutoModelForSequenceClassification.from_pretrained(
-                model_id
+                model_id,
             ).classifier.children()
             if hasattr(layer, "weight")
         ]

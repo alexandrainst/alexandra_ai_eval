@@ -28,12 +28,12 @@ def ner(evaluation_config):
 
 @pytest.fixture(scope="module")
 def tokenizer():
-    yield AutoTokenizer.from_pretrained("DaNLP/da-bert-ner")
+    yield AutoTokenizer.from_pretrained("DaNLP/da-bert-ner", force_download=True)
 
 
 @pytest.fixture(scope="module")
 def model_config():
-    config = AutoConfig.from_pretrained("DaNLP/da-bert-ner")
+    config = AutoConfig.from_pretrained("DaNLP/da-bert-ner", force_download=True)
     config.label2id = {lbl.upper(): idx for lbl, idx in config.label2id.items()}
     yield config
 

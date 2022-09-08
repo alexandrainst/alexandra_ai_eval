@@ -31,12 +31,12 @@ def seq_clf(evaluation_config):
 
 @pytest.fixture(scope="module")
 def tokenizer():
-    yield AutoTokenizer.from_pretrained("pin/senda")
+    yield AutoTokenizer.from_pretrained("pin/senda", force_download=True)
 
 
 @pytest.fixture(scope="module")
 def model_config():
-    config = AutoConfig.from_pretrained("pin/senda")
+    config = AutoConfig.from_pretrained("pin/senda", force_download=True)
     config.label2id = {lbl.upper(): idx for lbl, idx in config.label2id.items()}
     yield config
 
