@@ -97,14 +97,14 @@ class TestEvaluateSingle:
     def test_evaluate_single_raise_warning_invalid_task(
         self, evaluator, existing_model_id, task_config, caplog
     ):
-        with caplog.at_level(logging.WARNING):
+        with caplog.at_level(logging.INFO):
             evaluator._evaluate_single(
                 task_config=task_config, model_id=existing_model_id
             )
         assert (
             f"Skipping evaluation of {existing_model_id} on {task_config.pretty_name} "
             "as the architecture is not supported by the task."
-        ) == caplog.text
+        ) in caplog.text
 
     @pytest.mark.parametrize(
         argnames="model_id, task_config, expected_results",
