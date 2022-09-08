@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from datasets.arrow_dataset import Dataset
 from datasets.metric import Metric
+from spacy.language import Language
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
 from src.aiai_eval.task import Task
@@ -21,16 +22,10 @@ class TaskDummy(Task):
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
         return None
 
-    def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
+    def _get_spacy_predictions(
+        self, model: Language, prepared_dataset: Dataset, batch_size: int
+    ) -> list:
         return list()
-
-    def _get_spacy_predictions_and_labels(
-        self, model, dataset: Dataset, batch_size: int
-    ) -> tuple:
-        return list(), list()
-
-    def _preprocess_data_spacy(self, dataset: Dataset) -> Dataset:
-        return Dataset.from_dict(dict(a=[1, 2, 3], b=[4, 5, 6]))
 
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
         return True
@@ -92,13 +87,7 @@ class TestAbstractMethods:
         assert "_load_data_collator" in abstract_metods
 
     def test_get_spacy_predictions_and_labels_is_abstract(self, abstract_metods):
-        assert "_get_spacy_predictions_and_labels" in abstract_metods
-
-    def test_extract_spacy_predictions_is_abstract(self, abstract_metods):
-        assert "_extract_spacy_predictions" in abstract_metods
-
-    def test_preprocess_data_spacy_is_abstract(self, abstract_metods):
-        assert "_preprocess_data_spacy" in abstract_metods
+        assert "_get_spacy_predictions" in abstract_metods
 
     def test_check_if_model_is_trained_for_task_is_abstract(self, abstract_metods):
         assert "_check_if_model_is_trained_for_task" in abstract_metods
