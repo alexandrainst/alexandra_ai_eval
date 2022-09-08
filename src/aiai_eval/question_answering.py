@@ -6,10 +6,11 @@ from typing import List, Sequence, Tuple
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
+from spacy.language import Language
 from transformers.data.data_collator import default_data_collator
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
-from .exceptions import InvalidEvaluation
+from .exceptions import FrameworkCannotHandleTask
 from .task import Task
 
 
@@ -32,9 +33,8 @@ class QuestionAnswering(Task):
     def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
 
         if framework == "spacy":
-            raise InvalidEvaluation(
-                "Evaluation of question answering tasks for SpaCy models is currently "
-                "not possible."
+            raise FrameworkCannotHandleTask(
+                framework="spaCy", task=self.task_config.pretty_name
             )
 
         # Get the tokenizer
