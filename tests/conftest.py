@@ -4,6 +4,7 @@ import pytest
 
 from src.aiai_eval.config import EvaluationConfig, MetricConfig
 from src.aiai_eval.hf_hub import get_model_config
+from src.aiai_eval.model_loading import load_spacy_model
 from src.aiai_eval.task_configs import get_all_task_configs
 from src.aiai_eval.utils import Device
 
@@ -53,3 +54,17 @@ def metric_config():
         results_key="metric-key",
         postprocessing_fn=lambda x: f"{x:.2f}",
     )
+
+
+@pytest.fixture(
+    scope="session",
+    params=[
+        "spacy/da_core_news_sm",
+        "spacy/en_core_web_sm",
+    ],
+)
+def spacy_model(request, evaluation_config):
+    model_config_spacy = get_model_config(
+        model_id=request.param, evaluation_config=evaluation_config
+    )
+    yield load_spacy_model(model_config=model_config_spacy)["model"]

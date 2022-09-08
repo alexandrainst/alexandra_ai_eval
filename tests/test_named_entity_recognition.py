@@ -12,6 +12,7 @@ from transformers.models.auto.tokenization_auto import AutoTokenizer
 
 from src.aiai_eval.exceptions import InvalidEvaluation
 from src.aiai_eval.hf_hub import get_model_config
+from src.aiai_eval.model_loading import load_spacy_model
 from src.aiai_eval.named_entity_recognition import (
     NamedEntityRecognition,
     tokenize_and_align_labels,
@@ -39,16 +40,6 @@ def model_config():
     config = AutoConfig.from_pretrained("DaNLP/da-bert-ner")
     config.label2id = {lbl.upper(): idx for lbl, idx in config.label2id.items()}
     yield config
-
-
-@pytest.fixture(scope="module")
-def model_config_spacy(evaluation_config):
-    yield get_model_config("spacy/da_core_news_md", evaluation_config=evaluation_config)
-
-
-@pytest.fixture(scope="module")
-def spacy_model(ner, model_config_spacy):
-    yield ner._load_spacy_model(model_config_spacy)["model"]
 
 
 @pytest.fixture(scope="module")
