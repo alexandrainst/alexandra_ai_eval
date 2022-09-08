@@ -104,7 +104,7 @@ class TestEvaluateSingle:
         assert (
             f"Skipping evaluation of {existing_model_id} on {task_config.pretty_name} "
             "as the architecture is not supported by the task."
-        ) in caplog.text
+        ) == caplog.text
 
     @pytest.mark.parametrize(
         argnames="model_id, task_config, expected_results",
