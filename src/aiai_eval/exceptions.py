@@ -175,3 +175,13 @@ class ModelNotTrainedForTask(Exception):
         self.framework = framework
         self.message = f"The {framework} model is not trained for the task {self.task}."
         super().__init__(self.message)
+
+
+class FrameworkCannotHandleTask(Exception):
+    def __init__(self, framework: str, task: str):
+        self.task = task
+        self.framework = framework
+        self.message = (
+            f"Evaluation of {framework} models on the {task} task is not supported."
+        )
+        super().__init__(self.message)
