@@ -202,9 +202,9 @@ class QuestionAnswering(Task):
         elements_are_strings = isinstance(sample_preds[0], str)
         return (elements_are_pairs and leaves_are_floats) or elements_are_strings
 
-    def _get_spacy_predictions_and_labels(
+    def _get_spacy_predictions(
         self, model: Language, prepared_dataset: Dataset, batch_size: int
-    ) -> tuple:
+    ) -> list:
         raise FrameworkCannotHandleTask(
             framework="spaCy", task=self.task_config.pretty_name
         )
