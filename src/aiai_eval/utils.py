@@ -23,46 +23,32 @@ from .exceptions import InvalidArchitectureForTask
 logger = logging.getLogger(__name__)
 
 
-def numpy_array_dtype_int(array: np.ndarray) -> bool:
-    """Checks if the dtype of a NumPy array is int or float.
+def has_integers(seq: Sequence) -> bool:
+    """Checks if a sequence contains only integers.
 
     Args:
-        array (np.ndarray):
-            The array to check.
+        seq (Sequence):
+            The sequence to check.
 
     Returns:
         bool:
-            Whether the dtype is int or float.
+            Whether the sequence contains only integers.
     """
-    return array.dtype.kind == "i"
+    return np.asarray(seq).dtype.kind == "i"
 
 
-def numpy_array_dtype_float(array: np.ndarray) -> bool:
-    """Checks if the dtype of a NumPy array is float.
+def has_floats(seq: Sequence) -> bool:
+    """Checks if a sequence contains only floats.
 
     Args:
-        array (np.ndarray):
-            The array to check.
+        seq (Sequence):
+            The sequence to check.
 
     Returns:
         bool:
-            Whether the dtype is float.
+            Whether the sequence contains only floats.
     """
-    return array.dtype.kind == "f"
-
-
-def numpy_array_dtype_int_or_float(array: np.ndarray) -> bool:
-    """Checks if the dtype of a NumPy array is int or float.
-
-    Args:
-        array (np.ndarray):
-            The array to check.
-
-    Returns:
-        bool:
-            Whether the dtype is int or float.
-    """
-    return numpy_array_dtype_float(array) or numpy_array_dtype_int(array)
+    return np.asarray(seq).dtype.kind == "f"
 
 
 def clear_memory():
