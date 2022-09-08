@@ -14,7 +14,11 @@ from src.aiai_eval.task_configs import NER
 
 @pytest.fixture(scope="module")
 def dataset():
-    yield load_dataset("dane", split="train")
+    yield load_dataset(
+        path="dane",
+        split="train",
+        download_mode="force_redownload",
+    )
 
 
 @pytest.fixture(scope="module")
@@ -24,12 +28,12 @@ def ner(evaluation_config):
 
 @pytest.fixture(scope="module")
 def tokenizer():
-    yield AutoTokenizer.from_pretrained("DaNLP/da-bert-ner")
+    yield AutoTokenizer.from_pretrained("DaNLP/da-bert-ner", force_download=True)
 
 
 @pytest.fixture(scope="module")
 def model_config():
-    config = AutoConfig.from_pretrained("DaNLP/da-bert-ner")
+    config = AutoConfig.from_pretrained("DaNLP/da-bert-ner", force_download=True)
     config.label2id = {lbl.upper(): idx for lbl, idx in config.label2id.items()}
     yield config
 
