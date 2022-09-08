@@ -17,7 +17,11 @@ from src.aiai_eval.task_configs import SENT
 
 @pytest.fixture(scope="module")
 def dataset():
-    yield load_dataset("DDSC/angry-tweets", split="train")
+    yield load_dataset(
+        path="DDSC/angry-tweets",
+        split="train",
+        download_mode="force_redownload",
+    )
 
 
 @pytest.fixture(scope="module")
