@@ -62,24 +62,24 @@ class NamedEntityRecognition(Task):
 
         return tokenised_dataset
 
-    def _get_spacy_predictions_and_labels(
-        self, model: Language, dataset: Dataset, batch_size: int
-    ) -> tuple:
+    def _get_spacy_predictions(
+        self, model: Language, prepared_dataset: Dataset, batch_size: int
+    ) -> list:
 
         if self.evaluation_config.progress_bar:
             itr = tqdm(
-                dataset[self.task_config.feature_column_names[0]],
+                prepared_dataset[self.task_config.feature_column_names[0]],
                 desc="Evaluating model",
                 leave=False,
             )
         else:
-            itr = dataset[self.task_config.feature_column_names[0]]
+            itr = prepared_dataset[self.task_config.feature_column_names[0]]
 
         processed = model.pipe(itr, batch_size=batch_size)
         map_fn = self._extract_spacy_predictions
-        predictions = map(map_fn, zip(dataset["tokens"], processed))
+        predictions = map(map_fn, zip(prepared_dataset["tokens"], processed))
 
-        return list(predictions), dataset["labels"]
+        return list(predictions)
 
     def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
         """Helper function that extracts the predictions from a SpaCy model.
@@ -145,7 +145,7 @@ class NamedEntityRecognition(Task):
     ) -> List[Tuple[list, list]]:
 
         # Extract the `model_id2label` mapping
-        model_id2label = kwargs["model_id2label"]
+        model_id2label = kwargs.get("model_id2label")
 
         # Extract the labels from the dataset
         labels = prepared_dataset["labels"]
