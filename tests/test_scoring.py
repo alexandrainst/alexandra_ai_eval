@@ -3,18 +3,7 @@
 import numpy as np
 import pytest
 
-from src.aiai_eval.config import MetricConfig
 from src.aiai_eval.scoring import aggregate_scores, log_scores
-
-
-@pytest.fixture(scope="module")
-def metric_config():
-    yield MetricConfig(
-        name="metric_name",
-        pretty_name="Metric name",
-        huggingface_id="metric",
-        results_key="metric",
-    )
 
 
 @pytest.fixture(scope="module")

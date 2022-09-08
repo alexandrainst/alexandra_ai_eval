@@ -1,6 +1,6 @@
 """Custom exceptions used in the project."""
 
-from typing import Dict, Sequence
+from typing import Dict, Sequence, Union
 
 
 class InvalidEvaluation(Exception):
@@ -98,11 +98,11 @@ class MissingCountryISOCode(Exception):
         self,
         message: str = (
             "The carbon tracker calculates carbon usage based on power consumption, "
-            "and the country where the compute infrastructure is hosted. Internet connection "
-            "was not available and hence the location of the infrastructure could not be "
-            "automatically fetched, because of the location must be set, this is done by setting "
-            "the 'country_iso_code' in the config or `--country-iso-code` via the CLI to "
-            "the correct ISO code."
+            "and the country where the compute infrastructure is hosted. Internet "
+            "connection was not available and hence the location of the infrastructure "
+            "could not be automatically fetched, because of the location must be set, "
+            "this is done by setting the 'country_iso_code' in the config or "
+            "`--country-iso-code` via the CLI to the correct ISO code."
         ),
     ):
         self.message = message
@@ -114,17 +114,26 @@ class InvalidArchitectureForTask(Exception):
         self.architectures = architectures
         self.supertask = supertask
         self.message = (
-            f"The provided model-id has the following architectures: {str(self.architectures)}, "
-            f"none of which fits the provided task's supertask: {supertask}. Please provide another "
-            f"model ID which is a {supertask}-type model, or provide another task which fits the "
+            "The provided model-id has the following architectures: "
+            f"{str(self.architectures)}, none of which fits the provided task's "
+            f"supertask: {supertask}. Please provide another model ID which is a "
+            f"{supertask}-type model, or provide another task which fits the "
             f"aforementioned architectures."
         )
+        super().__init__(self.message)
 
 
 class WrongFeatureColumnName(Exception):
-    def __init__(self, feature_column_name: str):
-        self.feature_column_name = feature_column_name
-        self.message = f"The provided feature column name: {self.feature_column_name} was incorrect."
+    def __init__(self, feature_column_names: Union[str, Sequence[str]]):
+        # Ensure that feature_column_names is a sequence
+        if isinstance(feature_column_names, str):
+            feature_column_names = [feature_column_names]
+
+        self.feature_column_names = feature_column_names
+        self.message = (
+            "The provided feature column name(s) "
+            f"'{', '.join(self.feature_column_names)}' were incorrect."
+        )
         super().__init__(self.message)
 
 
@@ -153,9 +162,26 @@ class InvalidTokenizer(Exception):
         super().__init__(self.message)
 
 
+class InvalidTask(Exception):
+    def __init__(self, task: str):
+        self.task = task
+        self.message = f"The task '{task}' is not supported."
+        super().__init__(self.message)
+
+
 class ModelNotTrainedForTask(Exception):
     def __init__(self, framework: str, task: str):
         self.task = task
         self.framework = framework
         self.message = f"The {framework} model is not trained for the task {self.task}."
+        super().__init__(self.message)
+
+
+class FrameworkCannotHandleTask(Exception):
+    def __init__(self, framework: str, task: str):
+        self.task = task
+        self.framework = framework
+        self.message = (
+            f"Evaluation of {framework} models on the {task} task is not supported."
+        )
         super().__init__(self.message)

@@ -1,7 +1,7 @@
 """Configuration dataclasses."""
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from .utils import Device, Label, get_available_devices
 
@@ -21,6 +21,10 @@ class MetricConfig:
         results_key (str):
             The name of the key used to extract the metric scores from the results
             dictionary.
+        postprocessing_fn (callable):
+            A function that is applied to the metric scores after they are extracted
+            from the results dictionary. Must take a single float as input and return
+            a single string.
         compute_kwargs (dict, optional):
             Keyword arguments to pass to the metric's compute function. Defaults to
             an empty dictionary.
@@ -30,6 +34,7 @@ class MetricConfig:
     pretty_name: str
     huggingface_id: str
     results_key: str
+    postprocessing_fn: Callable[[float], str]
     compute_kwargs: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -45,20 +50,19 @@ class TaskConfig:
             for logging.
         huggingface_id (str):
             The Hugging Face ID of the dataset associated with the task.
+        huggingface_subset (str or None, optional):
+            The subset of the Hugging Face dataset associated with the task. Defaults
+            to None.
         supertask (str):
             The supertask of the task, describing the overall type of task.
         metrics (sequence of MetricConfig objects):
             The metrics used to evaluate the task.
         labels (sequence of Label objects):
             The labels used in the task.
-        feature_column_name (str):
-            The name of the feature column for the dataset.
-        train_name (str or None):
-            The name of the train split of the task. If None, the task has no train
-            split.
-        val_name (str or None):
-            The name of the validation split of the task. If None, the task has no
-            validation split.
+        feature_column_names (list of str):
+            The names of the feature columns for the dataset.
+        label_column_name (str):
+            The name of the label column for the dataset.
         test_name (str or None):
             The name of the test split of the task. If None, the task has no test
             split.
@@ -73,15 +77,18 @@ class TaskConfig:
     """
 
     name: str
-    pretty_name: str
     huggingface_id: str
+    huggingface_subset: Optional[str]
     supertask: str
-    metrics: Sequence[MetricConfig]
-    labels: Sequence[Label]
-    feature_column_name: str
-    train_name: Optional[str]
-    val_name: Optional[str]
+    metrics: List[MetricConfig]
+    labels: List[Label]
+    feature_column_names: List[str]
+    label_column_name: str
     test_name: Optional[str]
+
+    @property
+    def pretty_name(self) -> str:
+        return self.name.replace("-", " ")
 
     @property
     def id2label(self) -> List[str]:

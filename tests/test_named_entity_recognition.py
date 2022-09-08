@@ -2,13 +2,18 @@
 
 from functools import partial
 
+import numpy as np
 import pytest
-from datasets import Dataset, load_dataset
-from transformers import AutoConfig, AutoTokenizer, DataCollatorForTokenClassification
+from datasets.arrow_dataset import Dataset
+from datasets.load import load_dataset
+from transformers.data.data_collator import DataCollatorForTokenClassification
+from transformers.models.auto.configuration_auto import AutoConfig
+from transformers.models.auto.tokenization_auto import AutoTokenizer
 
-from src.aiai_eval.exceptions import InvalidEvaluation
-from src.aiai_eval.hf_hub import get_model_config
-from src.aiai_eval.named_entity_recognition import NamedEntityRecognition
+from src.aiai_eval.named_entity_recognition import (
+    NamedEntityRecognition,
+    tokenize_and_align_labels,
+)
 from src.aiai_eval.task_configs import NER
 
 
@@ -35,30 +40,18 @@ def model_config():
 
 
 @pytest.fixture(scope="module")
-def model_config_spacy(evaluation_config):
-    yield get_model_config("spacy/da_core_news_md", evaluation_config=evaluation_config)
-
-
-@pytest.fixture(scope="module")
-def spacy_model(ner, model_config_spacy):
-    yield ner._load_spacy_model(model_config_spacy)["model"]
-
-
-@pytest.fixture(scope="module")
 def preprocessed_spacy(dataset, ner):
-    yield ner._preprocess_data_spacy(
-        dataset=dataset,
-    )
+    yield ner._preprocess_data(dataset=dataset, framework="spacy")
 
 
-class TestPreprocessDataTransformer:
+class TestPreprocessData:
     @pytest.fixture(scope="class")
     def preprocessed(self, dataset, ner, tokenizer, model_config):
-        yield ner._preprocess_data_transformer(
+        yield ner._preprocess_data(
             dataset=dataset,
             framework="pytorch",
             tokenizer=tokenizer,
-            config=model_config,
+            model_config=model_config,
         )
 
     def test_preprocessed_is_dataset(self, preprocessed):
@@ -66,10 +59,10 @@ class TestPreprocessDataTransformer:
 
     def test_preprocessed_columns(self, preprocessed):
         assert set(preprocessed.features.keys()) == {
-            "labels",
             "input_ids",
             "token_type_ids",
             "attention_mask",
+            "labels",
         }
 
 
@@ -77,27 +70,21 @@ class TestTokenizeAndAlignLabels:
     @pytest.fixture(scope="class")
     def tokenised_dataset(self, ner, model_config, tokenizer, dataset):
         map_fn = partial(
-            ner._tokenize_and_align_labels,
+            tokenize_and_align_labels,
             tokenizer=tokenizer,
-            label2id=model_config.label2id,
+            model_label2id=model_config.label2id,
+            dataset_id2label=ner.task_config.id2label,
+            label_column_name=ner.task_config.label_column_name,
         )
         yield dataset.map(map_fn, batched=True, load_from_cache_file=False)
 
     def test_tokenize_and_align_labels_length(self, tokenised_dataset, dataset):
-        tokenised_dataset = tokenised_dataset.remove_columns(
-            [
-                "labels",
-                "input_ids",
-                "token_type_ids",
-                "attention_mask",
-            ]
-        )
         assert len(tokenised_dataset) == len(dataset)
 
     def test_tokenize_and_align_labels_columns(self, tokenised_dataset):
         assert set(tokenised_dataset.features.keys()) == {
             "text",
-            "labels",
+            "ner_tags",
             "input_ids",
             "token_type_ids",
             "attention_mask",
@@ -109,21 +96,8 @@ class TestTokenizeAndAlignLabels:
             "morph_tags",
             "dep_ids",
             "dep_labels",
-            "ner_tags",
+            "labels",
         }
-
-
-class TestPreprocessDataPyTorch:
-    @pytest.fixture(scope="class")
-    def preprocessed(self, dataset, ner, tokenizer, model_config):
-        yield ner._preprocess_data_pytorch(
-            dataset=dataset,
-            tokenizer=tokenizer,
-            config=model_config,
-        )
-
-    def test_preprocessed_is_list(self, preprocessed):
-        assert isinstance(preprocessed, list)
 
 
 class TestLoadDataCollator:
@@ -138,71 +112,48 @@ class TestLoadDataCollator:
         assert data_collator.label_pad_token_id == -100
 
 
-class TestExtractSpacyPredictions:
-    @pytest.fixture(scope="class")
-    def batch_size(self):
-        yield 2
+def test_compute_metrics(ner):
 
-    @pytest.fixture(scope="class")
-    def spacy_predictions(self, spacy_model, batch_size, dataset):
-        processed = spacy_model.pipe(
-            dataset[NER.feature_column_name], batch_size=batch_size
-        )[0]
-        tokens = dataset["tokens"][0]
-        token_processed = zip(tokens, processed)
-        yield ner._extract_spacy_predictions(token_processed)
+    # Define predictions and labels
+    predictions = [
+        ["O", "O", "B-MISC", "I-MISC", "I-MISC", "I-MISC", "O"],
+        ["B-PER", "I-PER", "O"],
+    ]
+    labels = [
+        ["O", "O", "O", "B-MISC", "I-MISC", "I-MISC", "O"],
+        ["B-PER", "I-PER", "O"],
+    ]
 
-    def test_preprocessed_spacy_predictions_length(self, preprocessed_spacy, dataset):
-        assert len(preprocessed_spacy) == len(dataset)
+    # Set up predictions and labels as arrays
+    predictions_and_labels = [
+        (np.asarray(predictions), np.array(labels)),
+    ]
 
-    def test_preprocessed_spacy_predictions_columns(self, preprocessed_spacy):
-        assert set(preprocessed_spacy.features.keys()) == {
-            "text",
-            "labels",
-            "tokens",
-            "lemmas",
-            "sent_id",
-            "tok_ids",
-            "pos_tags",
-            "morph_tags",
-            "dep_ids",
-            "dep_labels",
-            "ner_tags",
-        }
+    # Compute metrics
+    metrics = ner._compute_metrics(
+        predictions_and_labels=predictions_and_labels,
+    )
+
+    # Check metrics
+    assert isinstance(metrics, dict)
+    for value in metrics.values():
+        assert isinstance(value, float)
 
 
 class TestGetSpacyPredictionsAndLabels:
     @pytest.fixture(scope="class")
-    def batch_size(self):
-        yield 2
-
-    @pytest.fixture(scope="class")
-    def preprocessed_spacy(self, preprocessed_spacy, ner, spacy_model, batch_size):
-        yield ner._get_spacy_predictions_and_labels(
-            model=spacy_model, dataset=preprocessed_spacy, batch_size=batch_size
+    def spacy_predictions(self, preprocessed_spacy, ner, spacy_model):
+        yield ner._get_spacy_predictions(
+            model=spacy_model,
+            prepared_dataset=preprocessed_spacy,
+            batch_size=2,
         )
 
-    def test_preprocessed_spacy_is_tuple(self, preprocessed_spacy):
-        assert isinstance(preprocessed_spacy, tuple)
+    def test_predictions_is_list(self, spacy_predictions):
+        assert isinstance(spacy_predictions, list)
 
-    def test_preprocessed_spacy_predictions_are_list(self, preprocessed_spacy):
-        assert isinstance(preprocessed_spacy[0], list)
-
-    def test_preprocessed_spacy_labels_are_list(self, preprocessed_spacy):
-        assert isinstance(preprocessed_spacy[1], list)
-
-    def test_preprocessed_spacy_predictions_and_labels_have_same_length(
-        self, preprocessed_spacy
-    ):
-        assert len(preprocessed_spacy[0]) == len(preprocessed_spacy[1])
-
-    def test_preprocessed_spacy_predictions_are_lists_of_lists(
-        self, preprocessed_spacy
-    ):
-        assert isinstance(preprocessed_spacy[0][0], list)
-
-    def test_preprocessed_spacy_labels_are_lists_of_lists(self, preprocessed_spacy):
-        assert isinstance(preprocessed_spacy[1][0], list)
+    def test_predictions_are_lists_of_lists(self, spacy_predictions):
+        assert isinstance(spacy_predictions[0], list)
 
 
 class TestPreprocessDataSpacy:

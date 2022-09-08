@@ -1,14 +1,14 @@
 """Unit tests for the `evaluator` module."""
 
+import os
 from collections import defaultdict
-from typing import Dict
 
 import pytest
 
 from aiai_eval.utils import Device
 from src.aiai_eval.evaluator import Evaluator
-from src.aiai_eval.exceptions import InvalidArchitectureForTask, ModelDoesNotExist
-from src.aiai_eval.task_configs import NER, SENT
+from src.aiai_eval.exceptions import ModelDoesNotExist
+from src.aiai_eval.task_configs import NER, QA, SENT
 from src.aiai_eval.task_factory import TaskFactory
 
 
@@ -19,7 +19,7 @@ def evaluator():
         save_results=False,
         raise_error_on_invalid_model=False,
         cache_dir=".aiai_cache",
-        use_auth_token=False,
+        use_auth_token=os.environ["HUGGINGFACE_HUB_TOKEN"],
         track_carbon_emissions=False,
         country_iso_code="",
         prefer_device=Device.CPU,
@@ -93,14 +93,6 @@ class TestEvaluateSingle:
                 task_config=task_config, model_id=non_existing_model_id
             )
 
-    def test_evaluate_single_raise_exception_invalid_task(
-        self, evaluator, existing_model_id, task_config
-    ):
-        with pytest.raises(InvalidArchitectureForTask):
-            evaluator._evaluate_single(
-                task_config=task_config, model_id=existing_model_id
-            )
-
     @pytest.mark.parametrize(
         argnames="model_id, task_config, expected_results",
         argvalues=[
@@ -109,13 +101,13 @@ class TestEvaluateSingle:
                 SENT,
                 {
                     "raw": [
-                        {"macro_f1": 1.0, "mcc": 0.5},
-                        {"macro_f1": 1.0, "mcc": 0.5},
+                        {"macro_f1": 1.0, "mcc": 1.0},
+                        {"macro_f1": 1.0, "mcc": 1.0},
                     ],
                     "total": {
                         "macro_f1": 1.0,
                         "macro_f1_se": 0.0,
-                        "mcc": 0.5,
+                        "mcc": 1.0,
                         "mcc_se": 0.0,
                     },
                 },
@@ -125,13 +117,13 @@ class TestEvaluateSingle:
                 SENT,
                 {
                     "raw": [
-                        {"macro_f1": 1.0, "mcc": 0.5},
-                        {"macro_f1": 1.0, "mcc": 0.5},
+                        {"macro_f1": 1.0, "mcc": 1.0},
+                        {"macro_f1": 1.0, "mcc": 1.0},
                     ],
                     "total": {
                         "macro_f1": 1.0,
                         "macro_f1_se": 0.0,
-                        "mcc": 0.5,
+                        "mcc": 1.0,
                         "mcc_se": 0.0,
                     },
                 },
@@ -153,27 +145,40 @@ class TestEvaluateSingle:
                 },
             ),
             (
-                "DaNLP/da-bert-ner",
+                "Maltehb/aelaectra-danish-electra-small-cased-ner-dane",
                 NER,
                 {
                     "raw": [
-                        {"micro_f1": 0.75, "micro_f1_no_misc": 1.0},
-                        {"micro_f1": 0.8636363636363636, "micro_f1_no_misc": 1.0},
+                        {"micro_f1": 0.0, "micro_f1_no_misc": 0.0},
+                        {
+                            "micro_f1": 0.4444444444444445,
+                            "micro_f1_no_misc": 0.6666666666666666,
+                        },
                     ],
                     "total": {
-                        "micro_f1": 0.8068181818181819,
-                        "micro_f1_no_misc": 1.0,
-                        "micro_f1_no_misc_se": 0.0,
-                        "micro_f1_se": 0.11136363636363636,
+                        "micro_f1": 0.22222222222222224,
+                        "micro_f1_se": 0.4355555555555556,
+                        "micro_f1_no_misc": 0.3333333333333333,
+                        "micro_f1_no_misc_se": 0.6533333333333333,
                     },
                 },
             ),
-        ],
-        ids=[
-            "sent_pin-senda",
-            "sent_DaNLP-da-bert-tone-sentiment-polarity",
-            "ner_spacy-da_core_news_md",
-            "ner_DaNLP-da-bert-ner",
+            (
+                "deepset/minilm-uncased-squad2",
+                QA,
+                {
+                    "raw": [
+                        {"exact_match": 100.0, "qa_f1": 100.0},
+                        {"exact_match": 50.0, "qa_f1": 50.0},
+                    ],
+                    "total": {
+                        "exact_match": 75.0,
+                        "exact_match_se": 49.0,
+                        "qa_f1": 75.0,
+                        "qa_f1_se": 49.0,
+                    },
+                },
+            ),
         ],
     )
     def test_evaluate_single(self, evaluator, model_id, task_config, expected_results):
@@ -183,34 +188,39 @@ class TestEvaluateSingle:
 
 
 class TestEvaluate:
+    @pytest.fixture(scope="class")
+    def tasks_models(self):
+        yield [
+            (SENT, "pin/senda", "DaNLP/da-bert-tone-sentiment-polarity"),
+            (NER, "DaNLP/da-bert-ner", "saattrupdan/nbailab-base-ner-scandi"),
+        ]
 
-    # TODO: Once we have more than one type of task, this should test a combination of tasks,
-    # instead of just one type of task.
-    def test_evaluate_is_identical_to_evaluate_single(self, evaluator):
+    @pytest.mark.parametrize(
+        argnames="task_config, model_ids",
+        argvalues=[
+            (SENT, ["pin/senda", "DaNLP/da-bert-tone-sentiment-polarity"]),
+            (NER, ["DaNLP/da-bert-ner", "saattrupdan/nbailab-base-ner-scandi"]),
+        ],
+        ids=["sent", "ner"],
+    )
+    def test_evaluate_is_identical_to_evaluate_single(
+        self, evaluator, task_config, model_ids
+    ):
 
         # Get results from evaluate
-        evaluator.evaluate(
-            model_id=["pin/senda", "DaNLP/da-bert-tone-sentiment-polarity"],
-            task=["sent", "sent"],
-        )
-        pin_results = evaluator.evaluation_results["sent"]["pin/senda"]
-        danlp_results = evaluator.evaluation_results["sent"][
-            "DaNLP/da-bert-tone-sentiment-polarity"
-        ]
+        evaluator.evaluate(model_id=model_ids, task=task_config.name)
+        results1 = evaluator.evaluation_results[task_config.name][model_ids[0]]
+        results2 = evaluator.evaluation_results[task_config.name][model_ids[1]]
 
         # Reset evaluation results
-        evaluator.evaluation_results: Dict[str, dict] = defaultdict(dict)
+        evaluator.evaluation_results = defaultdict(dict)
 
         # Get results from evaluate_single
-        evaluator._evaluate_single(task_config=SENT, model_id="pin/senda")
-        evaluator._evaluate_single(
-            task_config=SENT, model_id="DaNLP/da-bert-tone-sentiment-polarity"
-        )
-        pin_results_single = evaluator.evaluation_results["sent"]["pin/senda"]
-        danlp_results_single = evaluator.evaluation_results["sent"][
-            "DaNLP/da-bert-tone-sentiment-polarity"
-        ]
+        evaluator._evaluate_single(task_config=task_config, model_id=model_ids[0])
+        evaluator._evaluate_single(task_config=task_config, model_id=model_ids[1])
+        results1_single = evaluator.evaluation_results[task_config.name][model_ids[0]]
+        results2_single = evaluator.evaluation_results[task_config.name][model_ids[1]]
 
         # Check that the results are the same
-        assert pin_results_single == pin_results
-        assert danlp_results_single == danlp_results
+        assert results1 == results1_single
+        assert results2 == results2_single
