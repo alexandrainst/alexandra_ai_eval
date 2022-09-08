@@ -14,32 +14,21 @@ from src.aiai_eval.config import (
 
 
 @pytest.fixture(scope="module")
-def metric_config():
-    yield MetricConfig(
-        name="metric_name",
-        pretty_name="Metric name",
-        huggingface_id="metric_id",
-        results_key="metric_key",
-    )
-
-
-@pytest.fixture(scope="module")
 def label():
-    yield Label(name="label_name", synonyms=["synonym1", "synonym2"])
+    yield Label(name="label-name", synonyms=["synonym1", "synonym2"])
 
 
 @pytest.fixture(scope="class")
 def task_config(metric_config, label):
     yield TaskConfig(
-        name="task_name",
-        pretty_name="Task name",
-        huggingface_id="dataset_id",
-        supertask="supertask_name",
+        name="task-name",
+        huggingface_id="dataset-id",
+        huggingface_subset=None,
+        supertask="supertask-name",
         metrics=[metric_config],
         labels=[label],
-        feature_column_name="column_name",
-        train_name="train",
-        val_name="val",
+        feature_column_names=["column-name"],
+        label_column_name="label",
         test_name="test",
     )
 
@@ -49,10 +38,10 @@ class TestMetricConfig:
         assert isinstance(metric_config, MetricConfig)
 
     def test_attributes_correspond_to_arguments(self, metric_config):
-        assert metric_config.name == "metric_name"
+        assert metric_config.name == "metric-name"
         assert metric_config.pretty_name == "Metric name"
-        assert metric_config.huggingface_id == "metric_id"
-        assert metric_config.results_key == "metric_key"
+        assert metric_config.huggingface_id == "metric-id"
+        assert metric_config.results_key == "metric-key"
 
     def test_default_value_of_compute_kwargs(self, metric_config):
         assert metric_config.compute_kwargs == dict()
@@ -63,7 +52,7 @@ class TestLabel:
         assert isinstance(label, Label)
 
     def test_attributes_correspond_to_arguments(self, label):
-        assert label.name == "label_name"
+        assert label.name == "label-name"
         assert label.synonyms == ["synonym1", "synonym2"]
 
 
@@ -74,15 +63,15 @@ class TestTaskConfig:
     def test_attributes_correspond_to_arguments(
         self, task_config, metric_config, label
     ):
-        assert task_config.name == "task_name"
-        assert task_config.pretty_name == "Task name"
-        assert task_config.huggingface_id == "dataset_id"
-        assert task_config.supertask == "supertask_name"
+        assert task_config.name == "task-name"
+        assert task_config.pretty_name == "task name"
+        assert task_config.huggingface_id == "dataset-id"
+        assert task_config.huggingface_subset is None
+        assert task_config.supertask == "supertask-name"
         assert task_config.metrics == [metric_config]
         assert task_config.labels == [label]
-        assert task_config.feature_column_name == "column_name"
-        assert task_config.train_name == "train"
-        assert task_config.val_name == "val"
+        assert task_config.feature_column_names == ["column-name"]
+        assert task_config.label_column_name == "label"
         assert task_config.test_name == "test"
 
     def test_id2label(self, task_config, label):
@@ -126,7 +115,7 @@ class TestModelConfig:
     @pytest.fixture(scope="class")
     def model_config(self):
         yield ModelConfig(
-            model_id="model_id",
+            model_id="model-id",
             revision="revision",
             framework="framework",
         )
@@ -135,6 +124,6 @@ class TestModelConfig:
         assert isinstance(model_config, ModelConfig)
 
     def test_attributes_correspond_to_arguments(self, model_config):
-        assert model_config.model_id == "model_id"
+        assert model_config.model_id == "model-id"
         assert model_config.revision == "revision"
         assert model_config.framework == "framework"

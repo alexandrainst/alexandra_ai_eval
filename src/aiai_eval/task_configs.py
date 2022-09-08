@@ -3,7 +3,14 @@
 from typing import Dict
 
 from .config import TaskConfig
-from .metric_configs import MACRO_F1, MCC, SEQEVAL_MICRO_F1, SEQEVAL_MICRO_F1_NO_MISC
+from .metric_configs import (
+    EXACT_MATCH,
+    MACRO_F1,
+    MCC,
+    QA_F1,
+    SEQEVAL_MICRO_F1,
+    SEQEVAL_MICRO_F1_NO_MISC,
+)
 from .utils import Label
 
 
@@ -17,10 +24,36 @@ def get_all_task_configs() -> Dict[str, TaskConfig]:
     return {cfg.name: cfg for cfg in globals().values() if isinstance(cfg, TaskConfig)}
 
 
+SENT = TaskConfig(
+    name="sentiment-classification",
+    huggingface_id="DDSC/angry-tweets",
+    huggingface_subset=None,
+    supertask="sequence-classification",
+    metrics=[MCC, MACRO_F1],
+    labels=[
+        Label(
+            name="NEGATIVE",
+            synonyms=["NEG", "NEGATIV", "LABEL_0"],
+        ),
+        Label(
+            name="NEUTRAL",
+            synonyms=["NEU", "LABEL_1"],
+        ),
+        Label(
+            name="POSITIVE",
+            synonyms=["POS", "POSITIV", "LABEL_2"],
+        ),
+    ],
+    feature_column_names=["text"],
+    label_column_name="label",
+    test_name="test",
+)
+
+
 NER = TaskConfig(
-    name="ner",
-    pretty_name="named entity recognition",
+    name="named-entity-recognition",
     huggingface_id="dane",
+    huggingface_subset=None,
     supertask="token-classification",
     metrics=[SEQEVAL_MICRO_F1, SEQEVAL_MICRO_F1_NO_MISC],
     labels=[
@@ -147,43 +180,37 @@ NER = TaskConfig(
             synonyms=["I-MISCELLANEOUS"],
         ),
     ],
-    feature_column_name="text",
-    train_name="train",
-    val_name="validation",
+    feature_column_names=["text"],
+    label_column_name="ner_tags",
     test_name="test",
 )
 
 
-SENT = TaskConfig(
-    name="sent",
-    pretty_name="sentiment classification",
-    huggingface_id="DDSC/angry-tweets",
-    supertask="sequence-classification",
-    metrics=[MCC, MACRO_F1],
+QA = TaskConfig(
+    name="question-answering",
+    huggingface_id="alexandrainst/scandiqa",
+    huggingface_subset="da",
+    supertask="question-answering",
+    metrics=[EXACT_MATCH, QA_F1],
     labels=[
         Label(
-            name="NEGATIVE",
-            synonyms=["NEG", "NEGATIV", "LABEL_0"],
+            name="START_POSITIONS",
+            synonyms=["LABEL_0"],
         ),
         Label(
-            name="NEUTRAL",
-            synonyms=["NEU", "LABEL_1"],
-        ),
-        Label(
-            name="POSITIVE",
-            synonyms=["POS", "POSITIV", "LABEL_2"],
+            name="END_POSITIONS",
+            synonyms=["LABEL_1"],
         ),
     ],
-    feature_column_name="text",
-    train_name="train",
-    val_name=None,
+    feature_column_names=["question", "context"],
+    label_column_name="answers",
     test_name="test",
 )
 
 OFFENSIVE = TaskConfig(
-    name="offensive",
-    pretty_name="offensive text classification",
+    name="offensive-text-classification",
     huggingface_id="DDSC/dkhate",
+    huggingface_subset=None,
     supertask="sequence-classification",
     metrics=[MCC, MACRO_F1],
     labels=[
@@ -196,8 +223,7 @@ OFFENSIVE = TaskConfig(
             synonyms=["OFF", "LABEL_1"],
         ),
     ],
-    feature_column_name="text",
-    train_name="train",
-    val_name=None,
+    feature_column_names=["text"],
+    label_column_name="labels",
     test_name="test",
 )

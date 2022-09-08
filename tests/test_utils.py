@@ -4,10 +4,13 @@ import gc
 import random
 
 import numpy as np
+import pytest
 import torch
 from transformers import AutoModelForSequenceClassification
 
+from src.aiai_eval.exceptions import InvalidArchitectureForTask
 from src.aiai_eval.utils import (
+    check_supertask,
     clear_memory,
     enforce_reproducibility,
     internet_connection_available,
@@ -119,3 +122,41 @@ def test_clear_memory():
     orig_count = gc.get_count()
     clear_memory()
     assert gc.get_count() < orig_count
+
+
+@pytest.mark.parametrize(
+    argnames="architectures,supertask,raises_error",
+    argvalues=[
+        (
+            ["TokenClassification", "SequenceClassification"],
+            "token-classification",
+            False,
+        ),
+        (
+            ["TokenClassification", "SequenceClassification"],
+            "sequence-classification",
+            False,
+        ),
+        (
+            ["TokenClassification", "SequenceClassification"],
+            "not-a-supertask",
+            True,
+        ),
+        (
+            ["TokenClassification"],
+            "token-classification",
+            False,
+        ),
+        (
+            ["TokenClassification"],
+            "sequence-classification",
+            True,
+        ),
+    ],
+)
+def test_check_supertask(architectures, supertask, raises_error):
+    if raises_error:
+        with pytest.raises(InvalidArchitectureForTask):
+            check_supertask(architectures, supertask)
+    else:
+        check_supertask(architectures=architectures, supertask=supertask)

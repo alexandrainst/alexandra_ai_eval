@@ -2,11 +2,12 @@
 
 from functools import partial
 
-import torch
-from datasets import Dataset
-from transformers import DataCollatorWithPadding, PreTrainedTokenizerBase
+from datasets.arrow_dataset import Dataset
+from spacy.language import Language
+from transformers.data.data_collator import DataCollatorWithPadding
+from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
-from .exceptions import InvalidEvaluation, MissingLabel, WrongFeatureColumnName
+from .exceptions import FrameworkCannotHandleTask, MissingLabel, WrongFeatureColumnName
 from .task import Task
 
 
@@ -26,27 +27,11 @@ class SequenceClassification(Task):
             The configuration of the evaluation.
     """
 
-    def _preprocess_data_transformer(
-        self, dataset: Dataset, framework: str, **kwargs
-    ) -> Dataset:
-        """Preprocess a dataset by tokenizing and aligning the labels.
+    def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
 
-        For use by a transformer model.
-
-        Args:
-            dataset (Hugging Face dataset):
-                The dataset to preprocess.
-            kwargs:
-                Extra keyword arguments containing objects used in preprocessing the
-                dataset.
-
-        Returns:
-            Hugging Face dataset: The preprocessed dataset.
-        """
         if framework == "spacy":
-            raise InvalidEvaluation(
-                "Evaluation of text predictions for SpaCy models is not yet "
-                "implemented."
+            raise FrameworkCannotHandleTask(
+                framework="spaCy", task=self.task_config.pretty_name
             )
 
         # We are now assuming we are using pytorch
@@ -55,161 +40,62 @@ class SequenceClassification(Task):
         # Tokenizer helper
         def tokenise(examples: dict) -> dict:
             try:
-                return tokenizer(
-                    examples[self.task_config.feature_column_name],
+                tokenised_examples = tokenizer(
+                    *[
+                        examples[feat_col]
+                        for feat_col in self.task_config.feature_column_names
+                    ],
                     truncation=True,
                     padding=True,
                 )
+                tokenised_examples["labels"] = examples[
+                    self.task_config.label_column_name
+                ]
+                return tokenised_examples
             except KeyError:
-                raise WrongFeatureColumnName(self.task_config.feature_column_name)
+                raise WrongFeatureColumnName(self.task_config.feature_column_names)
 
         # Tokenise
-        tokenised = dataset.map(tokenise, batched=True, load_from_cache_file=False)
+        tokenised = dataset.map(tokenise, batched=True)
 
         # Translate labels to ids
         numericalise = partial(
-            self._create_numerical_labels, label2id=kwargs["config"].label2id
+            self._create_numerical_labels,
+            model_label2id=kwargs["model_config"].label2id,
         )
         preprocessed = tokenised.map(
-            numericalise, batched=True, load_from_cache_file=False
+            numericalise,
+            batched=True,
+            remove_columns=dataset.column_names,
         )
 
-        # Remove unused column
-        return preprocessed.remove_columns(self.task_config.feature_column_name)
+        return preprocessed
 
-    def _preprocess_data_pytorch(self, dataset: Dataset, **kwargs) -> list:
-        """Preprocess a dataset by tokenizing and aligning the labels.
-
-        For use by a PyTorch model.
-
-        Args:
-            dataset (Hugging Face dataset):
-                The dataset to preprocess.
-            kwargs:
-                Extra keyword arguments containing objects used in preprocessing the
-                dataset.
-
-        Returns:
-            list of lists:
-                Every list element represents the tokenised data for the corresponding
-                example.
-        """
-        full_preprocessed = self._preprocess_data_transformer(
-            dataset=dataset, framework="pytorch", **kwargs
-        )
-        return full_preprocessed["input_ids"]
-
-    def _create_numerical_labels(self, examples: dict, label2id: dict) -> dict:
-        """Create numerical labels from the labels.
-
-        Args:
-            examples (dict):
-                The examples to create numerical labels for.
-            label2id (dict):
-                The mapping from labels to ids.
-
-        Returns:
-            dict: The examples with numerical labels.
-
-        Raises:
-            MissingLabel:
-                If a label is missing in the `label2id` mapping.
-        """
+    def _create_numerical_labels(self, examples: dict, model_label2id: dict) -> dict:
         try:
-            examples["label"] = [label2id[lbl.upper()] for lbl in examples["label"]]
+            examples["labels"] = [
+                model_label2id[lbl.upper()] for lbl in examples["labels"]
+            ]
         except KeyError:
             missing_label = [
-                lbl.upper() for lbl in examples["label"] if lbl.upper() not in label2id
+                lbl.upper()
+                for lbl in examples["labels"]
+                if lbl.upper() not in model_label2id
             ][0]
-            raise MissingLabel(label=missing_label, label2id=label2id)
+            raise MissingLabel(label=missing_label, label2id=model_label2id)
         return examples
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
-        """Load the data collator used to prepare samples during evaluation.
-
-        Args:
-            tokenizer (Hugging Face tokenizer or None, optional):
-                A pretrained tokenizer. Can be None if the tokenizer is not used in the
-                initialisation of the data collator. Defaults to None.
-
-        Returns:
-            Hugging Face data collator:
-                The data collator.
-        """
         return DataCollatorWithPadding(tokenizer, padding="longest")
 
-    def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
-        """Helper function that extracts the predictions from a SpaCy model.
-
-        Aside from extracting the predictions from the model, it also aligns the
-        predictions with the gold tokens, in case the SpaCy tokeniser tokenises the
-        text different from those.
-
-        Args:
-            tokens_processed (tuple):
-                A pair of the labels, being a list of strings, and the SpaCy processed
-                document, being a Spacy `Doc` instance.
-
-        Returns:
-            list:
-                A list of predictions for each token, of the same length as the gold
-                tokens (first entry of `tokens_processed`).
-        """
-        raise InvalidEvaluation(
-            "Evaluation of text classification tasks for SpaCy models is not possible."
-        )
-
-    def _get_spacy_predictions_and_labels(
-        self, model, dataset: Dataset, batch_size: int
-    ) -> tuple:
-        """Get predictions from SpaCy model on dataset.
-
-        Args:
-            model (SpaCy model):
-                The model.
-            dataset (Hugging Face dataset):
-                The dataset.
-            batch_size (int):
-                The batch size to use.
-
-        Returns:
-            A pair of arrays:
-                The first array contains the probability predictions and the second
-                array contains the true labels.
-        """
-        raise InvalidEvaluation(
-            "Evaluation of text classification tasks for SpaCy models is not possible."
-        )
-
-    def _preprocess_data_spacy(self, dataset: Dataset) -> Dataset:
-        """Process the data for use by a SpaCy model.
-
-        For use by a SpaCy model.
-
-        Args:
-            dataset (Dataset):
-                The dataset.
-
-        Returns:
-            Dataset:
-                The processed dataset.
-        """
-        raise InvalidEvaluation(
-            "Evaluation of text classification tasks for SpaCy models is not possible."
+    def _get_spacy_predictions(
+        self, model: Language, prepared_dataset: Dataset, batch_size: int
+    ) -> list:
+        raise FrameworkCannotHandleTask(
+            framework="spaCy", task=self.task_config.pretty_name
         )
 
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
-        """Check if the model is trained for the task.
-
-        Args:
-            model_predictions (list):
-                The predictions of the model.
-
-        Returns:
-            bool:
-                True if the model is trained for the task, False otherwise.
-        """
         sample_preds = model_predictions[0]
-        return isinstance(sample_preds, torch.Tensor) and isinstance(
-            sample_preds[0].item(), float
-        )
+        elements_are_floats = isinstance(sample_preds[0], float)
+        return elements_are_floats

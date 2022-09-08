@@ -5,7 +5,7 @@ import json
 import logging
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Sequence, Union
+from typing import Dict, Sequence, Union
 
 from .config import Device, EvaluationConfig, TaskConfig
 from .exceptions import InvalidEvaluation, ModelDoesNotExist

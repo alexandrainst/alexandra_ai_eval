@@ -2,13 +2,14 @@
 
 import enum
 import gc
+import importlib
 import logging
 import os
 import random
 import re
 import warnings
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List, Optional, Sequence, Union
 
 import numpy as np
 import pkg_resources
@@ -17,49 +18,37 @@ import torch
 from datasets.utils import disable_progress_bar
 from requests import RequestException
 
+from .exceptions import InvalidArchitectureForTask
+
 logger = logging.getLogger(__name__)
 
 
-def numpy_array_dtype_int(array: np.ndarray) -> bool:
-    """Checks if the dtype of a NumPy array is int or float.
+def has_integers(seq: Sequence) -> bool:
+    """Checks if a sequence contains only integers.
 
     Args:
-        array (np.ndarray):
-            The array to check.
+        seq (Sequence):
+            The sequence to check.
 
     Returns:
         bool:
-            Whether the dtype is int or float.
+            Whether the sequence contains only integers.
     """
-    return array.dtype.kind == "i"
+    return np.asarray(seq).dtype.kind == "i"
 
 
-def numpy_array_dtype_float(array: np.ndarray) -> bool:
-    """Checks if the dtype of a NumPy array is float.
+def has_floats(seq: Sequence) -> bool:
+    """Checks if a sequence contains only floats.
 
     Args:
-        array (np.ndarray):
-            The array to check.
+        seq (Sequence):
+            The sequence to check.
 
     Returns:
         bool:
-            Whether the dtype is float.
+            Whether the sequence contains only floats.
     """
-    return array.dtype.kind == "f"
-
-
-def numpy_array_dtype_int_or_float(array: np.ndarray) -> bool:
-    """Checks if the dtype of a NumPy array is int or float.
-
-    Args:
-        array (np.ndarray):
-            The array to check.
-
-    Returns:
-        bool:
-            Whether the dtype is int or float.
-    """
-    return numpy_array_dtype_float(array) or numpy_array_dtype_int(array)
+    return np.asarray(seq).dtype.kind == "f"
 
 
 def clear_memory():
@@ -224,3 +213,100 @@ class Label:
 
     name: str
     synonyms: List[str]
+
+
+def check_supertask(architectures: Sequence[str], supertask: str):
+    """Checks if the supertask corresponds to the architectures.
+
+    Args:
+        architectures (list of str):
+            The model architecture names.
+        supertask (str):
+            The supertask associated to a task written in kebab-case, e.g.,
+            text-classification.
+
+    Raises:
+        InvalidArchitectureForTask:
+            If the PascalCase version of the supertask is not found in any of the
+            architectures.
+    """
+    # Create boolean variable that checks if the supertask exists among the
+    # available architectures
+    supertask_is_an_architecture = any(
+        kebab_to_pascal(supertask) in architecture for architecture in architectures
+    )
+
+    # If the supertask is not an architecture, raise an error
+    if not supertask_is_an_architecture:
+        raise InvalidArchitectureForTask(
+            architectures=architectures, supertask=supertask
+        )
+
+
+def get_class_by_name(
+    class_name: Union[str, Sequence[str]],
+    module_name: Optional[str] = None,
+) -> Union[None, type]:
+    """Get a class by its name.
+
+    Args:
+        class_name (str or list of str):
+            The name of the class, written in kebab-case. The corresponding class name
+            must be the same, but written in PascalCase, and lying in a module with the
+            same name, but written in snake_case. If a list of strings is passed, the
+            first class that is found is returned.
+        module_name (str, optional):
+            The name of the module where the class is located. If None then the module
+            name is assumed to be the same as the class name, but written in
+            snake_case. Defaults to None.
+
+    Returns:
+        type or None:
+            The class. If the class is not found, None is returned.
+    """
+    # Ensure that `class_name` is a sequence
+    if isinstance(class_name, str):
+        class_name = [class_name]
+
+    # Loop over the class names
+    for name in class_name:
+
+        # Get the snake_case and PascalCase version of the class name
+        name_snake = name.replace("-", "_")
+        name_pascal = kebab_to_pascal(name)
+
+        # Import the module
+        try:
+            if not module_name:
+                module_name = f"aiai_eval.{name_snake}"
+            module = importlib.import_module(module_name)
+        except ModuleNotFoundError:
+            module_name = None
+            continue
+
+        # Get the class from the module
+        try:
+            class_ = getattr(module, name_pascal)
+        except AttributeError:
+            module_name = None
+            continue
+
+        # Return the class
+        return class_
+
+    # If the class could not be found, return None
+    return None
+
+
+def kebab_to_pascal(kebab_string: str) -> str:
+    """Converts a kebab-case string to PascalCase.
+
+    Args:
+        kebab_string (str):
+            The kebab-case string.
+
+    Returns:
+        str:
+            The PascalCase string.
+    """
+    return "".join(word.title() for word in kebab_string.split("-"))
