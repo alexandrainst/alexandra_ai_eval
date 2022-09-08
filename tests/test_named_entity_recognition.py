@@ -3,7 +3,7 @@
 from functools import partial
 
 import pytest
-from datasets import Dataset, load_dataset
+from datasets import Dataset, DownloadMode, load_dataset
 from transformers import AutoConfig, AutoTokenizer, DataCollatorForTokenClassification
 
 from src.aiai_eval.exceptions import InvalidEvaluation
@@ -17,7 +17,7 @@ def dataset():
     yield load_dataset(
         path="dane",
         split="train",
-        download_mode="force_redownload",
+        download_mode=DownloadMode.FORCE_REDOWNLOAD,
     )
 
 
