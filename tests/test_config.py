@@ -6,7 +6,7 @@ import pytest
 
 from src.aiai_eval.config import (
     EvaluationConfig,
-    Label,
+    LabelConfig,
     MetricConfig,
     ModelConfig,
     TaskConfig,
@@ -15,7 +15,7 @@ from src.aiai_eval.config import (
 
 @pytest.fixture(scope="module")
 def label():
-    yield Label(name="label-name", synonyms=["synonym1", "synonym2"])
+    yield LabelConfig(name="label-name", synonyms=["synonym1", "synonym2"])
 
 
 @pytest.fixture(scope="class")
@@ -47,9 +47,9 @@ class TestMetricConfig:
         assert metric_config.compute_kwargs == dict()
 
 
-class TestLabel:
+class TestLabelConfig:
     def test_label_is_object(self, label):
-        assert isinstance(label, Label)
+        assert isinstance(label, LabelConfig)
 
     def test_attributes_correspond_to_arguments(self, label):
         assert label.name == "label-name"

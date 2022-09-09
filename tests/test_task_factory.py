@@ -2,14 +2,14 @@
 
 import pytest
 
-from src.aiai_eval.config import Label
+from src.aiai_eval.config import LabelConfig
 from src.aiai_eval.task_factory import TaskFactory
 from src.aiai_eval.utils import kebab_to_pascal
 
 
 @pytest.fixture(scope="module")
 def label():
-    yield Label(name="label_name", synonyms=["synonym1", "synonym2"])
+    yield LabelConfig(name="label_name", synonyms=["synonym1", "synonym2"])
 
 
 @pytest.fixture(scope="module")
