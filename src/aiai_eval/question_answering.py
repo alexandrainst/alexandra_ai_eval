@@ -73,11 +73,11 @@ class QuestionAnswering(Task):
         all_end_logits = np.asarray(predictions)[:, :, 1]
 
         # Build a map from an example to its corresponding features
-        example_id_to_index = {k: i for i, k in enumerate(dataset["example_id"])}
+        id_to_index = {k: i for i, k in enumerate(dataset["id"])}
         features_per_example = defaultdict(list)
         for i, feature in enumerate(prepared_dataset):
-            example_id = feature["example_id"]
-            example_index = example_id_to_index[example_id]
+            id = feature["id"]
+            example_index = id_to_index[id]
             features_per_example[example_index].append(i)
 
         # Initialise the lists containing the predictions and labels, respectively
@@ -173,7 +173,7 @@ class QuestionAnswering(Task):
             # Create the final prediction dictionary, to be added to the list of
             # predictions
             prediction = dict(
-                id=example["example_id"],
+                id=example["id"],
                 prediction_text=prediction_text,
                 no_answer_probability=0.0,
             )
@@ -181,7 +181,7 @@ class QuestionAnswering(Task):
             # Create the associated reference dictionary, to be added to the list of
             # references
             label = dict(
-                id=example["example_id"],
+                id=example["id"],
                 answers=dict(
                     text=example["answers"]["text"],
                     answer_start=example["answers"]["answer_start"],
@@ -257,9 +257,9 @@ def prepare_test_examples(
     # This key gives us just that.
     sample_mapping = tokenized_examples.pop("overflow_to_sample_mapping")
 
-    # We keep the example_id that gave us this feature and we will store
+    # We keep the id that gave us this feature and we will store
     # the offset mappings.
-    tokenized_examples["example_id"] = list()
+    tokenized_examples["id"] = list()
 
     for i in range(len(tokenized_examples["input_ids"])):
 
@@ -271,7 +271,7 @@ def prepare_test_examples(
         # One example can give several spans, this is the index of the example
         # containing this span of text.
         sample_index = sample_mapping[i]
-        tokenized_examples["example_id"].append(examples["example_id"][sample_index])
+        tokenized_examples["id"].append(examples["id"][sample_index])
 
         # Set to (-1, -1) the offset_mapping that are not part of the context so
         # it's easy to determine if a token position is part of the context or not.
