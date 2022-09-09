@@ -81,6 +81,10 @@ def load_pytorch_model(
             The configuration of the model.
         from_flax (bool):
             Whether the model is a Flax model.
+        task_config (TaskConfig):
+            The task configuration.
+        evaluation_config (EvaluationConfig):
+            The evaluation configuration.
 
     Returns:
         dict:
