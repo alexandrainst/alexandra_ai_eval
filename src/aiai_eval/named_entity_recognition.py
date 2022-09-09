@@ -58,13 +58,13 @@ class NamedEntityRecognition(Task):
             dataset_id2label=self.task_config.id2label,
             label_column_name=self.task_config.label_column_name,
         )
-        tokenised_dataset = dataset.map(
+        tokenized_dataset = dataset.map(
             map_fn,
             batched=True,
             remove_columns=dataset.column_names,
         )
 
-        return tokenised_dataset
+        return tokenized_dataset
 
     def _get_spacy_predictions(
         self, model: Language, prepared_dataset: Dataset, batch_size: int
@@ -89,7 +89,7 @@ class NamedEntityRecognition(Task):
         """Helper function that extracts the predictions from a SpaCy model.
 
         Aside from extracting the predictions from the model, it also aligns the
-        predictions with the gold tokens, in case the SpaCy tokeniser tokenises the
+        predictions with the gold tokens, in case the SpaCy tokenizer tokenizes the
         text different from those.
 
         Args:
@@ -223,11 +223,11 @@ def tokenize_and_align_labels(
     dataset_id2label: list,
     label_column_name: str,
 ) -> BatchEncoding:
-    """Tokenise all texts and align the labels with them.
+    """Tokenize all texts and align the labels with them.
 
     Args:
         examples (dict):
-            The examples to be tokenised.
+            The examples to be tokenized.
         tokenizer (Hugging Face tokenizer):
             A pretrained tokenizer.
         model_label2id (dict):

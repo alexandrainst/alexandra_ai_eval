@@ -1,4 +1,4 @@
-"""Class for text classification tasks."""
+"""Class for sequence classification tasks."""
 
 from functools import partial
 from typing import List
@@ -38,33 +38,23 @@ class SequenceClassification(Task):
         # We are now assuming we are using pytorch
         tokenizer = kwargs["tokenizer"]
 
-        # Tokenizer helper
-        def tokenise(examples: dict) -> dict:
-            try:
-                tokenised_examples = tokenizer(
-                    *[
-                        examples[feat_col]
-                        for feat_col in self.task_config.feature_column_names
-                    ],
-                    truncation=True,
-                    padding=True,
-                )
-                tokenised_examples["labels"] = examples[
-                    self.task_config.label_column_name
-                ]
-                return tokenised_examples
-            except KeyError:
-                raise WrongFeatureColumnName(self.task_config.feature_column_names)
+        # Define the tokenization function
+        tokenize_fn = partial(
+            tokenize,
+            tokenizer=tokenizer,
+            feature_column_names=self.task_config.feature_column_names,
+            label_column_name=self.task_config.label_column_name,
+        )
 
-        # Tokenise
-        tokenised = dataset.map(tokenise, batched=True)
+        # Tokenize
+        tokenized = dataset.map(tokenize_fn, batched=True)
 
         # Translate labels to ids
         numericalise = partial(
             self._create_numerical_labels,
             model_label2id=kwargs["model_config"].label2id,
         )
-        preprocessed = tokenised.map(
+        preprocessed = tokenized.map(
             numericalise,
             batched=True,
             remove_columns=dataset.column_names,
@@ -100,3 +90,42 @@ class SequenceClassification(Task):
         sample_preds = model_predictions[0]
         elements_are_floats = isinstance(sample_preds[0], float)
         return elements_are_floats
+
+
+def tokenize(
+    examples: dict,
+    tokenizer: PreTrainedTokenizerBase,
+    feature_column_names: List[str],
+    label_column_name: str,
+) -> dict:
+    """Tokenize the text in the examples.
+
+    Args:
+        examples (dict):
+            The examples to tokenize.
+        tokenizer (PreTrainedTokenizerBase):
+            The tokenizer to use.
+        feature_column_names (list of str):
+            The names of the columns containing the features.
+        label_column_name (str):
+            The name of the column containing the labels.
+
+    Returns:
+        dict:
+            The tokenized examples.
+
+    Raises:
+        WrongFeatureColumnName:
+            If the feature column names were not found.
+    """
+    try:
+        tokenized_examples = tokenizer(
+            *[examples[feat_col] for feat_col in feature_column_names],
+            truncation=True,
+            padding=True,
+        )
+        tokenized_examples["labels"] = examples[label_column_name]
+        return tokenized_examples
+
+    except KeyError:
+        raise WrongFeatureColumnName(feature_column_names)
