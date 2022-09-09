@@ -49,31 +49,17 @@ class SequenceClassification(Task):
         tokenized = dataset.map(tokenize_fn, batched=True)
 
         # Translate labels to ids
-        numericalise = partial(
-            self._create_numerical_labels,
+        numericalize_fn = partial(
+            create_numerical_labels,
             model_label2id=kwargs["model_config"].label2id,
         )
         preprocessed = tokenized.map(
-            numericalise,
+            numericalize_fn,
             batched=True,
             remove_columns=dataset.column_names,
         )
 
         return preprocessed
-
-    def _create_numerical_labels(self, examples: dict, model_label2id: dict) -> dict:
-        try:
-            examples["labels"] = [
-                model_label2id[lbl.upper()] for lbl in examples["labels"]
-            ]
-        except KeyError:
-            missing_label = [
-                lbl.upper()
-                for lbl in examples["labels"]
-                if lbl.upper() not in model_label2id
-            ][0]
-            raise MissingLabel(label=missing_label, label2id=model_label2id)
-        return examples
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase) -> DataCollator:
         return DataCollatorWithPadding(tokenizer, padding="longest")
@@ -128,3 +114,38 @@ def tokenize(
 
     except KeyError:
         raise WrongFeatureColumnName(feature_column_names)
+
+
+def create_numerical_labels(examples: dict, model_label2id: dict) -> dict:
+    """Creates numerical labels for an example.
+
+    Args:
+        examples (dict):
+            The examples to create numerical labels for.
+        model_label2id (dict):
+            The mapping from model labels to ids.
+
+    Returns:
+        dict:
+            The examples with numerical labels.
+
+    Raises:
+        MissingLabel:
+            If the label was not found in the model's label2id mapping.
+    """
+    # Attempt to numericalize the labels
+    try:
+        examples["labels"] = [model_label2id[lbl.upper()] for lbl in examples["labels"]]
+
+    # The numericalization fails if the label is not in the model's label2id mapping,
+    # in which case we raise a MissingLabel exception
+    except KeyError:
+        missing_label = [
+            lbl.upper()
+            for lbl in examples["labels"]
+            if lbl.upper() not in model_label2id
+        ][0]
+        raise MissingLabel(label=missing_label, label2id=model_label2id)
+
+    # Return the examples, now with numerical labels
+    return examples
