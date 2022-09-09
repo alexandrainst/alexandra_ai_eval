@@ -10,6 +10,7 @@ from transformers.models.auto.configuration_auto import AutoConfig
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
 from .config import EvaluationConfig, ModelConfig, TaskConfig
+from .enums import Framework
 from .exceptions import InvalidEvaluation, InvalidFramework, ModelFetchFailed
 from .model_adjustment import adjust_model_to_task
 from .utils import check_supertask, get_class_by_name, is_module_installed
@@ -46,14 +47,14 @@ def load_model(
             If the framework is not recognized.
     """
     # Ensure that the framework is installed
-    from_flax = model_config.framework == "jax"
+    from_flax = model_config.framework == Framework.JAX
 
     # If the framework is JAX then change it to PyTorch, since we will convert
     # JAX models to PyTorch upon download
-    if model_config.framework == "jax":
-        model_config.framework = "pytorch"
+    if model_config.framework == Framework.JAX:
+        model_config.framework = Framework.PYTORCH
 
-    if model_config.framework == "pytorch":
+    if model_config.framework == Framework.PYTORCH:
         return load_pytorch_model(
             model_config=model_config,
             from_flax=from_flax,
@@ -61,7 +62,7 @@ def load_model(
             evaluation_config=evaluation_config,
         )
 
-    elif model_config.framework == "spacy":
+    elif model_config.framework == Framework.SPACY:
         return load_spacy_model(model_config=model_config)
 
     else:

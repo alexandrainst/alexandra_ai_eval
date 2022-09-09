@@ -3,7 +3,23 @@
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from .utils import Device, Label, get_available_devices
+from .enums import Device, Framework
+from .utils import get_available_devices
+
+
+@dataclass
+class LabelConfig:
+    """Configuration for a label in a dataset task.
+
+    Attributes:
+        name (str):
+            The name of the label.
+        synonyms (list of str):
+            The synonyms of the label.
+    """
+
+    name: str
+    synonyms: List[str]
 
 
 @dataclass
@@ -57,7 +73,7 @@ class TaskConfig:
             The supertask of the task, describing the overall type of task.
         metrics (sequence of MetricConfig objects):
             The metrics used to evaluate the task.
-        labels (sequence of Label objects):
+        labels (sequence of LabelConfig objects):
             The labels used in the task.
         feature_column_names (list of str):
             The names of the feature columns for the dataset.
@@ -81,7 +97,7 @@ class TaskConfig:
     huggingface_subset: Optional[str]
     supertask: str
     metrics: List[MetricConfig]
-    labels: List[Label]
+    labels: List[LabelConfig]
     feature_column_names: List[str]
     label_column_name: str
     test_name: Optional[str]
@@ -199,10 +215,10 @@ class ModelConfig:
             The ID of the model.
         revision (str):
             The revision of the model.
-        framework (str):
+        framework (Framework):
             The framework of the model.
     """
 
     model_id: str
     revision: str
-    framework: str
+    framework: Framework

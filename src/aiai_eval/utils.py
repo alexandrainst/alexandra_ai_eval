@@ -1,6 +1,5 @@
 """Utility functions for the project."""
 
-import enum
 import gc
 import importlib
 import logging
@@ -18,6 +17,7 @@ import torch
 from datasets.utils import disable_progress_bar
 from requests import RequestException
 
+from .enums import Device, Framework
 from .exceptions import InvalidArchitectureForTask
 
 logger = logging.getLogger(__name__)
@@ -63,11 +63,13 @@ def clear_memory():
         torch.cuda.empty_cache()
 
 
-def enforce_reproducibility(framework: str, seed: int = 703) -> np.random.Generator:
+def enforce_reproducibility(
+    framework: Framework, seed: int = 703
+) -> np.random.Generator:
     """Ensures reproducibility of experiments.
 
     Args:
-        framework (str):
+        framework (Framework):
             The framework used for the benchmarking.
         seed (int):
             Seed for the random number generator.
@@ -79,7 +81,7 @@ def enforce_reproducibility(framework: str, seed: int = 703) -> np.random.Genera
     random.seed(seed)
     np.random.seed(seed)
     rng = np.random.default_rng(seed)
-    if framework in ("pytorch", "jax"):
+    if framework in [Framework.PYTORCH, Framework.JAX]:
         torch.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
         os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
@@ -157,23 +159,6 @@ def internet_connection_available() -> bool:
         return False
 
 
-class Device(str, enum.Enum):
-    """The compute device to use for the evaluation.
-
-    Attributes:
-        CPU:
-            CPU device.
-        MPS:
-            MPS GPU, used in M-series MacBooks.
-        CUDA:
-            CUDA GPU, used with NVIDIA GPUs.
-    """
-
-    CPU = "cpu"
-    MPS = "mps"
-    CUDA = "cuda"
-
-
 def get_available_devices() -> List[Device]:
     """Gets the available devices.
 
@@ -198,21 +183,6 @@ def get_available_devices() -> List[Device]:
 
     # Return the list of available devices
     return available_devices
-
-
-@dataclass
-class Label:
-    """A label in a dataset task.
-
-    Attributes:
-        name (str):
-            The name of the label.
-        synonyms (list of str):
-            The synonyms of the label.
-    """
-
-    name: str
-    synonyms: List[str]
 
 
 def check_supertask(architectures: Sequence[str], supertask: str):

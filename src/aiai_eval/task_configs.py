@@ -2,7 +2,7 @@
 
 from typing import Dict
 
-from .config import TaskConfig
+from .config import LabelConfig, TaskConfig
 from .metric_configs import (
     EXACT_MATCH,
     MACRO_F1,
@@ -11,7 +11,6 @@ from .metric_configs import (
     SEQEVAL_MICRO_F1,
     SEQEVAL_MICRO_F1_NO_MISC,
 )
-from .utils import Label
 
 
 def get_all_task_configs() -> Dict[str, TaskConfig]:
@@ -31,15 +30,15 @@ SENT = TaskConfig(
     supertask="sequence-classification",
     metrics=[MCC, MACRO_F1],
     labels=[
-        Label(
+        LabelConfig(
             name="NEGATIVE",
             synonyms=["NEG", "NEGATIV", "LABEL_0"],
         ),
-        Label(
+        LabelConfig(
             name="NEUTRAL",
             synonyms=["NEU", "LABEL_1"],
         ),
-        Label(
+        LabelConfig(
             name="POSITIVE",
             synonyms=["POS", "POSITIV", "LABEL_2"],
         ),
@@ -57,19 +56,19 @@ NER = TaskConfig(
     supertask="token-classification",
     metrics=[SEQEVAL_MICRO_F1, SEQEVAL_MICRO_F1_NO_MISC],
     labels=[
-        Label(
+        LabelConfig(
             name="O",
             synonyms=[],
         ),
-        Label(
+        LabelConfig(
             name="B-PER",
             synonyms=["B-PERSON"],
         ),
-        Label(
+        LabelConfig(
             name="I-PER",
             synonyms=["I-PERSON"],
         ),
-        Label(
+        LabelConfig(
             name="B-ORG",
             synonyms=[
                 "B-ORGANIZATION",
@@ -95,7 +94,7 @@ NER = TaskConfig(
                 "B-ORG/OBJ",
             ],
         ),
-        Label(
+        LabelConfig(
             name="I-ORG",
             synonyms=[
                 "I-ORGANIZATION",
@@ -121,7 +120,7 @@ NER = TaskConfig(
                 "I-ORG/OBJ",
             ],
         ),
-        Label(
+        LabelConfig(
             name="B-LOC",
             synonyms=[
                 "B-LOCATION",
@@ -146,7 +145,7 @@ NER = TaskConfig(
                 "B-PRS/LOC",
             ],
         ),
-        Label(
+        LabelConfig(
             name="I-LOC",
             synonyms=[
                 "I-LOCATION",
@@ -171,11 +170,11 @@ NER = TaskConfig(
                 "I-PRS/LOC",
             ],
         ),
-        Label(
+        LabelConfig(
             name="B-MISC",
             synonyms=["B-MISCELLANEOUS"],
         ),
-        Label(
+        LabelConfig(
             name="I-MISC",
             synonyms=["I-MISCELLANEOUS"],
         ),
@@ -193,11 +192,11 @@ QA = TaskConfig(
     supertask="question-answering",
     metrics=[EXACT_MATCH, QA_F1],
     labels=[
-        Label(
+        LabelConfig(
             name="START_POSITIONS",
             synonyms=["LABEL_0"],
         ),
-        Label(
+        LabelConfig(
             name="END_POSITIONS",
             synonyms=["LABEL_1"],
         ),

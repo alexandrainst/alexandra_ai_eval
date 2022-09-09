@@ -8,6 +8,7 @@ from huggingface_hub.utils import RepositoryNotFoundError
 from requests.exceptions import RequestException
 
 from .config import EvaluationConfig, ModelConfig
+from .enums import Framework
 from .exceptions import (
     HuggingFaceHubDown,
     InvalidFramework,
@@ -124,13 +125,13 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
         tags = models[0].tags
 
         # Extract the framework, which defaults to PyTorch
-        framework = "pytorch"
+        framework = Framework.PYTORCH
         if "pytorch" in tags:
             pass
         elif "jax" in tags:
-            framework = "jax"
+            framework = Framework.JAX
         elif "spacy" in tags:
-            framework = "spacy"
+            framework = Framework.SPACY
         elif "tf" in tags or "tensorflow" in tags or "keras" in tags:
             raise InvalidFramework("tensorflow")
 
