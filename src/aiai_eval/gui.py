@@ -54,9 +54,13 @@ def evaluate(model_id: str, task: str) -> str:
     show_default=True,
     help="""Whether the examples should be cached or not.""",
 )
-def main(cache_examples: bool):
-    """Set up and display the graphical user interface."""
+def main(cache_examples: bool) -> None:
+    """Set up and display the graphical user interface.
 
+    Args:
+        cache_examples (bool):
+            Whether to cache examples.
+    """
     demo = gr.Interface(
         title="AIAI-Eval: Helping You Choose the Right Model",
         description=(
