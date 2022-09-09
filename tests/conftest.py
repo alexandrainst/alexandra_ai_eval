@@ -16,7 +16,7 @@ def evaluation_config():
     yield EvaluationConfig(
         raise_error_on_invalid_model=True,
         cache_dir=".aiai_cache",
-        use_auth_token=os.environ["HUGGINGFACE_HUB_TOKEN"],
+        use_auth_token=os.environ.get("HUGGINGFACE_HUB_TOKEN", True),
         progress_bar=False,
         save_results=True,
         verbose=True,
@@ -25,26 +25,6 @@ def evaluation_config():
         prefer_device=Device.CPU,
         testing=True,
     )
-
-
-@pytest.fixture(
-    scope="session", params=get_all_task_configs().values(), ids=lambda cfg: cfg.name
-)
-def task_config(request):
-    yield request.param
-
-
-@pytest.fixture(scope="session")
-def model_configs(evaluation_config, task_config):
-    model_id_mapping = {
-        "sentiment-classification": ["pin/senda"],
-        "named-entity-recognition": ["DaNLP/da-bert-ner"],
-        "question-answering": ["deepset/minilm-uncased-squad2"],
-    }
-    yield [
-        get_model_config(model_id=model_id, evaluation_config=evaluation_config)
-        for model_id in model_id_mapping[task_config.name]
-    ]
 
 
 @pytest.fixture(scope="session")
@@ -59,14 +39,63 @@ def metric_config():
 
 
 @pytest.fixture(
-    scope="session",
-    params=[
-        "spacy/da_core_news_sm",
-        "spacy/en_core_web_sm",
-    ],
+    scope="session", params=get_all_task_configs().values(), ids=lambda cfg: cfg.name
 )
-def spacy_model(request, evaluation_config):
-    model_config_spacy = get_model_config(
-        model_id=request.param, evaluation_config=evaluation_config
-    )
-    yield load_spacy_model(model_config=model_config_spacy)["model"]
+def task_config(request):
+    yield request.param
+
+
+@pytest.fixture(scope="session")
+def model_configs(evaluation_config, task_config):
+    model_id_mapping = {
+        "sentiment-classification": ["pin/senda"],
+        "named-entity-recognition": [
+            "Maltehb/aelaectra-danish-electra-small-cased-ner-dane",
+            "spacy/da_core_news_sm",
+        ],
+        "question-answering": ["deepset/minilm-uncased-squad2"],
+    }
+    yield [
+        get_model_config(model_id=model_id, evaluation_config=evaluation_config)
+        for model_id in model_id_mapping[task_config.name]
+    ]
+
+
+@pytest.fixture(scope="session")
+def model_total_scores(model_configs):
+    score_mapping = {
+        "pin/senda": dict(
+            macro_f1=1.0,
+            macro_f1_se=0.0,
+            mcc=1.0,
+            mcc_se=0.0,
+        ),
+        "Maltehb/aelaectra-danish-electra-small-cased-ner-dane": dict(
+            micro_f1=0.22222222222222224,
+            micro_f1_se=0.4355555555555556,
+            micro_f1_no_misc=0.3333333333333333,
+            micro_f1_no_misc_se=0.6533333333333333,
+        ),
+        "spacy/da_core_news_sm": dict(
+            micro_f1=0.8615384615384616,
+            micro_f1_no_misc=1.0,
+            micro_f1_no_misc_se=0.0,
+            micro_f1_se=0.12061538461538451,
+        ),
+        "deepset/minilm-uncased-squad2": dict(
+            exact_match=75.0,
+            exact_match_se=49.0,
+            qa_f1=75.0,
+            qa_f1_se=49.0,
+        ),
+    }
+    yield [score_mapping[model_cfg.model_id] for model_cfg in model_configs]
+
+
+@pytest.fixture(scope="session")
+def spacy_model(model_configs):
+    for model_config in model_configs:
+        if model_config.framework == "spacy":
+            return load_spacy_model(model_config=model_config)["model"]
+    else:
+        return None

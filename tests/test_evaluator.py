@@ -8,7 +8,6 @@ import pytest
 from aiai_eval.utils import Device
 from src.aiai_eval.evaluator import Evaluator
 from src.aiai_eval.exceptions import ModelDoesNotExist
-from src.aiai_eval.task_configs import NER, QA, SENT
 from src.aiai_eval.task_factory import TaskFactory
 
 
@@ -93,134 +92,41 @@ class TestEvaluateSingle:
                 task_config=task_config, model_id=non_existing_model_id
             )
 
-    @pytest.mark.parametrize(
-        argnames="model_id, task_config, expected_results",
-        argvalues=[
-            (
-                "pin/senda",
-                SENT,
-                {
-                    "raw": [
-                        {"macro_f1": 1.0, "mcc": 1.0},
-                        {"macro_f1": 1.0, "mcc": 1.0},
-                    ],
-                    "total": {
-                        "macro_f1": 1.0,
-                        "macro_f1_se": 0.0,
-                        "mcc": 1.0,
-                        "mcc_se": 0.0,
-                    },
-                },
-            ),
-            (
-                "DaNLP/da-bert-tone-sentiment-polarity",
-                SENT,
-                {
-                    "raw": [
-                        {"macro_f1": 1.0, "mcc": 1.0},
-                        {"macro_f1": 1.0, "mcc": 1.0},
-                    ],
-                    "total": {
-                        "macro_f1": 1.0,
-                        "macro_f1_se": 0.0,
-                        "mcc": 1.0,
-                        "mcc_se": 0.0,
-                    },
-                },
-            ),
-            (
-                "spacy/da_core_news_md",
-                NER,
-                {
-                    "raw": [
-                        {"micro_f1": 0.8, "micro_f1_no_misc": 1.0},
-                        {"micro_f1": 0.923076923076923, "micro_f1_no_misc": 1.0},
-                    ],
-                    "total": {
-                        "micro_f1": 0.8615384615384616,
-                        "micro_f1_no_misc": 1.0,
-                        "micro_f1_no_misc_se": 0.0,
-                        "micro_f1_se": 0.12061538461538451,
-                    },
-                },
-            ),
-            (
-                "Maltehb/aelaectra-danish-electra-small-cased-ner-dane",
-                NER,
-                {
-                    "raw": [
-                        {"micro_f1": 0.0, "micro_f1_no_misc": 0.0},
-                        {
-                            "micro_f1": 0.4444444444444445,
-                            "micro_f1_no_misc": 0.6666666666666666,
-                        },
-                    ],
-                    "total": {
-                        "micro_f1": 0.22222222222222224,
-                        "micro_f1_se": 0.4355555555555556,
-                        "micro_f1_no_misc": 0.3333333333333333,
-                        "micro_f1_no_misc_se": 0.6533333333333333,
-                    },
-                },
-            ),
-            (
-                "deepset/minilm-uncased-squad2",
-                QA,
-                {
-                    "raw": [
-                        {"exact_match": 100.0, "qa_f1": 100.0},
-                        {"exact_match": 50.0, "qa_f1": 50.0},
-                    ],
-                    "total": {
-                        "exact_match": 75.0,
-                        "exact_match_se": 49.0,
-                        "qa_f1": 75.0,
-                        "qa_f1_se": 49.0,
-                    },
-                },
-            ),
-        ],
-    )
-    def test_evaluate_single(self, evaluator, model_id, task_config, expected_results):
-        evaluator._evaluate_single(task_config=task_config, model_id=model_id)
-        results = evaluator.evaluation_results[task_config.name][model_id]
-        assert expected_results == results
+    def test_evaluate_single(
+        self, evaluator, model_configs, task_config, model_total_scores
+    ):
+        for idx, model_config in enumerate(model_configs):
+            model_id = model_config.model_id
+            evaluator._evaluate_single(task_config=task_config, model_id=model_id)
+            results = evaluator.evaluation_results[task_config.name][model_id]
+            assert results["total"] == model_total_scores[idx]
 
 
 class TestEvaluate:
-    @pytest.fixture(scope="class")
-    def tasks_models(self):
-        yield [
-            (SENT, "pin/senda", "DaNLP/da-bert-tone-sentiment-polarity"),
-            (NER, "DaNLP/da-bert-ner", "saattrupdan/nbailab-base-ner-scandi"),
-        ]
-
-    @pytest.mark.parametrize(
-        argnames="task_config, model_ids",
-        argvalues=[
-            (SENT, ["pin/senda", "DaNLP/da-bert-tone-sentiment-polarity"]),
-            (NER, ["DaNLP/da-bert-ner", "saattrupdan/nbailab-base-ner-scandi"]),
-        ],
-        ids=["sent", "ner"],
-    )
     def test_evaluate_is_identical_to_evaluate_single(
-        self, evaluator, task_config, model_ids
+        self, evaluator, task_config, model_configs
     ):
+        if len(model_configs) > 1:
 
-        # Get results from evaluate
-        evaluator.evaluate(model_id=model_ids, task=task_config.name)
-        results1 = evaluator.evaluation_results[task_config.name][model_ids[0]]
-        results2 = evaluator.evaluation_results[task_config.name][model_ids[1]]
+            model_ids = [model_config.model_id for model_config in model_configs]
 
-        # Reset evaluation results
-        evaluator.evaluation_results = defaultdict(dict)
+            # Get results from evaluate
+            evaluator.evaluate(model_id=model_ids, task=task_config.name)
+            evaluate_results = [
+                evaluator.evaluation_results[task_config.name][model_id]
+                for model_id in model_ids
+            ]
 
-        # Get results from evaluate_single
-        evaluator._evaluate_single(task_config=task_config, model_id=model_ids[0])
-        evaluator._evaluate_single(task_config=task_config, model_id=model_ids[1])
-        results1_single = evaluator.evaluation_results[task_config.name][model_ids[0]]
-        results2_single = evaluator.evaluation_results[task_config.name][model_ids[1]]
+            # Reset evaluation results
+            evaluator.evaluation_results = defaultdict(dict)
 
-        # Check that the results are the same
-        assert results1 == results1_single
-        assert results2 == results2_single
+            # Get results from evaluate_single
+            for model_id in model_ids:
+                evaluator._evaluate_single(task_config=task_config, model_id=model_id)
+            evaluate_single_results = [
+                evaluator.evaluation_results[task_config.name][model_id]
+                for model_id in model_ids
+            ]
+
+            # Check that the results are the same
+            assert evaluate_results == evaluate_single_results
