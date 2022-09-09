@@ -18,10 +18,11 @@ class ModelDoesNotExist(Exception):
             message
             if message
             else (
-                f"The model ID '{model_id}' is not a valid model ID on the Hugging Face Hub, "
-                f"nor is it a valid spaCy model ID. In case of a Huggingface model, Please check "
-                "the model ID, and try again. In case of a spaCy model, please make sure that you "
-                "have spaCy installed, and that the model is installed on your system."
+                f"The model ID '{model_id}' is not a valid model ID on the Hugging "
+                "Face Hub, nor is it a valid spaCy model ID. In case of a Hugging "
+                "Face model, Please check the model ID, and try again. In case of a "
+                "spaCy model, please make sure that you have spaCy installed, and "
+                "that the model is installed on your system."
             )
         )
         super().__init__(self.message)
