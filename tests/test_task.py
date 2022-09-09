@@ -80,6 +80,9 @@ class TestAbstractMethods:
     def abstract_metods(self):
         return Task.__abstractmethods__
 
+    def test_prepare_predictions_and_labels_is_abstract(self, abstract_metods):
+        assert "_prepare_predictions_and_labels" in abstract_metods
+
     def test_preprocess_data_is_abstract(self, abstract_metods):
         assert "_preprocess_data" in abstract_metods
 
