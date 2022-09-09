@@ -30,6 +30,8 @@ class SequenceClassification(Task):
 
     def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
 
+        # If the model is a spaCy model then raise an error, since we have not yet
+        # implemented sequence classification evaluation for spaCy models.
         if framework == "spacy":
             raise FrameworkCannotHandleTask(
                 framework="spaCy", task=self.task_config.pretty_name
@@ -46,7 +48,7 @@ class SequenceClassification(Task):
             label_column_name=self.task_config.label_column_name,
         )
 
-        # Tokenize
+        # Tokenize the samples
         tokenized = dataset.map(tokenize_fn, batched=True)
 
         # Translate labels to ids

@@ -32,6 +32,8 @@ class QuestionAnswering(Task):
 
     def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
 
+        # If the model is a spaCy model then raise an error, since we have not yet
+        # implemented sequence classification evaluation for spaCy models.
         if framework == "spacy":
             raise FrameworkCannotHandleTask(
                 framework="spaCy", task=self.task_config.pretty_name
