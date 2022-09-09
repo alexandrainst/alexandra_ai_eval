@@ -35,6 +35,10 @@ logging.basicConfig(level=logging.INFO, format=fmt)
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
+# Enable MPS fallback to CPU
+os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
+
+
 # Tell Windows machines to use UTF-8 encoding
 os.environ["ConEmuDefaultCp"] = "65001"
 os.environ["PYTHONIOENCODING"] = "UTF-8"
