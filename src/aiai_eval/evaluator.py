@@ -1,17 +1,17 @@
 """Main Evaluator class, used to evaluate finetuned models."""
 
-
 import json
 import logging
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Sequence, Union
 
-from .config import Device, EvaluationConfig, TaskConfig
+from .config import EvaluationConfig, TaskConfig
 from .exceptions import InvalidEvaluation, ModelDoesNotExist
 from .hf_hub import check_if_model_exist
 from .task_configs import get_all_task_configs
 from .task_factory import TaskFactory
+from .utils import Device
 
 logger = logging.getLogger(__name__)
 
