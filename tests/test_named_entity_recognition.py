@@ -29,75 +29,55 @@ def ner(evaluation_config):
 
 @pytest.fixture(scope="module")
 def tokenizer():
-    yield AutoTokenizer.from_pretrained("DaNLP/da-bert-ner")
-
-
-@pytest.fixture(scope="module")
-def model_config():
-    config = AutoConfig.from_pretrained("DaNLP/da-bert-ner")
-    config.label2id = {lbl.upper(): idx for lbl, idx in config.label2id.items()}
-    yield config
-
-
-@pytest.fixture(scope="module")
-def preprocessed_spacy(dataset, ner):
-    yield ner._preprocess_data(dataset=dataset, framework="spacy")
-
-
-class TestPreprocessData:
-    @pytest.fixture(scope="class")
-    def preprocessed(self, dataset, ner, tokenizer, model_config):
-        yield ner._preprocess_data(
-            dataset=dataset,
-            framework="pytorch",
-            tokenizer=tokenizer,
-            model_config=model_config,
-        )
-
-    def test_preprocessed_is_dataset(self, preprocessed):
-        assert isinstance(preprocessed, Dataset)
-
-    def test_preprocessed_columns(self, preprocessed):
-        assert set(preprocessed.features.keys()) == {
-            "input_ids",
-            "token_type_ids",
-            "attention_mask",
-            "labels",
-        }
+    yield AutoTokenizer.from_pretrained(
+        "Maltehb/aelaectra-danish-electra-small-cased-ner-dane"
+    )
 
 
 class TestTokenizeAndAlignLabels:
     @pytest.fixture(scope="class")
-    def tokenised_dataset(self, ner, model_config, tokenizer, dataset):
-        map_fn = partial(
-            tokenize_and_align_labels,
-            tokenizer=tokenizer,
-            model_label2id=model_config.label2id,
-            dataset_id2label=ner.task_config.id2label,
-            label_column_name=ner.task_config.label_column_name,
-        )
-        yield dataset.map(map_fn, batched=True, load_from_cache_file=False)
+    def tokenised_datasets(self, ner, task_config, tokenizer, dataset):
+        if task_config == NER:
+            all_datasets = list()
+            map_fn = partial(
+                tokenize_and_align_labels,
+                tokenizer=tokenizer,
+                model_label2id=ner.task_config.label2id,
+                dataset_id2label=ner.task_config.id2label,
+                label_column_name=ner.task_config.label_column_name,
+            )
+            tokenised_dataset = dataset.map(
+                map_fn, batched=True, load_from_cache_file=False
+            )
+            all_datasets.append(tokenised_dataset)
+            return all_datasets
+        else:
+            return None
 
-    def test_tokenize_and_align_labels_length(self, tokenised_dataset, dataset):
-        assert len(tokenised_dataset) == len(dataset)
+    def test_tokenize_and_align_labels_length(self, tokenised_datasets, dataset):
+        if tokenised_datasets is not None:
+            for tokenised_dataset in tokenised_datasets:
+                assert len(tokenised_dataset) == len(dataset)
 
-    def test_tokenize_and_align_labels_columns(self, tokenised_dataset):
-        assert set(tokenised_dataset.features.keys()) == {
-            "text",
-            "ner_tags",
-            "input_ids",
-            "token_type_ids",
-            "attention_mask",
-            "tokens",
-            "lemmas",
-            "sent_id",
-            "tok_ids",
-            "pos_tags",
-            "morph_tags",
-            "dep_ids",
-            "dep_labels",
-            "labels",
-        }
+    def test_tokenize_and_align_labels_columns(self, tokenised_datasets):
+        if tokenised_datasets is not None:
+            for tokenised_dataset in tokenised_datasets:
+                assert set(tokenised_dataset.features.keys()) == {
+                    "text",
+                    "ner_tags",
+                    "input_ids",
+                    "token_type_ids",
+                    "attention_mask",
+                    "tokens",
+                    "lemmas",
+                    "sent_id",
+                    "tok_ids",
+                    "pos_tags",
+                    "morph_tags",
+                    "dep_ids",
+                    "dep_labels",
+                    "labels",
+                }
 
 
 class TestLoadDataCollator:
@@ -138,45 +118,3 @@ def test_compute_metrics(ner):
     assert isinstance(metrics, dict)
     for value in metrics.values():
         assert isinstance(value, float)
-
-
-class TestGetSpacyPredictionsAndLabels:
-    @pytest.fixture(scope="class")
-    def spacy_predictions(self, preprocessed_spacy, ner, spacy_model):
-        if spacy_model is not None:
-            yield ner._get_spacy_predictions(
-                model=spacy_model,
-                prepared_dataset=preprocessed_spacy,
-                batch_size=2,
-            )
-
-        # If there is no spaCy model during this run of this test, then yield a dummy
-        # output which will make the other tests in this class pass
-        else:
-            yield [[]]
-
-    def test_predictions_is_list(self, spacy_predictions):
-        assert isinstance(spacy_predictions, list)
-
-    def test_predictions_are_lists_of_lists(self, spacy_predictions):
-        assert isinstance(spacy_predictions[0], list)
-
-
-class TestPreprocessDataSpacy:
-    def test_preprocessed_is_dataset(self, preprocessed_spacy):
-        assert isinstance(preprocessed_spacy, Dataset)
-
-    def test_preprocessed_columns(self, preprocessed_spacy):
-        assert set(preprocessed_spacy.features.keys()) == {
-            "text",
-            "labels",
-            "tokens",
-            "lemmas",
-            "sent_id",
-            "tok_ids",
-            "pos_tags",
-            "morph_tags",
-            "dep_ids",
-            "dep_labels",
-            "ner_tags",
-        }
