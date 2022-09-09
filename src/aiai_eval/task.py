@@ -847,7 +847,7 @@ class Task(ABC):
         pass
 
     @abstractmethod
-    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
+    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase) -> DataCollator:
         """Load the data collator used to prepare samples during finetuning.
 
         Args:
@@ -856,7 +856,7 @@ class Task(ABC):
                 initialisation of the data collator. Defaults to None.
 
         Returns:
-            Hugging Face data collator:
+            Hugging Face DataCollator:
                 The data collator.
         """
         pass
