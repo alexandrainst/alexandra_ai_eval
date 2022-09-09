@@ -7,7 +7,7 @@ from typing import List, Sequence, Tuple
 import numpy as np
 from datasets.arrow_dataset import Dataset
 from spacy.language import Language
-from transformers.data.data_collator import default_data_collator
+from transformers.data.data_collator import DataCollator, default_data_collator
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .exceptions import FrameworkCannotHandleTask
@@ -57,7 +57,7 @@ class QuestionAnswering(Task):
 
         return prepared
 
-    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
+    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase) -> DataCollator:
         return default_data_collator
 
     def _prepare_predictions_and_labels(

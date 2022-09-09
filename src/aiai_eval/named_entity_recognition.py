@@ -9,7 +9,10 @@ from datasets.arrow_dataset import Dataset
 from spacy.language import Language
 from spacy.tokens import Token
 from tqdm import tqdm
-from transformers.data.data_collator import DataCollatorForTokenClassification
+from transformers.data.data_collator import (
+    DataCollator,
+    DataCollatorForTokenClassification,
+)
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .exceptions import InvalidTokenizer, MissingLabel
@@ -131,10 +134,7 @@ class NamedEntityRecognition(Task):
 
         return predictions
 
-    def _load_data_collator(
-        self, tokenizer: PreTrainedTokenizerBase
-    ) -> DataCollatorForTokenClassification:
-
+    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase) -> DataCollator:
         return DataCollatorForTokenClassification(tokenizer, label_pad_token_id=-100)
 
     def _prepare_predictions_and_labels(

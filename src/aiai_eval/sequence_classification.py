@@ -1,10 +1,11 @@
 """Class for text classification tasks."""
 
 from functools import partial
+from typing import List
 
 from datasets.arrow_dataset import Dataset
 from spacy.language import Language
-from transformers.data.data_collator import DataCollatorWithPadding
+from transformers.data.data_collator import DataCollator, DataCollatorWithPadding
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
 from .exceptions import FrameworkCannotHandleTask, MissingLabel, WrongFeatureColumnName
@@ -85,7 +86,7 @@ class SequenceClassification(Task):
             raise MissingLabel(label=missing_label, label2id=model_label2id)
         return examples
 
-    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
+    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase) -> DataCollator:
         return DataCollatorWithPadding(tokenizer, padding="longest")
 
     def _get_spacy_predictions(
