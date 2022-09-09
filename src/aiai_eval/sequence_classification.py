@@ -37,13 +37,10 @@ class SequenceClassification(Task):
                 framework="spaCy", task=self.task_config.pretty_name
             )
 
-        # We are now assuming we are using pytorch
-        tokenizer = kwargs["tokenizer"]
-
         # Define the tokenization function
         tokenize_fn = partial(
             tokenize,
-            tokenizer=tokenizer,
+            tokenizer=kwargs["tokenizer"],
             feature_column_names=self.task_config.feature_column_names,
             label_column_name=self.task_config.label_column_name,
         )

@@ -39,11 +39,8 @@ class QuestionAnswering(Task):
                 framework="spaCy", task=self.task_config.pretty_name
             )
 
-        # Get the tokenizer
-        tokenizer = kwargs["tokenizer"]
-
         # Define the function to preprocess the dataset
-        map_fn = partial(prepare_test_examples, tokenizer=tokenizer)
+        map_fn = partial(prepare_test_examples, tokenizer=kwargs["tokenizer"])
 
         # Preprocess the dataset
         prepared = dataset.map(
