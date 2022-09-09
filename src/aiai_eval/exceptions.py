@@ -2,6 +2,8 @@
 
 from typing import Dict, Sequence, Union
 
+from .enums import Framework
+
 
 class InvalidEvaluation(Exception):
     def __init__(
@@ -43,9 +45,9 @@ class ModelFetchFailed(Exception):
 
 
 class InvalidFramework(Exception):
-    def __init__(self, framework: str):
+    def __init__(self, framework: Union[Framework, str]):
         self.framework = framework
-        self.message = f"The framework {framework} is not supported."
+        self.message = f"The framework {str(framework)} is not supported."
         super().__init__(self.message)
 
 
@@ -171,18 +173,18 @@ class InvalidTask(Exception):
 
 
 class ModelNotTrainedForTask(Exception):
-    def __init__(self, framework: str, task: str):
+    def __init__(self, task: str):
         self.task = task
-        self.framework = framework
-        self.message = f"The {framework} model is not trained for the task {self.task}."
+        self.message = f"The model is not trained for the task {self.task}."
         super().__init__(self.message)
 
 
 class FrameworkCannotHandleTask(Exception):
-    def __init__(self, framework: str, task: str):
+    def __init__(self, framework: Union[Framework, str], task: str):
         self.task = task
         self.framework = framework
         self.message = (
-            f"Evaluation of {framework} models on the {task} task is not supported."
+            f"Evaluation of {str(framework)} models on the {task} task is not "
+            "supported."
         )
         super().__init__(self.message)

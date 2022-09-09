@@ -1,14 +1,15 @@
 """Class for sequence classification tasks."""
 
-from functools import partial
 from typing import List, Sequence, Tuple
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
-from spacy.language import Language
+from transformers.configuration_utils import PretrainedConfig
 from transformers.data.data_collator import DataCollator, DataCollatorWithPadding
-from transformers.tokenization_utils_base import PreTrainedTokenizerBase
+from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
+from .config import TaskConfig
+from .enums import Framework
 from .exceptions import FrameworkCannotHandleTask, MissingLabel, WrongFeatureColumnName
 from .task import Task
 from .utils import has_floats
@@ -30,38 +31,20 @@ class SequenceClassification(Task):
             The configuration of the evaluation.
     """
 
-    def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
-
-        # If the model is a spaCy model then raise an error, since we have not yet
-        # implemented sequence classification evaluation for spaCy models.
-        if framework == "spacy":
-            raise FrameworkCannotHandleTask(
-                framework="spaCy", task=self.task_config.pretty_name
-            )
-
-        # Define the tokenization function
-        tokenize_fn = partial(
-            tokenize,
-            tokenizer=kwargs["tokenizer"],
-            feature_column_names=self.task_config.feature_column_names,
-            label_column_name=self.task_config.label_column_name,
+    def _pytorch_preprocess_fn(
+        self,
+        examples: BatchEncoding,
+        tokenizer: PreTrainedTokenizerBase,
+        pytorch_model_config: PretrainedConfig,
+        task_config: TaskConfig,
+    ) -> BatchEncoding:
+        return tokenize_and_numericalize(
+            examples=examples,
+            tokenizer=tokenizer,
+            feature_column_names=task_config.feature_column_names,
+            label_column_name=task_config.label_column_name,
+            model_label2id=pytorch_model_config.label2id,
         )
-
-        # Tokenize the samples
-        tokenized = dataset.map(tokenize_fn, batched=True)
-
-        # Translate labels to ids
-        numericalize_fn = partial(
-            create_numerical_labels,
-            model_label2id=kwargs["model_config"].label2id,
-        )
-        preprocessed = tokenized.map(
-            numericalize_fn,
-            batched=True,
-            remove_columns=dataset.column_names,
-        )
-
-        return preprocessed
 
     def _prepare_predictions_and_labels(
         self,
@@ -100,29 +83,33 @@ class SequenceClassification(Task):
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase) -> DataCollator:
         return DataCollatorWithPadding(tokenizer, padding="longest")
 
-    def _get_spacy_predictions(
-        self, model: Language, prepared_dataset: Dataset, batch_size: int
-    ) -> list:
-        raise FrameworkCannotHandleTask(
-            framework="spaCy", task=self.task_config.pretty_name
-        )
-
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
         sample_preds = model_predictions[0]
         elements_are_floats = isinstance(sample_preds[0], float)
         return elements_are_floats
 
+    def _spacy_preprocess_fn(self, examples: dict) -> dict:
+        raise FrameworkCannotHandleTask(
+            framework="spaCy", task=self.task_config.pretty_name
+        )
 
-def tokenize(
-    examples: dict,
+    def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
+        raise FrameworkCannotHandleTask(
+            framework="spaCy", task=self.task_config.pretty_name
+        )
+
+
+def tokenize_and_numericalize(
+    examples: BatchEncoding,
     tokenizer: PreTrainedTokenizerBase,
     feature_column_names: List[str],
     label_column_name: str,
-) -> dict:
+    model_label2id: dict,
+) -> BatchEncoding:
     """Tokenize the text in the examples.
 
     Args:
-        examples (dict):
+        examples (BatchEncoding):
             The examples to tokenize.
         tokenizer (PreTrainedTokenizerBase):
             The tokenizer to use.
@@ -130,45 +117,30 @@ def tokenize(
             The names of the columns containing the features.
         label_column_name (str):
             The name of the column containing the labels.
+        model_label2id (dict):
+            The mapping from model labels to ids.
 
     Returns:
-        dict:
+        BatchEncoding:
             The tokenized examples.
 
     Raises:
         WrongFeatureColumnName:
             If the feature column names were not found.
     """
+    # Attempt to tokenize the examples
     try:
-        tokenized_examples = tokenizer(
+        labels = examples[label_column_name]
+        examples = tokenizer(
             *[examples[feat_col] for feat_col in feature_column_names],
             truncation=True,
             padding=True,
         )
-        tokenized_examples["labels"] = examples[label_column_name]
-        return tokenized_examples
+        examples["labels"] = labels
 
     except KeyError:
         raise WrongFeatureColumnName(feature_column_names)
 
-
-def create_numerical_labels(examples: dict, model_label2id: dict) -> dict:
-    """Creates numerical labels for an example.
-
-    Args:
-        examples (dict):
-            The examples to create numerical labels for.
-        model_label2id (dict):
-            The mapping from model labels to ids.
-
-    Returns:
-        dict:
-            The examples with numerical labels.
-
-    Raises:
-        MissingLabel:
-            If the label was not found in the model's label2id mapping.
-    """
     # Attempt to numericalize the labels
     try:
         examples["labels"] = [model_label2id[lbl.upper()] for lbl in examples["labels"]]

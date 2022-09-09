@@ -1,15 +1,14 @@
 """Class for question-answering tasks."""
 
 from collections import defaultdict
-from functools import partial
 from typing import List, Sequence, Tuple
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
-from spacy.language import Language
 from transformers.data.data_collator import DataCollator, default_data_collator
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
+from .config import TaskConfig
 from .exceptions import FrameworkCannotHandleTask
 from .task import Task
 
@@ -30,31 +29,17 @@ class QuestionAnswering(Task):
             The configuration of the evaluation.
     """
 
-    def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
-
-        # If the model is a spaCy model then raise an error, since we have not yet
-        # implemented sequence classification evaluation for spaCy models.
-        if framework == "spacy":
-            raise FrameworkCannotHandleTask(
-                framework="spaCy", task=self.task_config.pretty_name
-            )
-
-        # Define the function to preprocess the dataset
-        map_fn = partial(prepare_test_examples, tokenizer=kwargs["tokenizer"])
-
-        # Preprocess the dataset
-        prepared = dataset.map(
-            map_fn,
-            batched=True,
-            remove_columns=dataset.column_names,
+    def _pytorch_preprocess_fn(
+        self,
+        examples: BatchEncoding,
+        tokenizer: PreTrainedTokenizerBase,
+        pytorch_model_config: dict,
+        task_config: TaskConfig,
+    ) -> BatchEncoding:
+        return prepare_test_examples(
+            examples=examples,
+            tokenizer=tokenizer,
         )
-
-        # Set the format of the dataset
-        prepared.set_format(
-            type=prepared.format["type"], columns=list(prepared.features.keys())
-        )
-
-        return prepared
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase) -> DataCollator:
         return default_data_collator
@@ -201,22 +186,25 @@ class QuestionAnswering(Task):
         elements_are_strings = isinstance(sample_preds[0], str)
         return (elements_are_pairs and leaves_are_floats) or elements_are_strings
 
-    def _get_spacy_predictions(
-        self, model: Language, prepared_dataset: Dataset, batch_size: int
-    ) -> list:
+    def _spacy_preprocess_fn(self, examples: dict) -> dict:
+        raise FrameworkCannotHandleTask(
+            framework="spaCy", task=self.task_config.pretty_name
+        )
+
+    def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
         raise FrameworkCannotHandleTask(
             framework="spaCy", task=self.task_config.pretty_name
         )
 
 
 def prepare_test_examples(
-    examples: dict,
+    examples: BatchEncoding,
     tokenizer: PreTrainedTokenizerBase,
 ) -> BatchEncoding:
     """Prepare test examples.
 
     Args:
-        examples (dict):
+        examples (BatchEncoding):
             Dictionary of test examples.
         tokenizer (Hugging Face tokenizer):
             The tokenizer used to preprocess the examples.

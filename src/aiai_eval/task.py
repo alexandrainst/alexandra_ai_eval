@@ -4,7 +4,8 @@ import logging
 import random
 import warnings
 from abc import ABC, abstractmethod
-from typing import Dict, List, Sequence, Tuple, Union
+from functools import partial
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import torch
@@ -14,12 +15,14 @@ from datasets.load import load_dataset, load_metric
 from spacy.language import Language
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
+from transformers.configuration_utils import PretrainedConfig
 from transformers.data.data_collator import DataCollator
 from transformers.modeling_utils import PreTrainedModel
-from transformers.tokenization_utils_base import PreTrainedTokenizerBase
+from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .co2 import get_carbon_tracker
-from .config import EvaluationConfig, ModelConfig, TaskConfig
+from .config import EvaluationConfig, TaskConfig
+from .enums import Framework
 from .exceptions import (
     InvalidEvaluation,
     InvalidFramework,
@@ -116,64 +119,14 @@ class Task(ABC):
         # Set variable with number of iterations
         num_iter = 10 if not self.evaluation_config.testing else 2
 
-        if model_config.framework in {"pytorch", "jax"}:
-            return self._evaluate_pytorch_jax(
-                model_dict=model_dict,
-                dataset=dataset,
-                rng=rng,
-                model_config=model_config,
-                num_iter=num_iter,
-            )
-
-        elif model_config.framework == "spacy":
-            return self._evaluate_spacy(
-                model_dict=model_dict,
-                dataset=dataset,
-                rng=rng,
-                model_config=model_config,
-                num_iter=num_iter,
-            )
-
-        else:
-            raise InvalidFramework(model_config.framework)
-
-    def _evaluate_pytorch_jax(
-        self,
-        model_dict: dict,
-        dataset: Dataset,
-        rng: np.random.Generator,
-        model_config: ModelConfig,
-        num_iter: int,
-    ) -> Union[Dict[str, Dict[str, float]], str]:
-        """Evaluate a PyTorch or JAX model.
-
-        Args:
-            model_dict (dict):
-                The model dictionary, with keys "model" and "tokenizer".
-            dataset (Dataset):
-                The test dataset.
-            rng (np.random.Generator):
-                The random number generator, used to generate bootstrapped versions of
-                the test dataset.
-            model_config (ModelConfig):
-                The model configuration.
-            num_iter (int):
-                The number of bootstrapped samples of the test dataset to use.
-
-        Returns:
-            str or dict:
-                If the `only_return_log` is set then a string is returned containing
-                the logged evaluation results. Otherwise, a nested dictionary of the
-                evaluation results. The keys are the names of the datasets, with values
-                being new dictionaries having the model IDs as keys.
-        """
         # Extract the model and tokenizer
         model = model_dict["model"]
-        tokenizer = model_dict["tokenizer"]
+        tokenizer = model_dict.get("tokenizer")
 
         # Log the number of parameters in the model
-        num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        logger.info(f"Number of model parameters: {num_params:,}")
+        if model_config.framework == Framework.PYTORCH:
+            num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+            logger.info(f"Number of model parameters: {num_params:,}")
 
         # If we are testing then truncate the test set
         if self.evaluation_config.testing:
@@ -186,20 +139,15 @@ class Task(ABC):
         ]
 
         # Preprocess the bootstrapped datasets
-        try:
-            prepared_datasets = [
-                self._preprocess_data(
-                    bootstrapped_dataset,
-                    framework="pytorch",
-                    model_config=model.config,
-                    tokenizer=tokenizer,
-                )
-                for bootstrapped_dataset in bootstrapped_datasets
-            ]
-
-        # If the preprocessing failed then raise an error
-        except ValueError:
-            raise PreprocessingFailed()
+        prepared_datasets = [
+            self._preprocess_data(
+                bootstrapped_dataset,
+                framework=model_config.framework,
+                model_config=model.config,
+                tokenizer=tokenizer,
+            )
+            for bootstrapped_dataset in bootstrapped_datasets
+        ]
 
         # Set up progress bar
         if self.evaluation_config.progress_bar:
@@ -207,18 +155,16 @@ class Task(ABC):
         else:
             itr = range(num_iter)
 
-        # Load the data collator
-        data_collator = self._load_data_collator(tokenizer)
-
         scores = list()
         for idx in itr:
             while True:
-                test_itr_scores_or_err = self._evaluate_pytorch_jax_single_iteration(
+                test_itr_scores_or_err = self._evaluate_single_iteration(
                     idx=idx,
-                    model_config=model_config,
+                    model=model,
+                    tokenizer=tokenizer,
+                    framework=model_config.framework,
                     dataset=bootstrapped_datasets[idx],
                     prepared_dataset=prepared_datasets[idx],
-                    data_collator=data_collator,
                 )
 
                 # If the iteration was successful then break the while-loop
@@ -253,27 +199,30 @@ class Task(ABC):
         )
         return all_scores
 
-    def _evaluate_pytorch_jax_single_iteration(
+    def _evaluate_single_iteration(
         self,
         idx: int,
-        model_config: ModelConfig,
+        model: Union[nn.Module, Language],
+        tokenizer: Optional[PreTrainedTokenizerBase],
         dataset: Dataset,
         prepared_dataset: Dataset,
-        data_collator: DataCollator,
+        framework: Framework,
     ) -> Union[dict, Exception]:
         """Run a single iteration of a PyTorch/JAX benchmark.
 
         Args:
             idx (int):
                 The index of the current iteration.
-            model_config (ModelConfig):
-                The model configuration.
+            model (PyTorch module or spaCy Language):
+                The model.
+            tokenizer (Hugging Face tokenizer or None):
+                The tokenizer, or None if the model does not require a tokenizer.
             dataset (Dataset):
                 The raw test dataset.
             prepared_dataset (Dataset):
                 The preprocessed test dataset.
-            data_collator (DataCollator):
-                The data collator.
+            framework (Framework):
+                The model framework.
 
         Returns:
             dict or Exception:
@@ -288,288 +237,39 @@ class Task(ABC):
             torch.manual_seed(703 + idx)
             torch.cuda.manual_seed_all(703 + idx)
 
-            # Reinitialise a new model
-            model_dict = load_model(
-                model_config=model_config,
-                task_config=self.task_config,
-                evaluation_config=self.evaluation_config,
-            )
-            model = model_dict["model"]
-            tokenizer = model_dict["tokenizer"]
-
             # Define batch size, which depends on whether we are testing or not
             batch_size = 2 if self.evaluation_config.testing else 32
-
-            # Create dataloader
-            dataloader = DataLoader(
-                prepared_dataset,
-                batch_size=batch_size,
-                shuffle=False,
-                collate_fn=data_collator,
-            )
-
-            # Create progress bar
-            if self.evaluation_config.progress_bar:
-                itr = tqdm(
-                    dataloader, desc=f"Evaluating iteration {idx+1}", leave=False
-                )
-            else:
-                itr = dataloader
 
             # Start carbon emissions tracking
             if self.evaluation_config.track_carbon_emissions:
                 self.carbon_tracker.start()
 
             # Get model predictions
-            all_predictions = list()
-            with torch.no_grad():
-                for batch in itr:
-
-                    # Prepare the batch
-                    batch = self._prepare_batch(batch)
-
-                    # Get the model predictions
-                    model_predictions = self._get_model_predictions(
-                        model=model,
-                        batch=batch,
-                    )
-
-                    # Move the predictions back to the CPU and convert it to a NumPy
-                    # array
-                    model_predictions = model_predictions.cpu().numpy().tolist()
-
-                    # Collect predictions
-                    all_predictions.extend(model_predictions)
-
-            # Perform post-processing of predictions
-            prepared_predictions_and_labels = self._prepare_predictions_and_labels(
-                predictions=all_predictions,
-                dataset=dataset,
+            model_predictions = self._get_model_predictions(
+                model=model,
+                tokenizer=tokenizer,
                 prepared_dataset=prepared_dataset,
-                model_id2label=model.config.id2label,
-                cls_token_index=tokenizer.cls_token_id,
+                batch_size=batch_size,
+                framework=framework,
             )
 
-            # If there are multiple metrics but only one pair in the
-            # `all_predictions_labels` list, we copy our that entry to ensure there is a
-            # pair for each metric
-            if (
-                len(prepared_predictions_and_labels) == 1
-                and len(self.task_config.metrics) > 1
-            ):
-                prepared_predictions_and_labels *= len(self.task_config.metrics)
-
-            # In the first iteration we do a check to see if the model outputs
-            # fit the expected format. If not, we raise an exception.
-            if idx == 0:
-                if not self._check_if_model_is_trained_for_task(
-                    model_predictions=model_predictions
-                ):
-                    raise ModelNotTrainedForTask(
-                        task=self.task_config.name, framework=model_config.framework
-                    )
-
-            # Compute the metrics for each prediction batch
-            scores = self._compute_metrics(
-                predictions_and_labels=prepared_predictions_and_labels,
-            )
-
-            # Stop carbon emissions tracking and store emission metrics
-            if self.evaluation_config.track_carbon_emissions:
-                self.carbon_tracker.stop()
-                emissions_data = self.carbon_tracker.final_emissions_data
-                factor = 1_000_000 / len(prepared_dataset)
-                scores["carbon_emissions"] = factor * emissions_data.emissions
-                scores["energy_consumed"] = factor * emissions_data.energy_consumed
-
-            return scores
-
-        except (RuntimeError, ValueError, IndexError) as e:
-            if "PYTORCH_ENABLE_MPS_FALLBACK" in str(e):
-                raise MPSFallbackNotEnabled()
-
-            # Prevent memory leaks
+            # Extract attributes if they are available
             try:
-                del model
-            except UnboundLocalError:
-                pass
+                model_id2label = model.config.id2label  # type: ignore[attr-defined]
+            except AttributeError:
+                model_id2label = None
             try:
-                del model_dict
-            except UnboundLocalError:
-                pass
-            clear_memory()
-
-            # Return the error if it wasn't caught by the above conditionals
-            return e
-
-    def _evaluate_spacy(
-        self,
-        model_dict: dict,
-        dataset: Dataset,
-        rng: np.random.Generator,
-        model_config: ModelConfig,
-        num_iter: int,
-    ) -> Union[Dict[str, Dict[str, float]], str]:
-        """Evaluate a PyTorch or JAX model.
-
-        Args:
-            model_dict (dict):
-                The model dictionary, with keys "model" and "tokenizer".
-            dataset (Dataset):
-                The test dataset.
-            rng (np.random.Generator):
-                The random number generator, used to generate bootstrapped versions of
-                the test dataset.
-            model_config (ModelConfig):
-                The model configuration.
-            num_iter (int):
-                The number of bootstrapped samples of the test dataset to use.
-
-        Returns:
-            dict:
-                The keys in the dict are 'raw' and 'total', with all the raw scores in
-                the first dictionary and the aggregated scores in the second.
-        """
-        # Extract the model and tokenizer
-        model = model_dict["model"]
-
-        # If we are testing then truncate the test set
-        if self.evaluation_config.testing:
-            dataset = dataset.select(range(4))
-
-        # Get bootstrapped datasets
-        bootstrapped_datasets = [
-            Dataset.from_dict(dataset[rng.integers(0, len(dataset), len(dataset))])
-            for _ in range(num_iter)
-        ]
-
-        # Preprocess the bootstrapped datasets
-        try:
-            prepared_datasets = [
-                self._preprocess_data(
-                    bootstrapped_dataset,
-                    framework="spacy",
-                    model_config=model.config,
-                )
-                for bootstrapped_dataset in bootstrapped_datasets
-            ]
-
-        # If the preprocessing failed then raise an error
-        except ValueError:
-            raise PreprocessingFailed()
-
-        # Set up progress bar
-        if self.evaluation_config.progress_bar:
-            itr = tqdm(range(num_iter), desc="Evaluating")
-        else:
-            itr = range(num_iter)
-
-        scores = list()
-        for idx in itr:
-            while True:
-                test_itr_scores = self._evaluate_spacy_single_iteration(
-                    idx=idx,
-                    model_config=model_config,
-                    dataset=bootstrapped_datasets[idx],
-                    prepared_dataset=prepared_datasets[idx],
-                )
-                # If the iteration was successful then break the while-loop
-                if isinstance(test_itr_scores, dict):
-                    break
-
-                # Otherwise we encountered an error
-                else:
-                    raise InvalidEvaluation(
-                        "An unknown error occurred during the evaluation of the "
-                        f"{idx} iteration. The error message returned was: "
-                        f"{str(test_itr_scores)}"
-                    )
-
-            scores.append(test_itr_scores)
-
-        # If track_carbon_emissions is true append metrics, to correctly log emissions
-        # data. We avoid mutating, so any downstream evaluations will not try to use
-        # these.
-        metric_configs = list(self.task_config.metrics)
-        if self.evaluation_config.track_carbon_emissions:
-            metric_configs.append(EMISSIONS)
-            metric_configs.append(POWER)
-
-        # Log scores
-        all_scores = log_scores(
-            task_name=self.task_config.pretty_name,
-            metric_configs=metric_configs,
-            scores=scores,
-            model_id=model_config.model_id,
-            only_return_log=self.evaluation_config.only_return_log,
-        )
-        return all_scores
-
-    def _evaluate_spacy_single_iteration(
-        self,
-        idx: int,
-        model_config: ModelConfig,
-        dataset: Dataset,
-        prepared_dataset: Dataset,
-    ) -> Union[dict, Exception]:
-        """Run a single iteration of a PyTorch/JAX benchmark.
-
-        Args:
-            idx (int):
-                The index of the current iteration.
-            model_config (ModelConfig):
-                The model configuration.
-            dataset (Dataset):
-                The raw test dataset.
-            prepared_dataset (Dataset):
-                The preprocessed test dataset.
-
-        Returns:
-            dict or Exception:
-                The keys in the dict correspond to the metrics and values
-                the corresponding values.
-        """
-        try:
-            # Set random seeds to enforce reproducibility of the randomly
-            # initialised weights
-            random.seed(703 + idx)
-            np.random.seed(703 + idx)
-
-            # Reinitialise a new model
-            model_dict = load_model(
-                model_config=model_config,
-                task_config=self.task_config,
-                evaluation_config=self.evaluation_config,
-            )
-            model = model_dict["model"]
-
-            # Define batch size, which depends on whether we are testing or not
-            batch_size = 2 if self.evaluation_config.testing else 32
-
-            # Start carbon emissions tracking
-            if self.evaluation_config.track_carbon_emissions:
-                self.carbon_tracker.start()
-
-            # Get model predictions
-            model_predictions = self._get_spacy_predictions(
-                model=model, prepared_dataset=prepared_dataset, batch_size=batch_size
-            )
-
-            # In the first iteration we do a check to see if the model outputs
-            # fit the expected format. If not, we raise an exception.
-            if idx == 0:
-                if not self._check_if_model_is_trained_for_task(
-                    model_predictions=model_predictions
-                ):
-                    raise ModelNotTrainedForTask(
-                        task=self.task_config.name, framework=model_config.framework
-                    )
+                cls_token_index = tokenizer.cls_token_id  # type: ignore[union-attr]
+            except AttributeError:
+                cls_token_index = None
 
             # Perform post-processing of predictions
             prepared_predictions_and_labels = self._prepare_predictions_and_labels(
                 predictions=model_predictions,
                 dataset=dataset,
                 prepared_dataset=prepared_dataset,
+                model_id2label=model_id2label,
+                cls_token_index=cls_token_index,
             )
 
             # If there are multiple metrics but only one pair in the
@@ -580,6 +280,14 @@ class Task(ABC):
                 and len(self.task_config.metrics) > 1
             ):
                 prepared_predictions_and_labels *= len(self.task_config.metrics)
+
+            # In the first iteration we do a check to see if the model outputs
+            # fit the expected format. If not, we raise an exception.
+            if idx == 0:
+                if not self._check_if_model_is_trained_for_task(
+                    model_predictions=model_predictions
+                ):
+                    raise ModelNotTrainedForTask(task=self.task_config.name)
 
             # Compute the metrics for each prediction batch
             scores = self._compute_metrics(
@@ -603,10 +311,6 @@ class Task(ABC):
             # Prevent memory leaks
             try:
                 del model
-            except UnboundLocalError:
-                pass
-            try:
-                del model_dict
             except UnboundLocalError:
                 pass
             clear_memory()
@@ -655,9 +359,6 @@ class Task(ABC):
         # Return the results
         return results
 
-    def __call__(self, *args, **kwargs):
-        return self.evaluate(*args, **kwargs)
-
     def _load_data(self) -> Dataset:
         """Load the dataset.
 
@@ -677,8 +378,8 @@ class Task(ABC):
             split=self.task_config.test_name,
         )
 
-    def _prepare_batch(self, batch: dict) -> dict:
-        """Prepare a batch for the model.
+    def _prepare_pytorch_batch(self, batch: dict) -> dict:
+        """Prepare a batch for the PyTorch model.
 
         Args:
             batch (dict):
@@ -708,70 +409,194 @@ class Task(ABC):
         # Return the prepared batch
         return batch
 
-    def _get_model_predictions(self, model, batch: dict) -> torch.Tensor:
+    def _get_model_predictions(
+        self,
+        model: Union[nn.Module, Language],
+        tokenizer: Optional[PreTrainedTokenizerBase],
+        prepared_dataset: Dataset,
+        batch_size: int,
+        framework: Framework,
+    ) -> list:
         """Get the predictions of the model.
 
         Args:
-            model (torch.nn.Module):
+            model (torch.nn.Module or Language):
                 The model.
-            batch (dict):
-                The batch.
+            tokenizer (PreTrainedTokenizerBase or None):
+                The tokenizer. Can be None if the model does not use a tokenizer.
+            prepared_dataset (Dataset):
+                The prepared dataset.
+            batch_size (int):
+                The batch size.
+            framework (Framework):
+                The framework.
 
         Returns:
-            PyTorch Tensor:
+            list:
                 The model predictions.
 
         Raises:
-            UnsupportedModelType:
-                If the model type is not supported.
+            InvalidFramework:
+                If the framework is not a supported framework.
         """
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", category=UserWarning)
+        if framework == Framework.PYTORCH:
 
-            # If we are dealing with a Hugging Face model then we will use the
-            # entire batch dictionary
-            if isinstance(model, PreTrainedModel):
+            # Load the data collator
+            data_collator = self._load_data_collator(tokenizer)
 
-                # Get the model predictions
-                model_predictions = model(**batch)
+            dataloader = DataLoader(
+                prepared_dataset,
+                batch_size=batch_size,
+                shuffle=False,
+                collate_fn=data_collator,
+            )
 
-                # If we are dealing with a classification model then we will
-                # take the logits
-                if hasattr(model_predictions, "logits"):
-                    model_predictions = model_predictions.logits
-
-                # If we are dealing with a question answering model then we
-                # will take the start and end logits and merge them
-                elif hasattr(model_predictions, "start_logits") and hasattr(
-                    model_predictions, "end_logits"
-                ):
-                    model_predictions = torch.stack(
-                        [
-                            model_predictions.start_logits,
-                            model_predictions.end_logits,
-                        ],
-                        dim=-1,
-                    )
-
-                # Otherwise, we raise an error
-                else:
-                    raise ValueError(
-                        "The model predictions are not in the correct format."
-                        f"Received outputs with keys {model_predictions.keys()}"
-                    )
-
-            # If we are dealing with a PyTorch model, then we will only use the
-            # input_ids
-            elif isinstance(model, nn.Module):
-                model_predictions = model(batch["input_ids"])
-
-            # Otherwise, we throw an error
+            # Create progress bar
+            if self.evaluation_config.progress_bar:
+                itr = tqdm(iterable=dataloader, desc="Evaluating", leave=False)
             else:
-                model_type = str(type(model))
-                raise UnsupportedModelType(model_type=model_type)
+                itr = dataloader
 
-            # Return the model predictions
-            return model_predictions
+            all_predictions = list()
+            for batch in itr:
+
+                # Prepare the batch
+                batch = self._prepare_pytorch_batch(batch)
+
+                # If we are dealing with a Hugging Face model then we will use the
+                # entire batch dictionary
+                if isinstance(model, PreTrainedModel):
+
+                    # Get the model predictions
+                    with torch.no_grad():
+                        with warnings.catch_warnings():
+                            warnings.filterwarnings(
+                                action="ignore", category=UserWarning
+                            )
+                            model_predictions = model(**batch)
+
+                    # If we are dealing with a classification model then we will take
+                    # the logits
+                    if hasattr(model_predictions, "logits"):
+                        model_predictions = model_predictions.logits
+
+                    # If we are dealing with a question answering model then we will
+                    # take the start and end logits and merge them
+                    elif all(
+                        [
+                            hasattr(model_predictions, "start_logits"),
+                            hasattr(model_predictions, "end_logits"),
+                        ]
+                    ):
+                        model_predictions = torch.stack(
+                            [
+                                model_predictions.start_logits,
+                                model_predictions.end_logits,
+                            ],
+                            dim=-1,
+                        )
+
+                    # Otherwise, we raise an error
+                    else:
+                        raise ValueError(
+                            "The model predictions are not in the correct format. "
+                            f"Received outputs with keys {model_predictions.keys()}"
+                        )
+
+                # If we are dealing with a PyTorch model, then we will only use
+                # the input_ids
+                elif isinstance(model, nn.Module):
+                    with torch.no_grad():
+                        with warnings.catch_warnings():
+                            warnings.filterwarnings(
+                                action="ignore", category=UserWarning
+                            )
+                            model_predictions = model(batch["input_ids"])
+
+                # Otherwise, we throw an error
+                else:
+                    model_type = str(type(model))
+                    raise UnsupportedModelType(model_type=model_type)
+
+                # Move the predictions back to the CPU and convert it to a NumPy
+                # array
+                model_predictions = model_predictions.cpu().numpy().tolist()
+
+                # Collect predictions
+                all_predictions.extend(model_predictions)
+
+            return all_predictions
+
+        elif framework == Framework.SPACY:
+
+            # Create progress bar
+            if self.evaluation_config.progress_bar:
+                itr = tqdm(
+                    prepared_dataset[self.task_config.feature_column_names[0]],
+                    desc="Evaluating model",
+                    leave=False,
+                )
+            else:
+                itr = prepared_dataset[self.task_config.feature_column_names[0]]
+
+            # Apply the model to the dataset
+            processed = model.pipe(itr, batch_size=batch_size)
+
+            # Extract the predictions using a task-specific function
+            predictions = map(
+                self._extract_spacy_predictions,
+                zip(prepared_dataset["tokens"], processed),
+            )
+
+            return list(predictions)
+
+        else:
+            raise InvalidFramework(framework=framework)
+
+    def _preprocess_data(
+        self, dataset: Dataset, framework: Framework, **kwargs
+    ) -> Dataset:
+        """Preprocess the data.
+
+        Args:
+            dataset (Dataset):
+                The dataset.
+            framework (Framework):
+                The framework of the model.
+            kwargs:
+                Extra keyword arguments containing objects used in preprocessing the
+                dataset.
+
+        Returns:
+            Hugging Face Dataset:
+                The preprocessed dataset.
+        """
+        try:
+            if framework == Framework.PYTORCH:
+                preprocess_fn = partial(
+                    self._pytorch_preprocess_fn,
+                    tokenizer=kwargs["tokenizer"],
+                    pytorch_model_config=kwargs["model_config"],
+                    task_config=self.task_config,
+                )
+                preprocessed = dataset.map(
+                    preprocess_fn,
+                    batched=True,
+                    remove_columns=dataset.column_names,
+                )
+                return preprocessed
+
+            elif framework == Framework.SPACY:
+                return dataset.map(self._spacy_preprocess_fn, batched=True)
+
+            else:
+                raise InvalidFramework(framework=framework)
+
+        except ValueError:
+            raise PreprocessingFailed()
+
+    def __call__(self, *args, **kwargs):
+        return self.evaluate(*args, **kwargs)
 
     @abstractmethod
     def _prepare_predictions_and_labels(
@@ -801,41 +626,62 @@ class Task(ABC):
         pass
 
     @abstractmethod
-    def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
-        """Preprocess the data.
+    def _spacy_preprocess_fn(self, examples: BatchEncoding) -> BatchEncoding:
+        """Preprocess the data for spaCy.
 
         Args:
-            dataset (Dataset):
-                The dataset.
-            framework (str):
-                The framework of the model.
-            kwargs:
-                Extra keyword arguments containing objects used in preprocessing the
-                dataset.
+            examples (BatchEncoding):
+                The examples to preprocess.
 
         Returns:
-            Hugging Face Dataset:
-                The preprocessed dataset.
+            BatchEncoding:
+                The preprocessed examples.
         """
         pass
 
     @abstractmethod
-    def _get_spacy_predictions(
-        self, model: Language, prepared_dataset: Dataset, batch_size: int
-    ) -> list:
-        """Get predictions from SpaCy model on dataset.
+    def _pytorch_preprocess_fn(
+        self,
+        examples: BatchEncoding,
+        tokenizer: PreTrainedTokenizerBase,
+        pytorch_model_config: PretrainedConfig,
+        task_config: TaskConfig,
+    ) -> BatchEncoding:
+        """Preprocess the data for PyTorch.
 
         Args:
-            model (spaCy Language):
-                The model.
-            prepared_dataset (Hugging Face dataset):
-                The dataset.
-            batch_size (int):
-                The batch size to use.
+            examples (BatchEncoding):
+                The examples to preprocess.
+            tokenizer (Hugging Face tokenizer):
+                The tokenizer.
+            pytorch_model_config (PretrainedConfig):
+                The PyTorch model configuration.
+            task_config (TaskConfig):
+                The task configuration.
+
+        Returns:
+            dict:
+                The preprocessed examples.
+        """
+        pass
+
+    @abstractmethod
+    def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
+        """Helper function that extracts the predictions from a SpaCy model.
+
+        Aside from extracting the predictions from the model, it also aligns the
+        predictions with the gold tokens, in case the SpaCy tokenizer tokenizes the
+        text different from those.
+
+        Args:
+            tokens_processed (tuple):
+                A pair of the labels, being a list of strings, and the SpaCy processed
+                document, being a Spacy `Doc` instance.
 
         Returns:
             list:
-                The predictions.
+                A list of predictions for each token, of the same length as the gold
+                tokens (first entry of `tokens_processed`).
         """
         pass
 

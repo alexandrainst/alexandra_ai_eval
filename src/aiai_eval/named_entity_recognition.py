@@ -1,20 +1,19 @@
 """Class for the named entity recognition task."""
 
 from copy import deepcopy
-from functools import partial
 from typing import List, Sequence, Tuple
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
-from spacy.language import Language
 from spacy.tokens import Token
-from tqdm import tqdm
+from transformers.configuration_utils import PretrainedConfig
 from transformers.data.data_collator import (
     DataCollator,
     DataCollatorForTokenClassification,
 )
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
+from .config import TaskConfig
 from .exceptions import InvalidTokenizer, MissingLabel
 from .task import Task
 from .utils import has_floats
@@ -36,72 +35,29 @@ class NamedEntityRecognition(Task):
             The configuration of the evaluation.
     """
 
-    def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
-
-        # Preprocess the data if the framework is spaCy
-        if framework == "spacy":
-
-            def create_label_col(example):
-                example["labels"] = [
-                    self.task_config.id2label[x] for x in example["labels"]
-                ]
-                return example
-
-            dataset = dataset.add_column("labels", dataset["ner_tags"])
-            return dataset.map(create_label_col)
-
-        # We are now assuming we are using PyTorch
-        map_fn = partial(
-            tokenize_and_align_labels,
-            tokenizer=kwargs["tokenizer"],
-            model_label2id=kwargs["model_config"].label2id,
-            dataset_id2label=self.task_config.id2label,
-            label_column_name=self.task_config.label_column_name,
-        )
-        tokenized_dataset = dataset.map(
-            map_fn,
-            batched=True,
-            remove_columns=dataset.column_names,
+    def _pytorch_preprocess_fn(
+        self,
+        examples: BatchEncoding,
+        tokenizer: PreTrainedTokenizerBase,
+        pytorch_model_config: PretrainedConfig,
+        task_config: TaskConfig,
+    ) -> BatchEncoding:
+        return tokenize_and_align_labels(
+            examples=examples,
+            tokenizer=tokenizer,
+            model_label2id=pytorch_model_config.label2id,
+            dataset_id2label=task_config.id2label,
+            label_column_name=task_config.label_column_name,
         )
 
-        return tokenized_dataset
-
-    def _get_spacy_predictions(
-        self, model: Language, prepared_dataset: Dataset, batch_size: int
-    ) -> list:
-
-        if self.evaluation_config.progress_bar:
-            itr = tqdm(
-                prepared_dataset[self.task_config.feature_column_names[0]],
-                desc="Evaluating model",
-                leave=False,
-            )
-        else:
-            itr = prepared_dataset[self.task_config.feature_column_names[0]]
-
-        processed = model.pipe(itr, batch_size=batch_size)
-        map_fn = self._extract_spacy_predictions
-        predictions = map(map_fn, zip(prepared_dataset["tokens"], processed))
-
-        return list(predictions)
+    def _spacy_preprocess_fn(self, examples: BatchEncoding) -> BatchEncoding:
+        examples["labels"] = [
+            [self.task_config.id2label[ner_tag_id] for ner_tag_id in ner_tag_list]
+            for ner_tag_list in examples["ner_tags"]
+        ]
+        return examples
 
     def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
-        """Helper function that extracts the predictions from a SpaCy model.
-
-        Aside from extracting the predictions from the model, it also aligns the
-        predictions with the gold tokens, in case the SpaCy tokenizer tokenizes the
-        text different from those.
-
-        Args:
-            tokens_processed (tuple):
-                A pair of the labels, being a list of strings, and the SpaCy processed
-                document, being a Spacy `Doc` instance.
-
-        Returns:
-            list:
-                A list of predictions for each token, of the same length as the gold
-                tokens (first entry of `tokens_processed`).
-        """
 
         tokens, processed = tokens_processed
 
@@ -217,7 +173,7 @@ class NamedEntityRecognition(Task):
 
 
 def tokenize_and_align_labels(
-    examples: dict,
+    examples: BatchEncoding,
     tokenizer: PreTrainedTokenizerBase,
     model_label2id: dict,
     dataset_id2label: list,
@@ -226,7 +182,7 @@ def tokenize_and_align_labels(
     """Tokenize all texts and align the labels with them.
 
     Args:
-        examples (dict):
+        examples (BatchEncoding):
             The examples to be tokenized.
         tokenizer (Hugging Face tokenizer):
             A pretrained tokenizer.
