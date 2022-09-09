@@ -12,7 +12,10 @@ from src.aiai_eval.exceptions import (
     MissingLabel,
     WrongFeatureColumnName,
 )
-from src.aiai_eval.sequence_classification import SequenceClassification
+from src.aiai_eval.sequence_classification import (
+    SequenceClassification,
+    create_numerical_labels,
+)
 from src.aiai_eval.task_configs import SENT
 
 
@@ -99,15 +102,15 @@ class TestCreateNumericalLabels:
     def label2id(self):
         yield dict(NEGATIVE=0, NEUTRAL=1, POSITIVE=2)
 
-    def test_output_is_dict(self, seq_clf, examples, label2id):
-        numerical_labels = seq_clf._create_numerical_labels(
+    def test_output_is_dict(self, examples, label2id):
+        numerical_labels = create_numerical_labels(
             examples=examples, model_label2id=label2id
         )
         assert isinstance(numerical_labels, dict)
 
-    def throw_exception_if_label_is_missing(self, seq_clf, label2id):
+    def throw_exception_if_label_is_missing(self, label2id):
         with pytest.raises(MissingLabel):
-            seq_clf._create_numerical_labels(
+            create_numerical_labels(
                 examples=dict(labels=["not-a-label"]),
                 model_label2id=label2id,
             )
