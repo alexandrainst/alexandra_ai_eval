@@ -102,9 +102,10 @@ class TestEvaluationConfig:
         assert isinstance(evaluation_config, EvaluationConfig)
 
     def test_attributes_correspond_to_arguments(self, evaluation_config):
+        auth = os.environ.get("HUGGINGFACE_HUB_TOKEN", True)
         assert evaluation_config.raise_error_on_invalid_model is True
         assert evaluation_config.cache_dir == ".aiai_cache"
-        assert evaluation_config.use_auth_token == os.environ["HUGGINGFACE_HUB_TOKEN"]
+        assert evaluation_config.use_auth_token == auth
         assert evaluation_config.progress_bar is False
         assert evaluation_config.save_results is True
         assert evaluation_config.verbose is True

@@ -19,7 +19,7 @@ def evaluator():
         save_results=False,
         raise_error_on_invalid_model=False,
         cache_dir=".aiai_cache",
-        use_auth_token=os.environ["HUGGINGFACE_HUB_TOKEN"],
+        use_auth_token=os.environ.get("HUGGINGFACE_HUB_TOKEN", True),
         track_carbon_emissions=False,
         country_iso_code="",
         prefer_device=Device.CPU,
