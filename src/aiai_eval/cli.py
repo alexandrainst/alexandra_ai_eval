@@ -4,10 +4,10 @@ from typing import Tuple, Union
 
 import click
 
-from .config import Device
 from .country_codes import ALL_COUNTRY_CODES
 from .evaluator import Evaluator
 from .task_configs import get_all_task_configs
+from .utils import Device
 
 
 @click.command()
