@@ -1,5 +1,7 @@
 """Unit tests for the `task` module."""
 
+from typing import List, Sequence, Tuple
+
 import numpy as np
 import pytest
 from datasets.arrow_dataset import Dataset
@@ -29,6 +31,15 @@ class TaskDummy(Task):
 
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
         return True
+
+    def _prepare_predictions_and_labels(
+        self,
+        predictions: Sequence,
+        dataset: Dataset,
+        prepared_dataset: Dataset,
+        **kwargs,
+    ) -> List[Tuple[list, list]]:
+        return list()
 
 
 @pytest.fixture(scope="session")
