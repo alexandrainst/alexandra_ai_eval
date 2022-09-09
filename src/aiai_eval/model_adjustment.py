@@ -7,6 +7,7 @@ import torch.nn as nn
 from torch.nn.parameter import Parameter
 
 from .config import ModelConfig, TaskConfig
+from .enums import Framework
 from .exceptions import InvalidEvaluation
 
 
@@ -138,7 +139,7 @@ def adjust_model_to_task(
         # model is missing labels
         if (
             len(model_id2label) > len(old_id2label)
-            and model_config.framework == "pytorch"
+            and model_config.framework == Framework.PYTORCH
         ):
             alter_classification_layer(
                 model=model,
