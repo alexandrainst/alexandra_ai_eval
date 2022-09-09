@@ -655,40 +655,6 @@ class Task(ABC):
         # Return the results
         return results
 
-    def _prepare_predictions_and_labels(
-        self,
-        predictions: Sequence,
-        dataset: Dataset,
-        prepared_dataset: Dataset,
-        **kwargs,
-    ) -> List[Tuple[list, list]]:
-        """Prepare predictions and labels for output.
-
-        Args:
-            predictions (sequence of either ints or floats):
-                The predictions of the model.
-            dataset (Dataset):
-                The raw dataset.
-            prepared_dataset (Dataset):
-                The prepared dataset.
-            kwargs:
-                Extra keyword arguments containing objects used in preparing the
-                predictions and labels.
-
-        Returns:
-            list of pairs of lists:
-                The prepared predictions and labels.
-        """
-        # Collapse the logits into single predictions for every sample
-        if has_floats(predictions):
-            predictions = np.argmax(predictions, axis=-1)
-
-        # Extract labels from dataset
-        labels = prepared_dataset["labels"]
-
-        # Return the predictions and labels
-        return [(list(predictions), list(labels))]
-
     def __call__(self, *args, **kwargs):
         return self.evaluate(*args, **kwargs)
 
@@ -806,6 +772,33 @@ class Task(ABC):
 
             # Return the model predictions
             return model_predictions
+
+    @abstractmethod
+    def _prepare_predictions_and_labels(
+        self,
+        predictions: Sequence,
+        dataset: Dataset,
+        prepared_dataset: Dataset,
+        **kwargs,
+    ) -> List[Tuple[list, list]]:
+        """Prepare predictions and labels for output.
+
+        Args:
+            predictions (sequence of either ints or floats):
+                The predictions of the model.
+            dataset (Dataset):
+                The raw dataset.
+            prepared_dataset (Dataset):
+                The prepared dataset.
+            kwargs:
+                Extra keyword arguments containing objects used in preparing the
+                predictions and labels.
+
+        Returns:
+            list of pairs of lists:
+                The prepared predictions and labels.
+        """
+        pass
 
     @abstractmethod
     def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
