@@ -12,7 +12,7 @@ class InvalidEvaluation(Exception):
 
 
 class ModelDoesNotExist(Exception):
-    def __init__(self, model_id: str, message=""):
+    def __init__(self, model_id: str, message: str = ""):
         self.model_id = model_id
         self.message = (
             message
