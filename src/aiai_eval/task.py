@@ -33,7 +33,7 @@ from .hf_hub import get_model_config
 from .metric_configs import EMISSIONS, POWER
 from .model_loading import load_model
 from .scoring import log_scores
-from .utils import clear_memory, enforce_reproducibility, has_floats
+from .utils import clear_memory, enforce_reproducibility
 
 # Set up a logger
 logger = logging.getLogger(__name__)
@@ -228,8 +228,8 @@ class Task(ABC):
                 # Otherwise we encountered an error
                 else:
                     raise InvalidEvaluation(
-                        "An unknown error occurred during the evaluation of the "
-                        f"{idx} iteration. The error message returned was: "
+                        f"An unknown error occurred during the evaluation of the {idx} "
+                        "iteration. The error message returned was: "
                         f"{str(test_itr_scores_or_err)}"
                     )
 
