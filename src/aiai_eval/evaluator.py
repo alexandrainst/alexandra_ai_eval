@@ -4,7 +4,7 @@ import json
 import logging
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Sequence, Union
+from typing import Dict, List, Sequence, Union
 
 from .config import EvaluationConfig, TaskConfig
 from .exceptions import InvalidEvaluation, ModelDoesNotExist
@@ -105,7 +105,7 @@ class Evaluator:
         self,
         model_id: Union[Sequence[str], str],
         task: Union[Sequence[str], str],
-    ) -> Union[Dict[str, Dict[str, dict]], Dict[str, Dict[str, str]]]:
+    ) -> Dict[str, dict]:
         """Evaluates models on datasets.
 
         Args:
@@ -165,7 +165,7 @@ class Evaluator:
     def _prepare_model_ids(
         self,
         model_id: Union[Sequence[str], str],
-    ) -> Sequence[str]:
+    ) -> List[str]:
         """Prepare the model ID(s) to be evaluated.
 
         Args:
@@ -180,13 +180,13 @@ class Evaluator:
         if isinstance(model_id, str):
             model_ids = [model_id]
         else:
-            model_ids = model_id
+            model_ids = list(model_id)
         return model_ids
 
     def _prepare_task_configs(
         self,
         task_name: Union[Sequence[str], str],
-    ) -> Sequence[TaskConfig]:
+    ) -> List[TaskConfig]:
         """Prepare the model ID(s) to be evaluated.
 
         Args:
@@ -194,7 +194,7 @@ class Evaluator:
                 The task name(s) to evaluate the model(s) on.
 
         Returns:
-            sequence of TaskConfig objects:
+            list of TaskConfig objects:
                 The prepared list of task configurations.
         """
         # Create a dictionary that maps evaluation tasks to their associated evaluation
@@ -213,7 +213,7 @@ class Evaluator:
         self,
         model_id: str,
         task_config: TaskConfig,
-    ):
+    ) -> None:
         """Evaluate a single model on a single task.
 
         Args:
@@ -245,6 +245,8 @@ class Evaluator:
             logger.debug(f'The error message was "{e}".')
 
     def __call__(
-        self, model_id: Union[Sequence[str], str], task: Union[Sequence[str], str]
-    ):
+        self,
+        model_id: Union[Sequence[str], str],
+        task: Union[Sequence[str], str],
+    ) -> Dict[str, dict]:
         return self.evaluate(model_id=model_id, task=task)
