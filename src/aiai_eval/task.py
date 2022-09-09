@@ -742,7 +742,7 @@ class Task(ABC):
         # Return the prepared batch
         return batch
 
-    def _get_model_predictions(self, model, batch: dict) -> torch.tensor:
+    def _get_model_predictions(self, model, batch: dict) -> torch.Tensor:
         """Get the predictions of the model.
 
         Args:
@@ -752,57 +752,60 @@ class Task(ABC):
                 The batch.
 
         Returns:
-            torch.tensor:
+            PyTorch Tensor:
                 The model predictions.
 
         Raises:
             UnsupportedModelType:
                 If the model type is not supported.
         """
-        # If we are dealing with a Hugging Face model then we will use the
-        # entire batch dictionary
-        if isinstance(model, PreTrainedModel):
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=UserWarning)
 
-            # Get the model predictions
-            model_predictions = model(**batch)
+            # If we are dealing with a Hugging Face model then we will use the
+            # entire batch dictionary
+            if isinstance(model, PreTrainedModel):
 
-            # If we are dealing with a classification model then we will
-            # take the logits
-            if hasattr(model_predictions, "logits"):
-                model_predictions = model_predictions.logits
+                # Get the model predictions
+                model_predictions = model(**batch)
 
-            # If we are dealing with a question answering model then we
-            # will take the start and end logits and merge them
-            elif hasattr(model_predictions, "start_logits") and hasattr(
-                model_predictions, "end_logits"
-            ):
-                model_predictions = torch.stack(
-                    [
-                        model_predictions.start_logits,
-                        model_predictions.end_logits,
-                    ],
-                    dim=-1,
-                )
+                # If we are dealing with a classification model then we will
+                # take the logits
+                if hasattr(model_predictions, "logits"):
+                    model_predictions = model_predictions.logits
 
-            # Otherwise, we raise an error
+                # If we are dealing with a question answering model then we
+                # will take the start and end logits and merge them
+                elif hasattr(model_predictions, "start_logits") and hasattr(
+                    model_predictions, "end_logits"
+                ):
+                    model_predictions = torch.stack(
+                        [
+                            model_predictions.start_logits,
+                            model_predictions.end_logits,
+                        ],
+                        dim=-1,
+                    )
+
+                # Otherwise, we raise an error
+                else:
+                    raise ValueError(
+                        "The model predictions are not in the correct format."
+                        f"Received outputs with keys {model_predictions.keys()}"
+                    )
+
+            # If we are dealing with a PyTorch model, then we will only use the
+            # input_ids
+            elif isinstance(model, nn.Module):
+                model_predictions = model(batch["input_ids"])
+
+            # Otherwise, we throw an error
             else:
-                raise ValueError(
-                    "The model predictions are not in the correct format."
-                    f"Received outputs with keys {model_predictions.keys()}"
-                )
+                model_type = str(type(model))
+                raise UnsupportedModelType(model_type=model_type)
 
-        # If we are dealing with a PyTorch model, then we will only use the
-        # input_ids
-        elif isinstance(model, nn.Module):
-            model_predictions = model(batch["input_ids"])
-
-        # Otherwise, we throw an error
-        else:
-            model_type = str(type(model))
-            raise UnsupportedModelType(model_type=model_type)
-
-        # Return the model predictions
-        return model_predictions
+            # Return the model predictions
+            return model_predictions
 
     @abstractmethod
     def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
