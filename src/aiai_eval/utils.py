@@ -7,7 +7,6 @@ import os
 import random
 import re
 import warnings
-from dataclasses import dataclass
 from typing import List, Optional, Sequence, Union
 
 import numpy as np

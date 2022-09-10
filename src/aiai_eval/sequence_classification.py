@@ -9,7 +9,6 @@ from transformers.data.data_collator import DataCollator, DataCollatorWithPaddin
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .config import TaskConfig
-from .enums import Framework
 from .exceptions import FrameworkCannotHandleTask, MissingLabel, WrongFeatureColumnName
 from .task import Task
 from .utils import has_floats
