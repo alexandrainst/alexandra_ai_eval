@@ -47,7 +47,7 @@ def get_carbon_tracker(
         carbon_tracker = OfflineEmissionsTracker(
             project_name=task_name,
             measure_power_secs=1,
-            country_code=country_code.value,
+            country_iso_code=country_code.value,
             log_level=log_level,
             save_to_file=False,
             save_to_api=False,
