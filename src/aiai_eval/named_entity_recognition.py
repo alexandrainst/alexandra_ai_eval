@@ -1,6 +1,7 @@
 """Class for the named entity recognition task."""
 
 from copy import deepcopy
+from functools import partial
 from typing import List, Optional, Sequence, Tuple
 
 import numpy as np
@@ -61,34 +62,23 @@ class NamedEntityRecognition(Task):
 
         tokens, processed = tokens_processed
 
-        # Get the token labels
-        token_labels = [
-            get_ent(
-                token=token,
-                dataset_id2label=self.task_config.id2label,
-                dataset_label2id=self.task_config.label2id,
-            )
-            for token in processed
-        ]
-
-        # Get the alignment between the SpaCy model's tokens and the gold tokens
-        token_idxs = [tok_idx for tok_idx, tok in enumerate(tokens) for _ in str(tok)]
-        pred_token_idxs = [
-            tok_idx for tok_idx, tok in enumerate(processed) for _ in str(tok)
-        ]
-        alignment = list(zip(token_idxs, pred_token_idxs))
-
         # Get the aligned predictions
-        predictions = list()
-        for tok_idx, _ in enumerate(tokens):
-            aligned_pred_token = [
-                pred_token_idx
-                for token_idx, pred_token_idx in alignment
-                if token_idx == tok_idx
-            ][0]
-            predictions.append(token_labels[aligned_pred_token])
+        aligned_spacy_tokens = align_spacy_tokens_with_gold_tokens(
+            spacy_tokens=processed, gold_tokens=tokens
+        )
 
-        return predictions
+        # Get the token labels
+        get_ent_fn = partial(
+            get_ent,
+            dataset_id2label=self.task_config.id2label,
+            dataset_label2id=self.task_config.label2id,
+        )
+        spacy_tags = list(map(get_ent_fn, processed))
+
+        # Get the aligned labels
+        aligned_spacy_predictions = [spacy_tags[i] for i in aligned_spacy_tokens]
+
+        return aligned_spacy_predictions
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase) -> DataCollator:
         return DataCollatorForTokenClassification(tokenizer, label_pad_token_id=-100)
@@ -422,3 +412,46 @@ def remove_misc_tags(list_of_tag_lists: List[List[str]]) -> List[List[str]]:
 
     # Return the list of lists containing NER tags with MISC tags removed
     return list_of_tag_lists
+
+
+def align_spacy_tokens_with_gold_tokens(
+    spacy_tokens: List[Token],
+    gold_tokens: List[str],
+) -> List[int]:
+    """Aligns spaCy tokens with gold tokens.
+
+    This is necessary because spaCy's tokenizer is different to the tokenizer used by
+    the dataset. This function aligns the tokens by inserting empty tokens where
+    necessary.
+
+    Args:
+        spacy_tokens (list of Token):
+            A list of spaCy tokens.
+        gold_tokens (list of str):
+            A list of gold tokens.
+
+    Returns:
+        list of int:
+            A list of indices of `spacy_tokens` that correspond to the gold tokens.
+    """
+    # Get the alignment between the SpaCy model's tokens and the gold tokens
+    gold_token_idxs = [
+        tok_idx for tok_idx, tok in enumerate(gold_tokens) for _ in str(tok)
+    ]
+    spacy_token_idxs = [
+        tok_idx for tok_idx, tok in enumerate(spacy_tokens) for _ in str(tok)
+    ]
+    alignment = list(zip(gold_token_idxs, spacy_token_idxs))
+
+    # Get the aligned predictions
+    predictions: List[int] = list()
+    for idx, _ in enumerate(gold_tokens):
+        aligned_pred_token = [
+            spacy_token_idx
+            for gold_token_idx, spacy_token_idx in alignment
+            if gold_token_idx == idx
+        ][0]
+        predictions.append(aligned_pred_token)
+
+    # Return the aligned predictions
+    return predictions
