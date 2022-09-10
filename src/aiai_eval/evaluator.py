@@ -36,7 +36,7 @@ class Evaluator:
             specified then it will be used as the token. Defaults to False.
         track_carbon_emissions (bool, optional):
             Whether to track carbon usage. Defaults to False.
-        country_code (CountryCode, optional):
+        country_code (CountryCode or str, optional):
             The 3-letter alphabet ISO Code of the country where the compute
             infrastructure is hosted. Only relevant if no internet connection is
             available. Only relevant if `track_carbon_emissions` is set to True.
@@ -68,11 +68,17 @@ class Evaluator:
         cache_dir: str = ".aiai_cache",
         use_auth_token: Union[bool, str] = False,
         track_carbon_emissions: bool = False,
-        country_code: CountryCode = CountryCode.EMPTY,  # type: ignore[attr-defined]
+        country_code: Union[str, CountryCode] = CountryCode.EMPTY,  # type: ignore[attr-defined]
         prefer_device: Device = Device.CUDA,
         only_return_log: bool = False,
         verbose: bool = False,
     ):
+        # If `country_code` is a string then convert it to a `CountryCode` enum
+        if isinstance(country_code, str):
+            country_code_enum = CountryCode[country_code]
+        else:
+            country_code_enum = country_code
+
         # Build evaluation configuration
         self.evaluation_config = EvaluationConfig(
             raise_error_on_invalid_model=raise_error_on_invalid_model,
@@ -82,7 +88,7 @@ class Evaluator:
             save_results=save_results,
             verbose=verbose,
             track_carbon_emissions=track_carbon_emissions,
-            country_code=country_code,
+            country_code=country_code_enum,
             prefer_device=prefer_device,
             only_return_log=only_return_log,
         )
