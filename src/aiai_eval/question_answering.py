@@ -52,131 +52,16 @@ class QuestionAnswering(Task):
         **kwargs,
     ) -> List[Tuple[list, list]]:
 
-        # Extract the logits from the predictions
-        all_start_logits = np.asarray(predictions)[:, :, 0]
-        all_end_logits = np.asarray(predictions)[:, :, 1]
+        # Extract the predictions and labels
+        predictions = postprocess_predictions(
+            predictions=predictions,
+            dataset=dataset,
+            prepared_dataset=prepared_dataset,
+            cls_token_index=kwargs["cls_token_index"],
+        )
+        labels = postprocess_labels(dataset=dataset)
 
-        # Build a map from an example to its corresponding features
-        id_to_index = {k: i for i, k in enumerate(dataset["id"])}
-        features_per_example = defaultdict(list)
-        for i, feature in enumerate(prepared_dataset):
-            id = feature["id"]
-            example_index = id_to_index[id]
-            features_per_example[example_index].append(i)
-
-        # Initialise the lists containing the predictions and labels, respectively
-        predictions = list()
-        labels = list()
-
-        # Loop over all the examples
-        for example_index, example in enumerate(dataset):
-
-            # Extract the indices of the features associated with the current example
-            feature_indices = features_per_example[example_index]
-
-            # Extract the context
-            context = example["context"]
-
-            # Loop through all the features associated to the current example
-            min_null_score = 0.0
-            valid_answers = list()
-            for feature_index in feature_indices:
-
-                # Get the features associated with the current example
-                features = prepared_dataset[feature_index]
-
-                # Get the predictions of the model for this feature
-                start_logits = all_start_logits[feature_index]
-                end_logits = all_end_logits[feature_index]
-
-                # Get the offset mapping, which will allow us to map the positions in
-                # our logits to span of texts in the original context
-                offset_mapping = features["offset_mapping"]
-
-                # Update minimum null prediction
-                cls_token_index = kwargs["cls_token_index"]
-                cls_index = features["input_ids"].index(cls_token_index)
-                feature_null_score = start_logits[cls_index] + end_logits[cls_index]
-                if min_null_score < feature_null_score:
-                    min_null_score = feature_null_score
-
-                # Go through all possibilities for the `n_best_size` greater start and
-                # end logits
-                n_best_size = 20
-                start_indexes = np.argsort(start_logits)[
-                    -1 : -n_best_size - 1 : -1
-                ].tolist()
-                end_indexes = np.argsort(end_logits)[
-                    -1 : -n_best_size - 1 : -1
-                ].tolist()
-
-                for start_index in start_indexes:
-                    for end_index in end_indexes:
-
-                        # Do not consider out-of-scope answers, either because the
-                        # indices are out of bounds or correspond to part of the
-                        # input_ids that are not in the context
-                        if (
-                            start_index >= len(offset_mapping)
-                            or end_index >= len(offset_mapping)
-                            or offset_mapping[start_index] == -1
-                            or offset_mapping[end_index] == -1
-                        ):
-                            continue
-
-                        # Do not consider answers with a length that is either negative
-                        # or greater than the context length
-                        max_answer_length = 30
-                        max_val = max_answer_length + start_index - 1
-                        if end_index < start_index or end_index > max_val:
-                            continue
-
-                        start_char = offset_mapping[start_index][0]
-                        end_char = offset_mapping[end_index][1]
-                        score = start_logits[start_index] + end_logits[end_index]
-                        text = context[start_char:end_char]
-
-                        valid_answers.append(dict(score=score, text=text))
-
-            if len(valid_answers) > 0:
-                best_answer = sorted(
-                    valid_answers, key=lambda x: x["score"], reverse=True
-                )[0]
-
-            # In the very rare edge case we have not a single non-null
-            # prediction, we create a fake prediction to avoid failure
-            else:
-                best_answer = {"text": "", "score": 0.0}
-
-            # We pick our final answer as the best one or the null answer
-            if best_answer["score"] > min_null_score:
-                prediction_text = best_answer["text"]
-            else:
-                prediction_text = ""
-
-            # Create the final prediction dictionary, to be added to the list of
-            # predictions
-            prediction = dict(
-                id=example["id"],
-                prediction_text=prediction_text,
-                no_answer_probability=0.0,
-            )
-
-            # Create the associated reference dictionary, to be added to the list of
-            # references
-            label = dict(
-                id=example["id"],
-                answers=dict(
-                    text=example["answers"]["text"],
-                    answer_start=example["answers"]["answer_start"],
-                ),
-            )
-
-            # Add the answer and label to the list of predictions and labels,
-            # respectively
-            predictions.append(prediction)
-            labels.append(label)
-
+        # Package the predictions and labels into the standard format and return them
         return [(predictions, labels)]
 
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
@@ -268,3 +153,165 @@ def prepare_test_examples(
         ]
 
     return tokenized_examples
+
+
+def postprocess_predictions(
+    predictions: Sequence,
+    dataset: Dataset,
+    prepared_dataset: Dataset,
+    cls_token_index: int,
+) -> List[dict]:
+    """Postprocess the predictions, to allow easier metric computation.
+
+    Args:
+        predictions (Sequence):
+            The predictions to postprocess.
+        dataset (Dataset):
+            The dataset containing the examples.
+        prepared_dataset (Dataset):
+            The dataset containing the prepared examples.
+        cls_token_index (int):
+            The index of the CLS token.
+
+    Returns:
+        list of dicts:
+            The postprocessed predictions.
+    """
+    # Extract the logits from the predictions
+    all_start_logits = np.asarray(predictions)[:, :, 0]
+    all_end_logits = np.asarray(predictions)[:, :, 1]
+
+    # Build a map from an example to its corresponding features
+    id_to_index = {k: i for i, k in enumerate(dataset["id"])}
+    features_per_example = defaultdict(list)
+    for i, feature in enumerate(prepared_dataset):
+        id = feature["id"]
+        example_index = id_to_index[id]
+        features_per_example[example_index].append(i)
+
+    # Loop over all the examples
+    predictions = list()
+    for example_index, example in enumerate(dataset):
+
+        # Extract the indices of the features associated with the current example
+        feature_indices = features_per_example[example_index]
+
+        # Extract the context
+        context = example["context"]
+
+        # Loop through all the features associated to the current example
+        min_null_score = 0.0
+        valid_answers = list()
+        for feature_index in feature_indices:
+
+            # Get the features associated with the current example
+            features = prepared_dataset[feature_index]
+
+            # Get the predictions of the model for this feature
+            start_logits = all_start_logits[feature_index]
+            end_logits = all_end_logits[feature_index]
+
+            # Get the offset mapping, which will allow us to map the positions in
+            # our logits to span of texts in the original context
+            offset_mapping = features["offset_mapping"]
+
+            # Update minimum null prediction
+            cls_index = features["input_ids"].index(cls_token_index)
+            feature_null_score = start_logits[cls_index] + end_logits[cls_index]
+            if min_null_score < feature_null_score:
+                min_null_score = feature_null_score
+
+            # Go through all possibilities for the `n_best_size` greater start and
+            # end logits
+            n_best_size = 20
+            start_indexes = np.argsort(start_logits)[
+                -1 : -n_best_size - 1 : -1
+            ].tolist()
+            end_indexes = np.argsort(end_logits)[-1 : -n_best_size - 1 : -1].tolist()
+
+            for start_index in start_indexes:
+                for end_index in end_indexes:
+
+                    # Do not consider out-of-scope answers, either because the
+                    # indices are out of bounds or correspond to part of the
+                    # input_ids that are not in the context
+                    if (
+                        start_index >= len(offset_mapping)
+                        or end_index >= len(offset_mapping)
+                        or offset_mapping[start_index] == -1
+                        or offset_mapping[end_index] == -1
+                    ):
+                        continue
+
+                    # Do not consider answers with a length that is either negative
+                    # or greater than the context length
+                    max_answer_length = 30
+                    max_val = max_answer_length + start_index - 1
+                    if end_index < start_index or end_index > max_val:
+                        continue
+
+                    start_char = offset_mapping[start_index][0]
+                    end_char = offset_mapping[end_index][1]
+                    score = start_logits[start_index] + end_logits[end_index]
+                    text = context[start_char:end_char]
+
+                    valid_answers.append(dict(score=score, text=text))
+
+        if len(valid_answers) > 0:
+            best_answer = sorted(valid_answers, key=lambda x: x["score"], reverse=True)[
+                0
+            ]
+
+        # In the very rare edge case we have not a single non-null
+        # prediction, we create a fake prediction to avoid failure
+        else:
+            best_answer = {"text": "", "score": 0.0}
+
+        # We pick our final answer as the best one or the null answer
+        if best_answer["score"] > min_null_score:
+            prediction_text = best_answer["text"]
+        else:
+            prediction_text = ""
+
+        # Create the final prediction dictionary, to be added to the list of
+        # predictions
+        prediction = dict(
+            id=example["id"],
+            prediction_text=prediction_text,
+            no_answer_probability=0.0,
+        )
+
+        # Add the answer to the list of predictions
+        predictions.append(prediction)
+
+    return predictions
+
+
+def postprocess_labels(dataset: Dataset) -> List[dict]:
+    """Postprocess the labels, to allow easier metric computation.
+
+    Args:
+        dataset (Dataset):
+            The dataset containing the examples.
+
+    Returns:
+        list of dicts:
+             The postprocessed labels.
+    """
+    labels = list()
+    for example in dataset:
+
+        # Create the associated reference dictionary, to be added to the list of
+        # references
+        label = dict(
+            id=example["id"],
+            answers=dict(
+                text=example["answers"]["text"],
+                answer_start=example["answers"]["answer_start"],
+            ),
+        )
+
+        # Add the answer and label to the list of predictions and labels, respectively
+        labels.append(label)
+
+    return labels
