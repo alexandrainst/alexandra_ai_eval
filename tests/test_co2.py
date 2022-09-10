@@ -26,10 +26,17 @@ class TestGetCarbonTracker:
     def test_get_carbon_tracker_offline(self, offline_carbon_tracker):
         assert isinstance(offline_carbon_tracker, OfflineEmissionsTracker)
 
-    def test_project_name(self, online_carbon_tracker, offline_carbon_tracker, params):
+    def test_project_name_online(self, online_carbon_tracker, params):
+        import logging
+
+        logging.info(online_carbon_tracker._conf)
         assert online_carbon_tracker._conf["project_name"] == params["task_name"]
+
+    def test_project_name_offline(self, offline_carbon_tracker, params):
         assert offline_carbon_tracker._conf["project_name"] == params["task_name"]
 
-    def test_measure_power_secs(self, online_carbon_tracker, offline_carbon_tracker):
+    def test_measure_power_secs_online(self, online_carbon_tracker):
         assert online_carbon_tracker._conf["measure_power_secs"] == 1
+
+    def test_measure_power_secs_offline(self, offline_carbon_tracker):
         assert offline_carbon_tracker._conf["measure_power_secs"] == 1
