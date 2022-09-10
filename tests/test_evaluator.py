@@ -5,7 +5,7 @@ from collections import defaultdict
 
 import pytest
 
-from aiai_eval.utils import Device
+from aiai_eval.enums import CountryCode, Device
 from src.aiai_eval.evaluator import Evaluator
 from src.aiai_eval.exceptions import ModelDoesNotExist
 from src.aiai_eval.task_factory import TaskFactory
@@ -20,7 +20,7 @@ def evaluator():
         cache_dir=".aiai_cache",
         use_auth_token=os.environ.get("HUGGINGFACE_HUB_TOKEN", True),
         track_carbon_emissions=False,
-        country_iso_code="",
+        country_code=CountryCode.EMPTY,
         prefer_device=Device.CPU,
         verbose=False,
     )

@@ -7,11 +7,11 @@ from pathlib import Path
 from typing import Dict, List, Sequence, Union
 
 from .config import EvaluationConfig, TaskConfig
+from .enums import CountryCode, Device
 from .exceptions import InvalidEvaluation, ModelDoesNotExist
 from .hf_hub import check_if_model_exist
 from .task_configs import get_all_task_configs
 from .task_factory import TaskFactory
-from .utils import Device
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ class Evaluator:
             specified then it will be used as the token. Defaults to False.
         track_carbon_emissions (bool, optional):
             Whether to track carbon usage. Defaults to False.
-        country_iso_code (str, optional):
+        country_code (CountryCode, optional):
             The 3-letter alphabet ISO Code of the country where the compute
             infrastructure is hosted. Only relevant if no internet connection is
             available. Only relevant if `track_carbon_emissions` is set to True.
@@ -68,7 +68,7 @@ class Evaluator:
         cache_dir: str = ".aiai_cache",
         use_auth_token: Union[bool, str] = False,
         track_carbon_emissions: bool = False,
-        country_iso_code: str = "",
+        country_code: CountryCode = CountryCode.EMPTY,  # type: ignore[attr-defined]
         prefer_device: Device = Device.CUDA,
         only_return_log: bool = False,
         verbose: bool = False,
@@ -82,7 +82,7 @@ class Evaluator:
             save_results=save_results,
             verbose=verbose,
             track_carbon_emissions=track_carbon_emissions,
-            country_iso_code=country_iso_code,
+            country_code=country_code,
             prefer_device=prefer_device,
             only_return_log=only_return_log,
         )

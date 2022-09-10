@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from .enums import Device, Framework
+from .enums import CountryCode, Device, Framework
 from .utils import get_available_devices
 
 
@@ -152,7 +152,7 @@ class EvaluationConfig:
             Whether to print verbose output.
         track_carbon_usage (bool):
             Whether to track carbon usage.
-        country_iso_code (str):
+        country_code (CountryCode):
             The 3-letter alphabet ISO Code of the country where the compute
             infrastructure is hosted. Only relevant if no internet connection is
             available. Only relevant if `track_carbon_emissions` is set to True. A list
@@ -175,7 +175,7 @@ class EvaluationConfig:
     save_results: bool
     verbose: bool
     track_carbon_emissions: bool
-    country_iso_code: str
+    country_code: CountryCode
     prefer_device: Device
     only_return_log: bool = False
     testing: bool = False

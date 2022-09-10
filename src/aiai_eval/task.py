@@ -102,7 +102,7 @@ class Task(ABC):
         if self.evaluation_config.track_carbon_emissions:
             self.carbon_tracker = get_carbon_tracker(
                 task_name=self.task_config.name,
-                country_iso_code=self.evaluation_config.country_iso_code,
+                country_code=self.evaluation_config.country_code,
                 verbose=self.evaluation_config.verbose,
             )
 

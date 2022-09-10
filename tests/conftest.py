@@ -5,10 +5,10 @@ import os
 import pytest
 
 from src.aiai_eval.config import EvaluationConfig, MetricConfig
+from src.aiai_eval.enums import CountryCode, Device
 from src.aiai_eval.hf_hub import get_model_config
 from src.aiai_eval.model_loading import load_spacy_model
 from src.aiai_eval.task_configs import get_all_task_configs
-from src.aiai_eval.utils import Device
 
 
 @pytest.fixture(scope="session")
@@ -21,7 +21,7 @@ def evaluation_config():
         save_results=True,
         verbose=True,
         track_carbon_emissions=True,
-        country_iso_code="DNK",
+        country_code=CountryCode.DNK,
         prefer_device=Device.CPU,
         testing=True,
     )

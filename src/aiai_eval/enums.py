@@ -2,6 +2,8 @@
 
 import enum
 
+from .country_codes import ALL_COUNTRY_CODES
+
 
 class Device(str, enum.Enum):
     """The compute device to use for the evaluation.
@@ -35,3 +37,9 @@ class Framework(str, enum.Enum):
     PYTORCH = "pytorch"
     JAX = "jax"
     SPACY = "spacy"
+
+
+country_code_enum_list = [("EMPTY", "")] + [
+    (country_code, country_code.lower()) for country_code in ALL_COUNTRY_CODES
+]
+CountryCode = enum.Enum("CountryCode", country_code_enum_list)  # type: ignore[misc]

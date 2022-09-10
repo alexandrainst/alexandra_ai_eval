@@ -104,7 +104,7 @@ class MissingCountryISOCode(Exception):
             "and the country where the compute infrastructure is hosted. Internet "
             "connection was not available and hence the location of the infrastructure "
             "could not be automatically fetched, because of the location must be set, "
-            "this is done by setting the 'country_iso_code' in the config or "
+            "this is done by setting the 'country_code' in the config or "
             "`--country-iso-code` via the CLI to the correct ISO code."
         ),
     ):
