@@ -105,7 +105,7 @@ def tokenize_and_numericalize(
     label_column_name: str,
     model_label2id: dict,
 ) -> BatchEncoding:
-    """Tokenize the text in the examples.
+    """Tokenize and numericalize the text in the examples.
 
     Args:
         examples (BatchEncoding):
@@ -121,7 +121,7 @@ def tokenize_and_numericalize(
 
     Returns:
         BatchEncoding:
-            The tokenized examples.
+            The tokenized and numericalized examples.
 
     Raises:
         WrongFeatureColumnName:
