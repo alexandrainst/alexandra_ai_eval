@@ -1,7 +1,7 @@
 """Class for the named entity recognition task."""
 
 from copy import deepcopy
-from typing import List, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
@@ -101,9 +101,6 @@ class NamedEntityRecognition(Task):
         **kwargs,
     ) -> List[Tuple[list, list]]:
 
-        # Extract the `model_id2label` mapping
-        model_id2label = kwargs.get("model_id2label")
-
         # Extract the labels from the dataset
         labels = prepared_dataset["labels"]
 
@@ -112,55 +109,25 @@ class NamedEntityRecognition(Task):
             predictions = np.argmax(predictions, axis=-1)
 
         # Remove ignored index from predictions and labels
-        if model_id2label is not None:
-            predictions = [
-                [
-                    model_id2label[pred_id]
-                    for pred_id, lbl_id in zip(pred, label)
-                    if lbl_id != -100
-                ]
-                for pred, label in zip(predictions, labels)
-            ]
-            labels = [
-                [model_id2label[lbl_id] for lbl_id in label if lbl_id != -100]
-                for label in labels
-            ]
-
-        # Replace predicted tag with either MISC or O tags if they are not part of the
-        # dataset. We use the `id2label` from the dataset here, as opposed to the above
-        # `model_id2label`, since we want to replace all the tags which do not appear
-        # in the *dataset labels* with either MISC or O tags.
-        dataset_labels_without_misc = set(self.task_config.id2label).difference(
-            {"B-MISC", "I-MISC"}
+        predictions, labels = remove_ignored_index_from_predictions_and_labels(
+            predictions=list(predictions),
+            labels=labels,
+            model_id2label=kwargs.get("model_id2label"),
+            index_to_ignore=-100,
         )
-        for i, prediction_list in enumerate(predictions):
-            for j, ner_tag in enumerate(prediction_list):
-                if ner_tag not in dataset_labels_without_misc:
-                    if ner_tag[:2] == "B-":
-                        predictions[i][j] = "B-MISC"
-                    elif ner_tag[:2] == "I-":
-                        predictions[i][j] = "I-MISC"
-                    else:
-                        predictions[i][j] = "O"
 
-        # Remove MISC labels from predictions
-        predictions_no_misc = deepcopy(predictions)
-        for i, prediction_list in enumerate(predictions_no_misc):
-            for j, ner_tag in enumerate(prediction_list):
-                if ner_tag[-4:] == "MISC":
-                    predictions_no_misc[i][j] = "O"
+        # Replace unknown tags present in the predictions to corresponding MISC tags
+        predictions = replace_unknown_tags_with_misc_tags(
+            list_of_tag_lists=list(predictions),
+            dataset_id2label=self.task_config.id2label,
+        )
 
-        # Remove MISC labels from labels
-        labels_no_misc = deepcopy(labels)
-        for i, label_list in enumerate(labels_no_misc):
-            for j, ner_tag in enumerate(label_list):
-                if ner_tag[-4:] == "MISC":
-                    labels_no_misc[i][j] = "O"
+        # Remove MISC tags from predictions and labels
+        predictions_no_misc = remove_misc_tags(list_of_tag_lists=predictions)
+        labels_no_misc = remove_misc_tags(list_of_tag_lists=labels)
 
-        return [
-            (list(predictions), labels),
-            (list(predictions_no_misc), labels_no_misc),
-        ]
+        # Return the predictions and labels, both with and without MISC tags
+        return [(predictions, labels), (predictions_no_misc, labels_no_misc)]
 
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
 
@@ -340,3 +307,118 @@ def get_ent(token: Token, dataset_id2label: list, dataset_label2id: dict) -> str
         # Convert the tag to the its canonical synonym, or to the MISC tag if it
         # is not in the dataset
         return dataset_id2label[dataset_label2id.get(ent, misc_idx)]
+
+
+def remove_ignored_index_from_predictions_and_labels(
+    predictions: List[list],
+    labels: List[list],
+    model_id2label: Optional[List[str]],
+    index_to_ignore: int = -100,
+) -> Tuple[List[List[str]], List[List[str]]]:
+    """Removes the ignored index from the predictions and labels.
+
+    Args:
+        predictions (list of lists):
+            The predicted labels.
+        labels (list of lists):
+            The true labels.
+        model_id2label (list of str, or None):
+            A list that maps IDs to NER tags. If None then the predictions and labels
+            will not be modified.
+        index_to_ignore (int, optional):
+            The index to ignore. Defaults to -100.
+
+    Returns:
+        tuple of list of list of str:
+            The predictions and labels with the ignored index removed.
+    """
+    # If `model_id2label` is None then we simply return the predictions and labels
+    if model_id2label is None:
+        return predictions, labels
+
+    # Otherwise, we firstly remove the ignored index from the predictions, using the
+    # labels
+    predictions = [
+        [
+            model_id2label[pred_id]
+            for pred_id, lbl_id in zip(pred, label)
+            if lbl_id != index_to_ignore
+        ]
+        for pred, label in zip(predictions, labels)
+    ]
+
+    # Next, we remove the ignored index from the labels
+    labels = [
+        [model_id2label[lbl_id] for lbl_id in label if lbl_id != index_to_ignore]
+        for label in labels
+    ]
+
+    # Finally, we return the predictions and labels
+    return predictions, labels
+
+
+def replace_unknown_tags_with_misc_tags(
+    list_of_tag_lists: List[List[str]],
+    dataset_id2label: List[str],
+) -> List[List[str]]:
+    """Replaces unknown tags with MISC tags.
+
+    This replaces the predicted tags with either MISC or O tags if they are not part of
+    the dataset. We use the `id2label` from the dataset here, as opposed to the model's
+    `id2label` mapping, since we want to replace all the tags which do not appear in
+    the *dataset labels* with either MISC or O tags.
+
+    Args:
+        list_of_tag_lists (list of list of str):
+            A list of lists containing NER tags.
+        dataset_id2label (list of str):
+            The mapping from label IDs to labels.
+
+    Returns:
+        list of list of str:
+            The list of lists containing NER tags with unknown tags replaced with MISC
+            tags.
+    """
+    # Use the `id2label` mapping to get a list of all the non-MISC NER tags present in
+    # the dataset
+    dataset_labels_without_misc = set(dataset_id2label).difference({"B-MISC", "I-MISC"})
+
+    # Iterate over the nested tags, and replace them with MISC tags if they are not
+    # present in the dataset
+    for i, tag_list in enumerate(list_of_tag_lists):
+        for j, ner_tag in enumerate(tag_list):
+            if ner_tag not in dataset_labels_without_misc:
+                if ner_tag[:2] == "B-":
+                    list_of_tag_lists[i][j] = "B-MISC"
+                elif ner_tag[:2] == "I-":
+                    list_of_tag_lists[i][j] = "I-MISC"
+                else:
+                    list_of_tag_lists[i][j] = "O"
+
+    # Return the list of lists containing NER tags with unknown tags replaced with MISC
+    # tags
+    return list_of_tag_lists
+
+
+def remove_misc_tags(list_of_tag_lists: List[List[str]]) -> List[List[str]]:
+    """Removes MISC tags from a list of lists of tags.
+
+    Args:
+        list_of_tag_lists (list of list of str):
+            A list of lists containing NER tags.
+
+    Returns:
+        list of list of str:
+            The list of lists containing NER tags with MISC tags removed.
+    """
+    # Make a copy of the list, to ensure that we don't get any side effects
+    list_of_tag_lists = deepcopy(list_of_tag_lists)
+
+    # Iterate over the nested tags, and remove them if they are MISC tags
+    for i, tag_list in enumerate(list_of_tag_lists):
+        for j, ner_tag in enumerate(tag_list):
+            if ner_tag == "B-MISC" or ner_tag == "I-MISC":
+                list_of_tag_lists[i][j] = "O"
+
+    # Return the list of lists containing NER tags with MISC tags removed
+    return list_of_tag_lists
