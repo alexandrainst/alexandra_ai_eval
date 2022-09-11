@@ -90,7 +90,7 @@ from .task_configs import get_all_task_configs
 )
 @click.option(
     "--prefer-device",
-    type=click.Choice(["cuda", "mps", "cpu"]),
+    type=click.Choice([device.lower() for device in Device.__members__.keys()]),
     default="cuda",
     show_default=True,
     help="""The device to prefer when evaluating the model. If the device is not
@@ -114,7 +114,7 @@ def evaluate(
     no_save_results: bool,
     raise_error_on_invalid_model: bool,
     cache_dir: str,
-    prefer_device: Device,
+    prefer_device: str,
     verbose: bool,
 ):
     """Benchmark finetuned models."""
@@ -129,6 +129,7 @@ def evaluate(
     model_ids = list(model_id)
     tasks = list(task)
     auth: Union[str, bool] = auth_token if auth_token != "" else use_auth_token
+    device = Device(prefer_device.lower())
 
     # Initialise the benchmarker class
     evaluator = Evaluator(
@@ -139,7 +140,7 @@ def evaluate(
         use_auth_token=auth,
         track_carbon_emissions=track_carbon_emissions,
         country_code=CountryCode(country_code.lower()),
-        prefer_device=prefer_device,
+        prefer_device=device,
         verbose=verbose,
     )
 
