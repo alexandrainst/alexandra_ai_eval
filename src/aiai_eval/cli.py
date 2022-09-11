@@ -129,7 +129,6 @@ def evaluate(
     model_ids = list(model_id)
     tasks = list(task)
     auth: Union[str, bool] = auth_token if auth_token != "" else use_auth_token
-    device = Device(prefer_device.lower())
 
     # Initialise the benchmarker class
     evaluator = Evaluator(
@@ -140,7 +139,7 @@ def evaluate(
         use_auth_token=auth,
         track_carbon_emissions=track_carbon_emissions,
         country_code=CountryCode(country_code.lower()),
-        prefer_device=device,
+        prefer_device=Device(prefer_device.lower()),
         verbose=verbose,
     )
 
