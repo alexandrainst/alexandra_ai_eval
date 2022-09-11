@@ -18,8 +18,8 @@ def adjust_model_to_task(
 ) -> None:
     """Adjust the model to the task.
 
-    This ensures that the label IDs in the model are consistent with the label IDs
-    in the dataset. If there are labels in the dataset which the model has not been
+    This ensures that the label IDs in the model are consistent with the label IDs in
+    the dataset. If there are labels in the dataset which the model has not been
     trained on, then the model's classification layer is extended to include these
     labels.
 
@@ -63,8 +63,8 @@ def adjust_model_to_task(
     except AttributeError:
         model_id2label = None
 
-    # If one of `label2id` or `id2label` exists in the model config, then define
-    # the other one from it
+    # If one of `label2id` or `id2label` exists in the model config, then define the
+    # other one from it
     if model_label2id is not None and model_id2label is None:
         model_id2label = {idx: lbl.upper() for lbl, idx in model_label2id.items()}
         model_id2label = [model_id2label[idx] for idx in range(len(model_id2label))]
@@ -79,10 +79,10 @@ def adjust_model_to_task(
         model.config.label2id = task_config.label2id
         model.config.id2label = task_config.id2label
 
-    # If the model *does* have conversions, then ensure that it can deal with all
-    # the labels in the default conversions. This ensures that we can smoothly deal
-    # with labels that the model have not been trained on (it will just always get
-    # those labels wrong)
+    # If the model *does* have conversions, then ensure that it can deal with all the
+    # labels in the default conversions. This ensures that we can smoothly deal with
+    # labels that the model have not been trained on (it will just always get those
+    # labels wrong)
     else:
 
         # Collect the dataset labels and model labels in the `model_id2label`
@@ -165,15 +165,14 @@ def alter_classification_layer(
 ) -> None:
     """Alter the classification layer of the model to match the dataset.
 
-    This changes the classification layer in the finetuned model to be consistent
-    with all the labels in the dataset. If the model was previously finetuned on a
-    dataset which left out a label, say, then that label will be inserted in the
-    model architecture here, but without the model ever predicting it. This will
-    allow the model to be benchmarked on such datasets, however.
+    This changes the classification layer in the finetuned model to be consistent with
+    all the labels in the dataset. If the model was previously finetuned on a dataset
+    which left out a label, say, then that label will be inserted in the model
+    architecture here, but without the model ever predicting it. This will allow the
+    model to be benchmarked on such datasets, however.
 
-    Note that this only works on classification tasks and only for transformer
-    models. This code needs to be rewritten when we add other types of tasks and
-    model types.
+    Note that this only works on classification tasks and only for transformer models.
+    This code needs to be rewritten when we add other types of tasks and model types.
 
     Args:
         model (PyTorch Model):

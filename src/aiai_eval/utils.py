@@ -199,8 +199,8 @@ def check_supertask(architectures: Sequence[str], supertask: str):
             If the PascalCase version of the supertask is not found in any of the
             architectures.
     """
-    # Create boolean variable that checks if the supertask exists among the
-    # available architectures
+    # Create boolean variable that checks if the supertask exists among the available
+    # architectures
     supertask_is_an_architecture = any(
         kebab_to_pascal(supertask) in architecture for architecture in architectures
     )

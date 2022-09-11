@@ -15,9 +15,8 @@ from .exceptions import InvalidEvaluation, InvalidFramework, ModelFetchFailed
 from .model_adjustment import adjust_model_to_task
 from .utils import check_supertask, get_class_by_name, is_module_installed
 
-# Ignore warnings from spaCy. This has to be called after the import,
-# as the __init__.py file of spaCy sets the warning levels of spaCy
-# warning W036
+# Ignore warnings from spaCy. This has to be called after the import, as the
+# __init__.py file of spaCy sets the warning levels of spaCy warning W036
 warnings.filterwarnings("ignore", module="spacy*")
 
 
@@ -38,8 +37,8 @@ def load_model(
 
     Returns:
         dict:
-            A dictionary containing at least the key 'model', with the value being
-            the model. Can contain other objects related to the model, such as its
+            A dictionary containing at least the key 'model', with the value being the
+            model. Can contain other objects related to the model, such as its
             tokenizer.
 
     Raises:
@@ -89,8 +88,8 @@ def load_pytorch_model(
 
     Returns:
         dict:
-            A dictionary containing at least the key 'model', with the value being
-            the model. Can contain other objects related to the model, such as its
+            A dictionary containing at least the key 'model', with the value being the
+            model. Can contain other objects related to the model, such as its
             tokenizer.
 
     Raises:
@@ -147,8 +146,8 @@ def load_pytorch_model(
         task_config=task_config,
     )
 
-    # If the model is a subclass of a RoBERTa model then we have to add a prefix
-    # space to the tokens, by the way the model is constructed.
+    # If the model is a subclass of a RoBERTa model then we have to add a prefix space
+    # to the tokens, by the way the model is constructed.
     m_id = model_config.model_id
     prefix = "Roberta" in type(model).__name__
     params = dict(use_fast=True, add_prefix_space=prefix)
@@ -159,8 +158,8 @@ def load_pytorch_model(
         **params,
     )
 
-    # Set the maximal length of the tokenizer to the model's maximal length.
-    # This is required for proper truncation
+    # Set the maximal length of the tokenizer to the model's maximal length. This is
+    # required for proper truncation
     if not hasattr(tokenizer, "model_max_length") or tokenizer.model_max_length > 1_000:
 
         if hasattr(tokenizer, "max_model_input_sizes"):
@@ -191,8 +190,8 @@ def load_spacy_model(model_config: ModelConfig) -> Dict[str, Any]:
 
     Returns:
         dict:
-            A dictionary containing at least the key 'model', with the value being
-            the model. Can contain other objects related to the model, such as its
+            A dictionary containing at least the key 'model', with the value being the
+            model. Can contain other objects related to the model, such as its
             tokenizer.
 
     Raises:

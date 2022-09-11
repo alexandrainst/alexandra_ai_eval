@@ -520,8 +520,8 @@ class Task(ABC):
                             f"Received outputs with keys {model_predictions.keys()}"
                         )
 
-                # If we are dealing with a PyTorch model, then we will only use
-                # the input_ids
+                # If we are dealing with a PyTorch model, then we will only use the
+                # input_ids
                 elif isinstance(model, nn.Module):
                     with torch.no_grad():
                         with warnings.catch_warnings():
@@ -535,8 +535,7 @@ class Task(ABC):
                     model_type = str(type(model))
                     raise UnsupportedModelType(model_type=model_type)
 
-                # Move the predictions back to the CPU and convert it to a NumPy
-                # array
+                # Move the predictions back to the CPU and convert it to a NumPy array
                 model_predictions = model_predictions.cpu().numpy().tolist()
 
                 # Collect predictions

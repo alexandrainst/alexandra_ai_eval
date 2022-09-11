@@ -98,21 +98,19 @@ def prepare_test_examples(
         BatchEncoding:
             Dictionary of prepared test examples.
     """
-    # Some of the questions have lots of whitespace on the left, which is
-    # not useful and will make the truncation of the context fail (the
-    # tokenized question will take a lots of space). So we remove that left
-    # whitespace
+    # Some of the questions have lots of whitespace on the left, which is not useful
+    # and will make the truncation of the context fail (the tokenized question will
+    # take a lots of space). So we remove that left whitespace
     examples["question"] = [q.lstrip() for q in examples["question"]]
 
     # Compute the stride, being a quarter of the context length
     stride = tokenizer.model_max_length // 4
     max_length = tokenizer.model_max_length - stride
 
-    # Tokenize our examples with truncation and maybe padding, but keep the
-    # overflows using a stride. This results in one example possible giving
-    # several features when a context is long, each of those features
-    # having a context that overlaps a bit the context of the previous
-    # feature.
+    # Tokenize our examples with truncation and maybe padding, but keep the overflows
+    # using a stride. This results in one example possible giving several features when
+    # a context is long, each of those features having a context that overlaps a bit
+    # the context of the previous feature.
     tokenized_examples = tokenizer(
         examples["question"],
         examples["context"],
@@ -124,19 +122,18 @@ def prepare_test_examples(
         padding="max_length",
     )
 
-    # Since one example might give us several features if it has a long
-    # context, we need a map from a feature to its corresponding example.
-    # This key gives us just that.
+    # Since one example might give us several features if it has a long context, we
+    # need a map from a feature to its corresponding example. This key gives us just
+    # that.
     sample_mapping = tokenized_examples.pop("overflow_to_sample_mapping")
 
-    # We keep the id that gave us this feature and we will store
-    # the offset mappings.
+    # We keep the id that gave us this feature and we will store the offset mappings.
     tokenized_examples["id"] = list()
 
     for i in range(len(tokenized_examples["input_ids"])):
 
-        # Grab the sequence corresponding to that example (to know what is the
-        # context and what is the question).
+        # Grab the sequence corresponding to that example (to know what is the context
+        # and what is the question).
         sequence_ids = tokenized_examples.sequence_ids(i)
         context_index = 1
 
@@ -145,8 +142,8 @@ def prepare_test_examples(
         sample_index = sample_mapping[i]
         tokenized_examples["id"].append(examples["id"][sample_index])
 
-        # Set to (-1, -1) the offset_mapping that are not part of the context so
-        # it's easy to determine if a token position is part of the context or not.
+        # Set to (-1, -1) the offset_mapping that are not part of the context so it's
+        # easy to determine if a token position is part of the context or not.
         tokenized_examples["offset_mapping"][i] = [
             (o if sequence_ids[k] == context_index else (-1, -1))
             for k, o in enumerate(tokenized_examples["offset_mapping"][i])
@@ -211,8 +208,8 @@ def postprocess_predictions(
             start_logits = all_start_logits[feature_index]
             end_logits = all_end_logits[feature_index]
 
-            # Get the offset mapping, which will allow us to map the positions in
-            # our logits to span of texts in the original context
+            # Get the offset mapping, which will allow us to map the positions in our
+            # logits to span of texts in the original context
             offset_mapping = features["offset_mapping"]
 
             # Update minimum null prediction
@@ -221,8 +218,8 @@ def postprocess_predictions(
             if min_null_score < feature_null_score:
                 min_null_score = feature_null_score
 
-            # Go through all possibilities for the `n_best_size` greater start and
-            # end logits
+            # Go through all possibilities for the `n_best_size` greater start and end
+            # logits
             n_best_size = 20
             start_indexes = np.argsort(start_logits)[
                 -1 : -n_best_size - 1 : -1
@@ -232,9 +229,9 @@ def postprocess_predictions(
             for start_index in start_indexes:
                 for end_index in end_indexes:
 
-                    # Do not consider out-of-scope answers, either because the
-                    # indices are out of bounds or correspond to part of the
-                    # input_ids that are not in the context
+                    # Do not consider out-of-scope answers, either because the indices
+                    # are out of bounds or correspond to part of the input_ids that are
+                    # not in the context
                     if (
                         start_index >= len(offset_mapping)
                         or end_index >= len(offset_mapping)
@@ -243,8 +240,8 @@ def postprocess_predictions(
                     ):
                         continue
 
-                    # Do not consider answers with a length that is either negative
-                    # or greater than the context length
+                    # Do not consider answers with a length that is either negative or
+                    # greater than the context length
                     max_answer_length = 30
                     max_val = max_answer_length + start_index - 1
                     if end_index < start_index or end_index > max_val:
@@ -262,8 +259,8 @@ def postprocess_predictions(
                 0
             ]
 
-        # In the very rare edge case we have not a single non-null
-        # prediction, we create a fake prediction to avoid failure
+        # In the very rare edge case we have not a single non-null prediction, we
+        # create a fake prediction to avoid failure
         else:
             best_answer = {"text": "", "score": 0.0}
 
