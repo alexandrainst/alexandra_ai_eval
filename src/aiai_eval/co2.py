@@ -33,6 +33,10 @@ def get_carbon_tracker(
         EmissionsTracker or OfflineEmissionsTracker:
             A carbon emissions tracker. OfflineEmissionsTracker is returned if no
             internet connection is available.
+
+    Raises:
+        MissingCountryISOCode:
+            If no country code is provided and no internet connection is available.
     """
     log_level = "info" if verbose else "error"
 

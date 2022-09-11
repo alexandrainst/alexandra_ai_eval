@@ -81,6 +81,13 @@ class Task(ABC):
             dict:
                 The keys in the dict are 'raw' and 'total', with all the raw scores in
                 the first dictionary and the aggregated scores in the second.
+
+        Raises:
+            WrongFeatureColumnName:
+                If the feature column name specified in the task configuration is
+                incorrect.
+            InvalidEvaluation:
+                If an error occurs during evaluation.
         """
         # Fetch the model config
         model_config = get_model_config(
@@ -228,6 +235,12 @@ class Task(ABC):
             dict or Exception:
                 The keys in the dict correspond to the metrics and values
                 the corresponding values.
+
+        Raises:
+            ModelNotTrainedForTask:
+                If the model is not trained for the task.
+            MPSFallbackNotEnabled:
+                If the MPS device is used, but the CPU fallback is not enabled.
         """
         try:
             # Set random seeds to enforce reproducibility of the randomly
@@ -281,8 +294,8 @@ class Task(ABC):
             ):
                 prepared_predictions_and_labels *= len(self.task_config.metrics)
 
-            # In the first iteration we do a check to see if the model outputs
-            # fit the expected format. If not, we raise an exception.
+            # In the first iteration we do a check to see if the model outputs fit the
+            # expected format. If not, we raise an exception.
             if idx == 0:
                 if not self._check_if_model_is_trained_for_task(
                     model_predictions=model_predictions
@@ -438,6 +451,10 @@ class Task(ABC):
         Raises:
             InvalidFramework:
                 If the framework is not a supported framework.
+            ValueError:
+                If the model predictions are not in the right format.
+            UnsupportedModelType:
+                If the model type is not supported.
         """
         if framework == Framework.PYTORCH:
 
@@ -570,6 +587,12 @@ class Task(ABC):
         Returns:
             Hugging Face Dataset:
                 The preprocessed dataset.
+
+        Raises:
+            InvalidFramework:
+                If the framework is not a supported framework.
+            PreprocessingFailed:
+                If the preprocessing failed.
         """
         try:
             if framework == Framework.PYTORCH:

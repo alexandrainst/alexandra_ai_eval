@@ -30,6 +30,10 @@ def adjust_model_to_task(
             The model configuration.
         task_config (TaskConfig):
             The task configuration.
+
+    Raises:
+        InvalidEvaluation:
+            If there is a gap in the indexing dictionary of the model.
     """
     # Define the types of the label conversions
     model_label2id: Optional[dict]
@@ -93,8 +97,7 @@ def adjust_model_to_task(
             if all([syn not in model_id2label for syn in syns]):
                 model_id2label.append(label)
 
-        # Ensure that the model_id2label does not contain duplicates modulo
-        # synonyms
+        # Ensure that the model_id2label does not contain duplicates modulo synonyms
         for idx, label in enumerate(model_id2label):
             try:
                 canonical_syn = [
@@ -119,8 +122,7 @@ def adjust_model_to_task(
             if label.upper() not in flat_old_synonyms
         ]
 
-        # Add all the synonyms of the labels into the label2id conversion
-        # dictionary
+        # Add all the synonyms of the labels into the label2id conversion dictionary
         model_label2id = {
             label.upper(): id
             for id, lbl in enumerate(model_id2label)
@@ -135,8 +137,8 @@ def adjust_model_to_task(
             for idx in range(len(model.config.id2label))
         ]
 
-        # Alter the model's classification layer to match the dataset if the
-        # model is missing labels
+        # Alter the model's classification layer to match the dataset if the model is
+        # missing labels
         if (
             len(model_id2label) > len(old_id2label)
             and model_config.framework == Framework.PYTORCH
@@ -184,12 +186,17 @@ def alter_classification_layer(
             The synonyms of the old labels.
         task_config (TaskConfig):
             The task configuration.
+
+    Raises:
+        InvalidEvaluation:
+            If the model has not been trained on any of the labels, or synonyms
+            thereof, of if it is not a classification model.
     """
     # Count the number of new labels to add to the model
     num_new_labels = len(model_id2label) - len(old_id2label)
 
-    # If *all* the new labels are new and aren't even synonyms of the
-    # model's labels, then raise an exception
+    # If *all* the new labels are new and aren't even synonyms of the model's labels,
+    # then raise an exception
     if num_new_labels == task_config.num_labels:
         if len(set(flat_old_synonyms).intersection(old_id2label)) == 0:
             raise InvalidEvaluation(
@@ -197,10 +204,10 @@ def alter_classification_layer(
                 "dataset, or synonyms thereof."
             )
 
-    # Load the weights from the model's current classification layer. This handles
-    # both the token classification case and the sequence classification case.
+    # Load the weights from the model's current classification layer. This handles both
+    # the token classification case and the sequence classification case.
     # NOTE: This might need additional cases (or a general solution) when we start
-    #       dealing with other tasks.
+    # dealing with other tasks.
     try:
         clf_weight = model.classifier.weight.data
     except AttributeError:

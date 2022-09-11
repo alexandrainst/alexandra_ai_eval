@@ -19,6 +19,10 @@ class TaskFactory:
     Attributes:
         evaluation_config (EvaluationConfig):
             The benchmark configuration to be used in all tasks constructed.
+
+    Raises:
+        InvalidTask:
+            If the task name is unknown.
     """
 
     def __init__(self, evaluation_config: EvaluationConfig):

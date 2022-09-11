@@ -9,7 +9,7 @@ from typing import Dict, List, Sequence, Union
 from .config import EvaluationConfig, TaskConfig
 from .enums import CountryCode, Device
 from .exceptions import InvalidEvaluation, ModelDoesNotExist
-from .hf_hub import check_if_model_exist
+from .hf_hub import model_exists_on_hf_hub, model_exists_on_spacy
 from .task_configs import get_all_task_configs
 from .task_factory import TaskFactory
 
@@ -227,15 +227,20 @@ class Evaluator:
                 The model ID to use.
             task_config (TaskConfig):
                 The dataset task configuration to use.
+
+        Raises:
+            ModelDoesNotExist:
+                If the model does not exist on the Hugging Face Hub.
         """
         logger.info(
             f"Evaluating the {model_id} model on the {task_config.pretty_name} task."
         )
 
-        # check if model exists on HuggingFace Hub or as a spacy model
-        model_on_hf_hub, model_is_spacy = check_if_model_exist(model_id=model_id)
+        # Check if model exists on Hugging Face Hub or as a spaCy model
+        model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
+        model_on_spacy = model_exists_on_spacy(model_id=model_id)
 
-        if not model_on_hf_hub and not model_is_spacy:
+        if not model_on_hf_hub and not model_on_spacy:
             raise ModelDoesNotExist(model_id=model_id)
 
         try:

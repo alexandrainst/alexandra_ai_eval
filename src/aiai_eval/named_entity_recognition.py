@@ -153,6 +153,12 @@ def tokenize_and_align_labels(
     Returns:
         BatchEncoding:
             The tokenized data as well as labels.
+
+    Raises:
+        InvalidTokenizer:
+            If the tokenizer is not a valid tokenizer.
+        MissingLabel:
+            If a label in the dataset is not present in the models label2id dictionary.
     """
 
     tokenized_inputs = tokenizer(
@@ -167,11 +173,10 @@ def tokenize_and_align_labels(
         try:
             word_ids = tokenized_inputs.word_ids(batch_index=i)
 
-        # This happens if the tokenizer is not of the fast variant, in which case
-        # the `word_ids` method is not available, so we have to extract this
-        # manually. It's slower, but it works, and it should only occur rarely,
-        # when the Hugging Face team has not implemented a fast variant of the
-        # tokenizer yet.
+        # This happens if the tokenizer is not of the fast variant, in which case the
+        # `word_ids` method is not available, so we have to extract this manually. It's
+        # slower, but it works, and it should only occur rarely, when the Hugging Face
+        # team has not implemented a fast variant of the tokenizer yet.
         except ValueError:
 
             # Get the list of words in the document
@@ -194,8 +199,7 @@ def tokenize_and_align_labels(
             sp_toks = tokenizer.special_tokens_map.values()
             tokens = [None if tok in sp_toks else tok for tok in tokens]
 
-            # Get the alignment between the words and the tokens, on a character
-            # level
+            # Get the alignment between the words and the tokens, on a character level
             word_idxs = [
                 word_idx for word_idx, word in enumerate(words) for _ in str(word)
             ]
@@ -207,18 +211,17 @@ def tokenize_and_align_labels(
             ]
             alignment = list(zip(word_idxs, token_idxs))
 
-            # Raise error if there are not as many characters in the words as in
-            # the tokens. This can be due to the use of a different prefix.
+            # Raise error if there are not as many characters in the words as in the
+            # tokens. This can be due to the use of a different prefix.
             if len(word_idxs) != len(token_idxs):
                 tokenizer_type = type(tokenizer).__name__
                 raise InvalidTokenizer(
                     tokenizer_type=tokenizer_type,
                     message=(
-                        "The tokens could not be aligned with the words during "
-                        "manual word-token alignment. It seems that the tokenizer "
-                        "is neither of the fast variant nor of a SentencePiece/"
-                        "WordPiece variant. The tokenizer type is "
-                        f"{tokenizer_type}."
+                        "The tokens could not be aligned with the words during manual "
+                        "word-token alignment. It seems that the tokenizer is neither "
+                        "of the fast variant nor of a SentencePiece/WordPiece variant. "
+                        f"The tokenizer type is {tokenizer_type}."
                     ),
                 )
 
@@ -239,8 +242,8 @@ def tokenize_and_align_labels(
         label_ids: List[int] = list()
         for word_idx in word_ids:
 
-            # Special tokens have a word id that is None. We set the label to -100
-            # so they are automatically ignored in the loss function
+            # Special tokens have a word id that is None. We set the label to -100 so
+            # they are automatically ignored in the loss function
             if word_idx is None:
                 label_ids.append(-100)
 
@@ -280,8 +283,8 @@ def get_ent(token: Token, dataset_id2label: list, dataset_label2id: dict) -> str
             The entity of the token.
     """
 
-    # Deal with the O tag separately, as it is the only tag not of the form
-    # B-tag or I-tag
+    # Deal with the O tag separately, as it is the only tag not of the form B-tag or
+    # I-tag
     if token.ent_iob_ == "O":
         return "O"
 
@@ -290,12 +293,12 @@ def get_ent(token: Token, dataset_id2label: list, dataset_label2id: dict) -> str
         # Extract tag from spaCy token
         ent = f"{token.ent_iob_}-{token.ent_type_}"
 
-        # Get the ID of the MISC tag, which we will use as a backup, in case the
-        # given tag is not in the dataset
+        # Get the ID of the MISC tag, which we will use as a backup, in case the given
+        # tag is not in the dataset
         misc_idx = dataset_label2id[f"{token.ent_iob_}-MISC".upper()]
 
-        # Convert the tag to the its canonical synonym, or to the MISC tag if it
-        # is not in the dataset
+        # Convert the tag to the its canonical synonym, or to the MISC tag if it is not
+        # in the dataset
         return dataset_id2label[dataset_label2id.get(ent, misc_idx)]
 
 

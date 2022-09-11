@@ -43,7 +43,7 @@ def load_model(
             tokenizer.
 
     Raises:
-        RuntimeError:
+        InvalidFramework:
             If the framework is not recognized.
     """
     # Ensure that the framework is installed
@@ -92,6 +92,13 @@ def load_pytorch_model(
             A dictionary containing at least the key 'model', with the value being
             the model. Can contain other objects related to the model, such as its
             tokenizer.
+
+    Raises:
+        ValueError:
+            If the supertask was not recognized.
+        InvalidEvaluation:
+            If the model either does not have any registered frameworks, of it is a
+            private model and `use_auth_token` has not been set.
     """
     try:
         # Load the configuration of the pretrained model
@@ -187,6 +194,10 @@ def load_spacy_model(model_config: ModelConfig) -> Dict[str, Any]:
             A dictionary containing at least the key 'model', with the value being
             the model. Can contain other objects related to the model, such as its
             tokenizer.
+
+    Raises:
+        ModelFetchFailed:
+            If the model could not be downloaded.
     """
     local_model_id = model_config.model_id.split("/")[-1]
 

@@ -18,6 +18,10 @@ def evaluate(model_id: str, task: str) -> str:
     Returns:
         str:
             The evaluation results.
+
+    Raises:
+        gradio Error:
+            If the evaluation fails.
     """
 
     # Convert task to the standard task names

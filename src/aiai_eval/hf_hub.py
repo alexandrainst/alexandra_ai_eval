@@ -37,26 +37,22 @@ def model_exists_on_hf_hub(model_id: str) -> bool:
         return False
 
 
-def check_if_model_exist(model_id: str) -> Tuple[bool, bool]:
-    """Checks if a model exists on Huggingface or as an available spacy model.
+def model_exists_on_spacy(model_id: str) -> bool:
+    """Checks if a model exists as a spaCy model.
 
     Args:
         model_id (str):
             The name of the model.
 
     Returns:
-        tuple of bools:
-            A bool specifying whether the model exists on Huggingface Hub and bool a
-            specifying if model the exists as an available spacy model.
+        bool:
+            Whether the model exists as a spaCy model.
     """
-    model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
     try:
         spacy.load(model_id)
-        model_is_spacy = True
+        return True
     except OSError:
-        model_is_spacy = False
-
-    return model_on_hf_hub, model_is_spacy
+        return False
 
 
 def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> ModelConfig:
@@ -73,7 +69,7 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
             The model configuration.
 
     Raises:
-        ModelDoesNotExistOnHuggingFaceHub:
+        ModelDoesNotExist:
             If the model id does not exist on the Hugging Face Hub.
         InvalidFramework:
             If the specified framework is not implemented.
@@ -98,11 +94,11 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
         author = None
         model_name = model_id_without_revision
 
-    # Attempt to fetch model data from the Hugging Face Hub.
-    # Check if id exists, before creating model config, for more clear exception handling.
-    model_on_hf_hub, model_is_spacy = check_if_model_exist(model_id=model_id)
+    # Check if model exists on Hugging Face Hub or as a spaCy model
+    model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
+    model_on_spacy = model_exists_on_spacy(model_id=model_id)
 
-    if not model_on_hf_hub and not model_is_spacy:
+    if not model_on_hf_hub and not model_on_spacy:
         raise ModelDoesNotExist(model_id=model_id)
 
     try:

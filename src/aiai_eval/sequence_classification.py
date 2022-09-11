@@ -110,6 +110,8 @@ def tokenize_and_numericalize(
     Raises:
         WrongFeatureColumnName:
             If the feature column names were not found.
+        MissingLabel:
+            If a label in the dataset was not found in the model's label2id mapping.
     """
     # Attempt to tokenize the examples
     try:
