@@ -5,7 +5,7 @@ import enum
 from .country_codes import ALL_COUNTRY_CODES
 
 
-class Device(str, enum.Enum):
+class Device(enum.Enum):
     """The compute device to use for the evaluation.
 
     Attributes:
@@ -22,7 +22,7 @@ class Device(str, enum.Enum):
     CUDA = "cuda"
 
 
-class Framework(str, enum.Enum):
+class Framework(enum.Enum):
     """The framework of a model.
 
     Attributes:
