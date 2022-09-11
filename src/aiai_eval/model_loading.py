@@ -48,8 +48,8 @@ def load_model(
     # Ensure that the framework is installed
     from_flax = model_config.framework == Framework.JAX
 
-    # If the framework is JAX then change it to PyTorch, since we will convert
-    # JAX models to PyTorch upon download
+    # If the framework is JAX then change it to PyTorch, since we will convert JAX
+    # models to PyTorch upon download
     if model_config.framework == Framework.JAX:
         model_config.framework = Framework.PYTORCH
 
