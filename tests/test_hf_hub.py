@@ -3,6 +3,7 @@
 import pytest
 
 from src.aiai_eval.config import ModelConfig
+from src.aiai_eval.enums import Framework
 from src.aiai_eval.exceptions import ModelDoesNotExist
 from src.aiai_eval.hf_hub import get_model_config, model_exists_on_hf_hub
 
@@ -20,7 +21,7 @@ class TestGetModelConfig:
     def test_model_config_has_correct_information(self, model_config):
         assert model_config.model_id == "bert-base-uncased"
         assert model_config.revision == "main"
-        assert model_config.framework == "pytorch"
+        assert model_config.framework == Framework.PYTORCH
 
     def test_invalid_model_id(self, evaluation_config):
         with pytest.raises(ModelDoesNotExist):

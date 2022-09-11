@@ -8,6 +8,7 @@ import pytest
 import torch
 from transformers import AutoModelForSequenceClassification
 
+from src.aiai_eval.enums import Framework
 from src.aiai_eval.exceptions import InvalidArchitectureForTask
 from src.aiai_eval.utils import (
     check_supertask,
@@ -47,63 +48,66 @@ class TestEnforceReproducibility:
         assert first_random_value == third_random_value
 
     def test_pytorch_random_module(self):
-        enforce_reproducibility(framework="pytorch")
+        enforce_reproducibility(framework=Framework.PYTORCH)
         first_random_value = torch.rand(1)
         second_random_value = torch.rand(1)
-        enforce_reproducibility(framework="pytorch")
+        enforce_reproducibility(framework=Framework.PYTORCH)
         third_random_value = torch.rand(1)
         assert first_random_value != second_random_value
         assert first_random_value == third_random_value
 
     def test_pytorch_linear_layer(self):
-        enforce_reproducibility(framework="pytorch")
+        enforce_reproducibility(framework=Framework.PYTORCH)
         first_layer = torch.nn.Linear(1, 1).weight
         second_layer = torch.nn.Linear(1, 1).weight
-        enforce_reproducibility(framework="pytorch")
+        enforce_reproducibility(framework=Framework.PYTORCH)
         third_layer = torch.nn.Linear(1, 1).weight
         assert first_layer != second_layer
         assert first_layer == third_layer
 
-    def test_pytorch_pretrained_with_classification_head(self):
-        model_id = "DaNLP/da-electra-hatespeech-detection"
+    def test_pytorch_pretrained_with_classification_head(
+        self, task_config, model_configs
+    ):
+        if task_config.name == "sentiment-classification":
+            model_id = model_configs[0].model_id
 
-        enforce_reproducibility(framework="pytorch")
-        first_layers = [
-            layer
-            for layer in AutoModelForSequenceClassification.from_pretrained(
-                model_id
-            ).classifier.children()
-            if hasattr(layer, "weight")
-        ]
-        for layer in first_layers:
-            torch.nn.init.normal_(layer.weight)
+            enforce_reproducibility(framework=Framework.PYTORCH)
+            first_layers = [
+                layer
+                for layer in AutoModelForSequenceClassification.from_pretrained(
+                    model_id
+                ).classifier.children()
+                if hasattr(layer, "weight")
+            ]
+            for layer in first_layers:
+                torch.nn.init.normal_(layer.weight)
 
-        second_layers = [
-            layer
-            for layer in AutoModelForSequenceClassification.from_pretrained(
-                model_id
-            ).classifier.children()
-            if hasattr(layer, "weight")
-        ]
-        for layer in second_layers:
-            torch.nn.init.normal_(layer.weight)
+            second_layers = [
+                layer
+                for layer in AutoModelForSequenceClassification.from_pretrained(
+                    model_id
+                ).classifier.children()
+                if hasattr(layer, "weight")
+            ]
+            for layer in second_layers:
+                torch.nn.init.normal_(layer.weight)
 
-        enforce_reproducibility(framework="pytorch")
-        third_layers = [
-            layer
-            for layer in AutoModelForSequenceClassification.from_pretrained(
-                model_id
-            ).classifier.children()
-            if hasattr(layer, "weight")
-        ]
-        for layer in third_layers:
-            torch.nn.init.normal_(layer.weight)
+            enforce_reproducibility(framework=Framework.PYTORCH)
+            third_layers = [
+                layer
+                for layer in AutoModelForSequenceClassification.from_pretrained(
+                    model_id
+                ).classifier.children()
+                if hasattr(layer, "weight")
+            ]
+            for layer in third_layers:
+                torch.nn.init.normal_(layer.weight)
 
-        for first_layer, second_layer in zip(first_layers, second_layers):
-            assert not torch.equal(first_layer.weight, second_layer.weight)
+            for first_layer, second_layer in zip(first_layers, second_layers):
+                assert not torch.equal(first_layer.weight, second_layer.weight)
 
-        for first_layer, third_layer in zip(first_layers, third_layers):
-            assert torch.equal(first_layer.weight, third_layer.weight)
+            for first_layer, third_layer in zip(first_layers, third_layers):
+                assert torch.equal(first_layer.weight, third_layer.weight)
 
 
 class TestIsModuleInstalled:
