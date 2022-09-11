@@ -138,7 +138,7 @@ def evaluate(
         cache_dir=cache_dir,
         use_auth_token=auth,
         track_carbon_emissions=track_carbon_emissions,
-        country_code=CountryCode[country_code],
+        country_code=CountryCode(country_code.lower()),
         prefer_device=prefer_device,
         verbose=verbose,
     )
