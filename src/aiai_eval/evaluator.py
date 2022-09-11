@@ -75,7 +75,7 @@ class Evaluator:
     ):
         # If `country_code` is a string then convert it to a `CountryCode` enum
         if isinstance(country_code, str):
-            country_code_enum = CountryCode[country_code]
+            country_code_enum = CountryCode(country_code.lower())
         else:
             country_code_enum = country_code
 
