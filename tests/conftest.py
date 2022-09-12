@@ -18,7 +18,7 @@ def evaluation_config():
         cache_dir=".aiai_cache",
         use_auth_token=os.environ.get("HUGGINGFACE_HUB_TOKEN", True),
         progress_bar=False,
-        save_results=True,
+        save_results=False,
         verbose=True,
         track_carbon_emissions=True,
         country_code=CountryCode.DNK,
