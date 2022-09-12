@@ -3,6 +3,7 @@
 import pytest
 
 from src.aiai_eval.config import LabelConfig
+from src.aiai_eval.exceptions import InvalidTask
 from src.aiai_eval.task_factory import TaskFactory
 from src.aiai_eval.utils import kebab_to_pascal
 
@@ -33,3 +34,10 @@ def test_build_task(task_config, task_factory):
         kebab_to_pascal(task_config.name),
         kebab_to_pascal(task_config.supertask),
     ]
+
+
+def test_raise_error_if_unknown_task(task_config, task_factory):
+    task_config.name = "unknown-task"
+    task_config.supertask = "unknown-supertask"
+    with pytest.raises(InvalidTask):
+        task_factory.build_task(task_name_or_config=task_config)
