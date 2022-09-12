@@ -88,17 +88,12 @@ class TestLoadPytorchModel:
 
 class TestLoadSpacyModel:
     def test_raise_error_if_model_is_not_available(self):
-        model_config = ModelConfig(
-            model_id="invalid-model-id",
-            revision="",
-            framework=Framework.SPACY,
-        )
         with pytest.raises(ModelFetchFailed):
-            load_spacy_model(model_config=model_config)
+            load_spacy_model(model_id="invalid-model-id")
 
     def test_output_dict_has_model_but_no_tokenizer(self, model_configs):
         for model_config in model_configs:
             if model_config.framework == Framework.SPACY:
-                model_dict = load_spacy_model(model_config=model_config)
+                model_dict = load_spacy_model(model_id=model_config.model_id)
                 assert "model" in model_dict
                 assert "tokenizer" not in model_dict
