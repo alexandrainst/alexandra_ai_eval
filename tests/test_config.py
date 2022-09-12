@@ -37,7 +37,7 @@ class TestMetricConfig:
         assert metric_config.pretty_name == "Metric name"
         assert metric_config.huggingface_id == "metric-id"
         assert metric_config.results_key == "metric-key"
-        assert metric_config.postprocessing_fn == (lambda x: f"{x:.2f}")
+        assert metric_config.postprocessing_fn(10.123456789) == "10.12"
 
     def test_default_value_of_compute_kwargs(self, metric_config):
         assert metric_config.compute_kwargs == dict()
