@@ -110,16 +110,16 @@ class TestEvaluationConfig:
         assert evaluation_config.cache_dir == ".aiai_cache"
         assert evaluation_config.use_auth_token == auth
         assert evaluation_config.progress_bar is False
-        assert evaluation_config.save_results is True
+        assert evaluation_config.save_results is False
         assert evaluation_config.verbose is True
-        assert evaluation_config.track_carbon_emissions is True
+        assert evaluation_config.track_carbon_emissions is False
         assert evaluation_config.country_code == CountryCode.DNK
         assert evaluation_config.prefer_device == Device.CPU
         assert evaluation_config.only_return_log is False
         assert evaluation_config.testing is True
 
     def test_device(self, evaluation_config):
-        assert evaluation_config.device == Device.CPU
+        assert evaluation_config.device == "cpu"
 
 
 class TestModelConfig:
