@@ -4,10 +4,8 @@ from functools import partial
 
 import numpy as np
 import pytest
-from datasets.arrow_dataset import Dataset
 from datasets.load import load_dataset
 from transformers.data.data_collator import DataCollatorForTokenClassification
-from transformers.models.auto.configuration_auto import AutoConfig
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
 from src.aiai_eval.named_entity_recognition import (
