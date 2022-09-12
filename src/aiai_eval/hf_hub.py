@@ -1,6 +1,6 @@
 """Functions related to the Hugging Face Hub."""
 
-from typing import Optional, Tuple
+from typing import Optional
 
 import spacy
 from huggingface_hub import HfApi, ModelFilter
@@ -98,12 +98,19 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
     model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
     model_on_spacy = model_exists_on_spacy(model_id=model_id)
 
+    # If it does not exist on Hugging Face Hub or as a spaCy model, raise an error
     if not model_on_hf_hub and not model_on_spacy:
         raise ModelDoesNotExist(model_id=model_id)
 
+    # If it exists as a spaCy model, we return the spaCy model config
+    if model_on_spacy:
+        return ModelConfig(model_id=model_id, revision="", framework=Framework.SPACY)
+
+    # Otherwise it exists on the Hugging Face Hub, and we attempt to fetch the
+    # information from there
     try:
 
-        # Define the API object
+        # Define the Hugging Face Hub API object
         api = HfApi()
 
         # Fetch the model metadata
@@ -131,8 +138,8 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
         elif "tf" in tags or "tensorflow" in tags or "keras" in tags:
             raise InvalidFramework("tensorflow")
 
-        # Construct the model config
-        model_config = ModelConfig(
+        # Construct and return the model config
+        return ModelConfig(
             model_id=models[0].modelId,
             framework=framework,
             revision=revision,
@@ -146,6 +153,3 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
             raise HuggingFaceHubDown()
         else:
             raise NoInternetConnection()
-
-    # Return the model config
-    return model_config
