@@ -1,11 +1,11 @@
 """Functions related to the loading of models."""
 
-import subprocess
 import warnings
 from subprocess import CalledProcessError
 from typing import Any, Dict
 
 import spacy
+from spacy.cli.download import download as download_spacy
 from transformers.models.auto.configuration_auto import AutoConfig
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
@@ -206,7 +206,10 @@ def load_spacy_model(model_id: str) -> Dict[str, Any]:
     # Download the model if it has not already been so
     try:
         if not is_module_installed(local_model_id):
-            subprocess.run(["python", "-m", "spacy", "download", local_model_id])
+            try:
+                download_spacy(model=local_model_id)
+            except SystemExit:
+                pass
 
     except CalledProcessError as e:
         raise ModelFetchFailed(model_id=local_model_id, error_msg=e.output)
