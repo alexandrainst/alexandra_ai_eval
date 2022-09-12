@@ -88,8 +88,8 @@ class UnsupportedModelType(Exception):
             self.message = message
         else:
             self.message = (
-                f"Received an unsupported model type: {model_type}, "
-                "supported types are `nn.Module` and `PretrainedModel`."
+                f"Received an unsupported model type: {model_type}, supported types "
+                "are `nn.Module` and `PretrainedModel`."
             )
         self.model_type = model_type
 
@@ -128,6 +128,7 @@ class InvalidArchitectureForTask(Exception):
 
 class WrongFeatureColumnName(Exception):
     def __init__(self, feature_column_names: Union[str, Sequence[str]]):
+
         # Ensure that feature_column_names is a sequence
         if isinstance(feature_column_names, str):
             feature_column_names = [feature_column_names]
