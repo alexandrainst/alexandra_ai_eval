@@ -56,7 +56,7 @@ def model_exists_on_spacy(model_id: str) -> bool:
             Whether the model exists as a spaCy model.
     """
     try:
-        load_spacy_model(model_id)
+        load_spacy_model(model_id=model_id)
         return True
     except ModelFetchFailed:
         return False
