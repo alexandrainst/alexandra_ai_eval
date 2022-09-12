@@ -62,7 +62,7 @@ def load_model(
         )
 
     elif model_config.framework == Framework.SPACY:
-        return load_spacy_model(model_config=model_config)
+        return load_spacy_model(model_id=model_config.model_id)
 
     else:
         raise InvalidFramework(model_config.framework)
@@ -184,12 +184,12 @@ def load_pytorch_model(
     return dict(model=model, tokenizer=tokenizer)
 
 
-def load_spacy_model(model_config: ModelConfig) -> Dict[str, Any]:
+def load_spacy_model(model_id: str) -> Dict[str, Any]:
     """Load a spaCy model.
 
     Args:
-        model_config (ModelConfig):
-            The configuration of the model.
+        model_id (str):
+            The ID of the model.
 
     Returns:
         dict:
@@ -201,14 +201,14 @@ def load_spacy_model(model_config: ModelConfig) -> Dict[str, Any]:
         ModelFetchFailed:
             If the model could not be downloaded.
     """
-    local_model_id = model_config.model_id.split("/")[-1]
+    local_model_id = model_id.split("/")[-1]
 
     # Download the model if it has not already been so
     try:
         if not is_module_installed(local_model_id):
             url = (
-                f"https://huggingface.co/{model_config.model_id}/resolve/main/"
-                f"{local_model_id}-any-py3-none-any.whl"
+                f"https://huggingface.co/{model_id}/resolve/main/{local_model_id}-"
+                "any-py3-none-any.whl"
             )
             subprocess.run(["pip3", "install", url])
 
@@ -220,11 +220,11 @@ def load_spacy_model(model_config: ModelConfig) -> Dict[str, Any]:
         model = spacy.load(local_model_id)
     except OSError as e:
         raise ModelFetchFailed(
-            model_id=model_config.model_id,
+            model_id=model_id,
             error_msg=str(e),
             message=(
-                f"Download of {model_config.model_id} failed, with "
-                f"the following error message: {str(e)}."
+                f"Download of {model_id} failed, with the following error message: "
+                f"{str(e)}."
             ),
         )
     return dict(model=model)

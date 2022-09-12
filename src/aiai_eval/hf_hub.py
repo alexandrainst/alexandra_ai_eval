@@ -2,7 +2,6 @@
 
 from typing import Optional
 
-import spacy
 from huggingface_hub import HfApi, ModelFilter
 from huggingface_hub.utils import RepositoryNotFoundError
 from requests.exceptions import RequestException
@@ -13,8 +12,10 @@ from .exceptions import (
     HuggingFaceHubDown,
     InvalidFramework,
     ModelDoesNotExist,
+    ModelFetchFailed,
     NoInternetConnection,
 )
+from .model_loading import load_spacy_model
 from .utils import internet_connection_available
 
 
@@ -55,9 +56,9 @@ def model_exists_on_spacy(model_id: str) -> bool:
             Whether the model exists as a spaCy model.
     """
     try:
-        spacy.load(model_id)
+        load_spacy_model(model_id)
         return True
-    except OSError:
+    except ModelFetchFailed:
         return False
 
 
