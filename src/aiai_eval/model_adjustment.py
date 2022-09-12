@@ -58,7 +58,7 @@ def adjust_model_to_task(
             model_id2label = [
                 model_id2label[idx].upper() for idx in range(model_num_labels)
             ]
-        except IndexError:
+        except (IndexError, KeyError):
             raise InvalidEvaluation(
                 "There is a gap in the indexing dictionary of the model."
             )
