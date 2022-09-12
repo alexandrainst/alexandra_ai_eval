@@ -117,11 +117,13 @@ def adjust_model_to_task(
 
         # Get the synonyms of all the labels, new ones included
         new_synonyms = list(task_config.label_synonyms)
-        flat_old_synonyms = [syn for lst in task_config.label_synonyms for syn in lst]
+        flat_dataset_synonyms = [
+            syn for lst in task_config.label_synonyms for syn in lst
+        ]
         new_synonyms += [
             [label.upper()]
             for label in model_id2label
-            if label.upper() not in flat_old_synonyms
+            if label.upper() not in flat_dataset_synonyms
         ]
 
         # Add all the synonyms of the labels into the label2id conversion dictionary
@@ -133,8 +135,8 @@ def adjust_model_to_task(
             if lbl.upper() in label_syns
         }
 
-        # Get the old id2label conversion
-        old_id2label = [
+        # Get the old model id2label conversion
+        old_model_id2label = [
             model.config.id2label[idx].upper()
             for idx in range(len(model.config.id2label))
         ]
@@ -142,15 +144,15 @@ def adjust_model_to_task(
         # Alter the model's classification layer to match the dataset if the model is
         # missing labels
         if (
-            len(model_id2label) > len(old_id2label)
+            len(model_id2label) > len(old_model_id2label)
             and model_config.framework == Framework.PYTORCH
         ):
             alter_classification_layer(
                 model=model,
                 model_id2label=model_id2label,
-                old_id2label=old_id2label,
-                flat_old_synonyms=flat_old_synonyms,
-                task_config=task_config,
+                old_model_id2label=old_model_id2label,
+                flat_dataset_synonyms=flat_dataset_synonyms,
+                dataset_num_labels=task_config.num_labels,
             )
 
         # Update the model's own conversions with the new ones
@@ -161,9 +163,9 @@ def adjust_model_to_task(
 def alter_classification_layer(
     model: PreTrainedModel,
     model_id2label: list,
-    old_id2label: list,
-    flat_old_synonyms: list,
-    task_config: TaskConfig,
+    old_model_id2label: list,
+    flat_dataset_synonyms: list,
+    dataset_num_labels: int,
 ) -> None:
     """Alter the classification layer of the model to match the dataset.
 
@@ -181,12 +183,12 @@ def alter_classification_layer(
             The model to alter the classification layer of.
         model_id2label (list):
             The model's label conversion.
-        old_id2label (list):
-            The old label conversion.
-        flat_old_synonyms (list):
-            The synonyms of the old labels.
-        task_config (TaskConfig):
-            The task configuration.
+        old_model_id2label (list):
+            The model's old label conversion.
+        flat_dataset_synonyms (list):
+            The synonyms of the dataset labels.
+        dataset_num_labels (int):
+            The number of labels in the dataset.
 
     Raises:
         InvalidEvaluation:
@@ -194,15 +196,15 @@ def alter_classification_layer(
             thereof, of if it is not a classification model.
     """
     # Count the number of new labels to add to the model
-    num_new_labels = len(model_id2label) - len(old_id2label)
+    num_new_labels = len(model_id2label) - len(old_model_id2label)
 
     # If *all* the new labels are new and aren't even synonyms of the model's labels,
     # then raise an exception
-    if num_new_labels == task_config.num_labels:
-        if len(set(flat_old_synonyms).intersection(old_id2label)) == 0:
+    if num_new_labels == dataset_num_labels:
+        if len(set(flat_dataset_synonyms).intersection(old_model_id2label)) == 0:
             raise InvalidEvaluation(
-                "The model has not been trained on any of the labels in the "
-                "dataset, or synonyms thereof."
+                "The model has not been trained on any of the labels in the dataset, "
+                "or synonyms thereof."
             )
 
     # Load the weights from the model's current classification layer. This handles both
