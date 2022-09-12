@@ -29,9 +29,15 @@ def model_exists_on_hf_hub(model_id: str) -> bool:
         bool:
             If model exists on Hugginface Hub or not.
     """
+    # Extract the revision from the model_id, if present
+    model_id, revision = model_id.split("@") if "@" in model_id else (model_id, "main")
+
+    # Connect to the Hugging Face Hub API
     hf_api = HfApi()
+
+    # Check if the model exists
     try:
-        hf_api.model_info(model_id)
+        hf_api.model_info(repo_id=model_id, revision=revision)
         return True
     except RepositoryNotFoundError:
         return False
@@ -95,8 +101,8 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
         model_name = model_id_without_revision
 
     # Check if model exists on Hugging Face Hub or as a spaCy model
-    model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id_without_revision)
-    model_on_spacy = model_exists_on_spacy(model_id=model_id_without_revision)
+    model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
+    model_on_spacy = model_exists_on_spacy(model_id=model_id)
 
     # If it does not exist on Hugging Face Hub or as a spaCy model, raise an error
     if not model_on_hf_hub and not model_on_spacy:
