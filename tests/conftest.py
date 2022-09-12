@@ -23,6 +23,7 @@ def evaluation_config():
         track_carbon_emissions=True,
         country_code=CountryCode.DNK,
         prefer_device=Device.CPU,
+        only_return_log=False,
         testing=True,
     )
 
