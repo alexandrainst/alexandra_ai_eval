@@ -11,40 +11,12 @@ from src.aiai_eval.config import (
     ModelConfig,
     TaskConfig,
 )
+from src.aiai_eval.enums import CountryCode, Device, Framework
 
 
 @pytest.fixture(scope="module")
 def label():
     yield LabelConfig(name="label-name", synonyms=["synonym1", "synonym2"])
-
-
-@pytest.fixture(scope="class")
-def task_config(metric_config, label):
-    yield TaskConfig(
-        name="task-name",
-        huggingface_id="dataset-id",
-        huggingface_subset=None,
-        supertask="supertask-name",
-        metrics=[metric_config],
-        labels=[label],
-        feature_column_names=["column-name"],
-        label_column_name="label",
-        test_name="test",
-    )
-
-
-class TestMetricConfig:
-    def test_metric_config_is_object(self, metric_config):
-        assert isinstance(metric_config, MetricConfig)
-
-    def test_attributes_correspond_to_arguments(self, metric_config):
-        assert metric_config.name == "metric-name"
-        assert metric_config.pretty_name == "Metric name"
-        assert metric_config.huggingface_id == "metric-id"
-        assert metric_config.results_key == "metric-key"
-
-    def test_default_value_of_compute_kwargs(self, metric_config):
-        assert metric_config.compute_kwargs == dict()
 
 
 class TestLabelConfig:
@@ -56,7 +28,36 @@ class TestLabelConfig:
         assert label.synonyms == ["synonym1", "synonym2"]
 
 
+class TestMetricConfig:
+    def test_metric_config_is_object(self, metric_config):
+        assert isinstance(metric_config, MetricConfig)
+
+    def test_attributes_correspond_to_arguments(self, metric_config):
+        assert metric_config.name == "metric-name"
+        assert metric_config.pretty_name == "Metric name"
+        assert metric_config.huggingface_id == "metric-id"
+        assert metric_config.results_key == "metric-key"
+        assert metric_config.postprocessing_fn == (lambda x: f"{x:.2f}")
+
+    def test_default_value_of_compute_kwargs(self, metric_config):
+        assert metric_config.compute_kwargs == dict()
+
+
 class TestTaskConfig:
+    @pytest.fixture(scope="class")
+    def task_config(self, metric_config, label):
+        yield TaskConfig(
+            name="task-name",
+            huggingface_id="dataset-id",
+            huggingface_subset=None,
+            supertask="supertask-name",
+            metrics=[metric_config],
+            labels=[label],
+            feature_column_names=["column-name"],
+            label_column_name="label",
+            test_name="test",
+        )
+
     def test_task_config_is_object(self, task_config):
         assert isinstance(task_config, TaskConfig)
 
@@ -64,7 +65,6 @@ class TestTaskConfig:
         self, task_config, metric_config, label
     ):
         assert task_config.name == "task-name"
-        assert task_config.pretty_name == "task name"
         assert task_config.huggingface_id == "dataset-id"
         assert task_config.huggingface_subset is None
         assert task_config.supertask == "supertask-name"
@@ -73,6 +73,9 @@ class TestTaskConfig:
         assert task_config.feature_column_names == ["column-name"]
         assert task_config.label_column_name == "label"
         assert task_config.test_name == "test"
+
+    def test_pretty_name(self, task_config):
+        assert task_config.pretty_name == "task name"
 
     def test_id2label(self, task_config, label):
         assert task_config.id2label == [label.name]
@@ -109,7 +112,14 @@ class TestEvaluationConfig:
         assert evaluation_config.progress_bar is False
         assert evaluation_config.save_results is True
         assert evaluation_config.verbose is True
+        assert evaluation_config.track_carbon_emissions is True
+        assert evaluation_config.country_code == CountryCode.DNK
+        assert evaluation_config.prefer_device == Device.CPU
+        assert evaluation_config.only_return_log is False
         assert evaluation_config.testing is True
+
+    def test_device(self, evaluation_config):
+        assert evaluation_config.device == Device.CPU
 
 
 class TestModelConfig:
@@ -118,7 +128,7 @@ class TestModelConfig:
         yield ModelConfig(
             model_id="model-id",
             revision="revision",
-            framework="framework",
+            framework=Framework.JAX,
         )
 
     def test_model_config_is_object(self, model_config):
@@ -127,4 +137,4 @@ class TestModelConfig:
     def test_attributes_correspond_to_arguments(self, model_config):
         assert model_config.model_id == "model-id"
         assert model_config.revision == "revision"
-        assert model_config.framework == "framework"
+        assert model_config.framework == Framework.JAX
