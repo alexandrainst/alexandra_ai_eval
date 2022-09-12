@@ -93,11 +93,10 @@ def load_pytorch_model(
             tokenizer.
 
     Raises:
-        ValueError:
-            If the supertask was not recognized.
         InvalidEvaluation:
             If the model either does not have any registered frameworks, of it is a
-            private model and `use_auth_token` has not been set.
+            private model and `use_auth_token` has not been set, or if the supertask
+            does not correspond to a Hugging Face AutoModel class.
     """
     try:
         # Load the configuration of the pretrained model
@@ -117,6 +116,7 @@ def load_pytorch_model(
             module_name="transformers",
         )
 
+        # If the model class could not be found then raise an error
         if not model_cls:
             raise ValueError(f"The supertask `{supertask}` was not recognised.")
 
