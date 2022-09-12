@@ -374,7 +374,10 @@ class TestInvalidArchitectureForTask:
         assert exception.supertask == supertask
 
     def test_architecture_is_stored(self, exception, architectures):
-        assert exception.architectures == architectures
+        if isinstance(architectures, np.ndarray):
+            np.testing.assert_equal(exception.architectures, architectures)
+        else:
+            assert exception.architectures == architectures
 
     def test_message_is_stored(self, exception, architectures, supertask):
         message = (
@@ -414,9 +417,16 @@ class TestWrongFeatureColumnName:
     def test_model_type_is_stored(self, exception, feature_column_names):
         if isinstance(feature_column_names, str):
             feature_column_names = [feature_column_names]
-        assert exception.feature_column_names == feature_column_names
+        if isinstance(feature_column_names, np.ndarray):
+            np.testing.assert_equal(
+                exception.feature_column_names, feature_column_names
+            )
+        else:
+            assert exception.feature_column_names == feature_column_names
 
     def test_message_is_stored(self, exception, feature_column_names):
+        if isinstance(feature_column_names, str):
+            feature_column_names = [feature_column_names]
         message = (
             f"The provided feature column name(s) '{', '.join(feature_column_names)}' "
             "were incorrect."
