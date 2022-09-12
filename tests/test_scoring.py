@@ -15,25 +15,6 @@ def scores(metric_config):
     ]
 
 
-class TestAggregateScores:
-    def test_scores(self, scores, metric_config):
-        # Aggregate scores using the `agg_scores` function
-        agg_scores = aggregate_scores(scores=scores, metric_config=metric_config)
-
-        # Manually compute the mean and standard error of the scores
-        test_scores = [dct[metric_config.name] for dct in scores]
-        mean = np.mean(test_scores)
-        se = 1.96 * np.std(test_scores, ddof=1) / np.sqrt(len(test_scores))
-
-        # Assert that `aggregate_scores` computed the same
-        assert agg_scores == (mean, se)
-
-    def test_no_scores(self, metric_config):
-        agg_scores = aggregate_scores(scores=list(), metric_config=metric_config)
-        for score in agg_scores:
-            assert np.isnan(score)
-
-
 class TestLogScores:
     @pytest.fixture(scope="class")
     def logged_scores(self, metric_config, scores):
@@ -65,3 +46,22 @@ class TestLogScores:
     def test_total_scores_values_are_floats(self, logged_scores):
         for val in logged_scores["total"].values():
             assert isinstance(val, float)
+
+
+class TestAggregateScores:
+    def test_scores(self, scores, metric_config):
+        # Aggregate scores using the `agg_scores` function
+        agg_scores = aggregate_scores(scores=scores, metric_config=metric_config)
+
+        # Manually compute the mean and standard error of the scores
+        test_scores = [dct[metric_config.name] for dct in scores]
+        mean = np.mean(test_scores)
+        se = 1.96 * np.std(test_scores, ddof=1) / np.sqrt(len(test_scores))
+
+        # Assert that `aggregate_scores` computed the same
+        assert agg_scores == (mean, se)
+
+    def test_no_scores(self, metric_config):
+        agg_scores = aggregate_scores(scores=list(), metric_config=metric_config)
+        for score in agg_scores:
+            assert np.isnan(score)
