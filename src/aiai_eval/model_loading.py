@@ -118,7 +118,10 @@ def load_pytorch_model(
 
         # If the model class could not be found then raise an error
         if not model_cls:
-            raise ValueError(f"The supertask `{supertask}` was not recognised.")
+            raise InvalidEvaluation(
+                f"The supertask '{supertask}' does not correspond to a Hugging Face "
+                " AutoModel type (such as `AutoModelForSequenceClassification`)."
+            )
 
         # Load the model with the correct model class
         model = model_cls.from_pretrained(  # type: ignore[attr-defined]
