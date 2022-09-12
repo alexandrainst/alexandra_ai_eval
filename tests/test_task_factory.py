@@ -1,5 +1,7 @@
 """Unit tests for the `task_factory` module."""
 
+from copy import deepcopy
+
 import pytest
 
 from src.aiai_eval.config import LabelConfig
@@ -37,7 +39,8 @@ def test_build_task(task_config, task_factory):
 
 
 def test_raise_error_if_unknown_task(task_config, task_factory):
-    task_config.name = "unknown-task"
-    task_config.supertask = "unknown-supertask"
+    task_config_copy = deepcopy(task_config)
+    task_config_copy.name = "unknown-task"
+    task_config_copy.supertask = "unknown-supertask"
     with pytest.raises(InvalidTask):
-        task_factory.build_task(task_name_or_config=task_config)
+        task_factory.build_task(task_name_or_config=task_config_copy)
