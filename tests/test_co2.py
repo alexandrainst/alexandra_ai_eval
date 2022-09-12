@@ -27,9 +27,6 @@ class TestGetCarbonTracker:
         assert isinstance(offline_carbon_tracker, OfflineEmissionsTracker)
 
     def test_project_name_online(self, online_carbon_tracker, params):
-        import logging
-
-        logging.info(online_carbon_tracker._conf)
         assert online_carbon_tracker._conf["project_name"] == params["task_name"]
 
     def test_project_name_offline(self, offline_carbon_tracker, params):
