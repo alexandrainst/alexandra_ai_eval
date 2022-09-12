@@ -197,6 +197,8 @@ def alter_classification_layer(
     """
     # Count the number of new labels to add to the model
     num_new_labels = len(model_id2label) - len(old_model_id2label)
+    if num_new_labels == 0:
+        return
 
     # If *all* the new labels are new and aren't even synonyms of the model's labels,
     # then raise an exception
