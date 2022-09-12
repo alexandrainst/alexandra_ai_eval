@@ -20,7 +20,7 @@ def evaluation_config():
         progress_bar=False,
         save_results=False,
         verbose=True,
-        track_carbon_emissions=True,
+        track_carbon_emissions=False,
         country_code=CountryCode.DNK,
         prefer_device=Device.CPU,
         only_return_log=False,
