@@ -5,14 +5,16 @@ from typing import Optional, Union
 import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
+from transformers.modeling_utils import PreTrainedModel
 
 from .config import ModelConfig, TaskConfig
 from .enums import Framework
 from .exceptions import InvalidEvaluation
 
 
+# TODO: Set this up to work with PyTorch modules as well.
 def adjust_model_to_task(
-    model: nn.Module,
+    model: PreTrainedModel,
     model_config: ModelConfig,
     task_config: TaskConfig,
 ) -> None:
@@ -24,7 +26,7 @@ def adjust_model_to_task(
     labels.
 
     Args:
-        model (PyTorch Module):
+        model (PreTrainedModel):
             The model to adjust the label ids of.
         model_config (ModelConfig):
             The model configuration.
@@ -157,7 +159,7 @@ def adjust_model_to_task(
 
 
 def alter_classification_layer(
-    model: nn.Module,
+    model: PreTrainedModel,
     model_id2label: list,
     old_id2label: list,
     flat_old_synonyms: list,
@@ -175,7 +177,7 @@ def alter_classification_layer(
     This code needs to be rewritten when we add other types of tasks and model types.
 
     Args:
-        model (PyTorch Model):
+        model (PreTrainedModel):
             The model to alter the classification layer of.
         model_id2label (list):
             The model's label conversion.
