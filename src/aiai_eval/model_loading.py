@@ -206,11 +206,7 @@ def load_spacy_model(model_id: str) -> Dict[str, Any]:
     # Download the model if it has not already been so
     try:
         if not is_module_installed(local_model_id):
-            url = (
-                f"https://huggingface.co/{model_id}/resolve/main/{local_model_id}-"
-                "any-py3-none-any.whl"
-            )
-            subprocess.run(["pip3", "install", url])
+            subprocess.run(["python", "-m", "spacy", "download", local_model_id])
 
     except CalledProcessError as e:
         raise ModelFetchFailed(model_id=local_model_id, error_msg=e.output)
