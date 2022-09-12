@@ -32,7 +32,7 @@ class TestEvaluator:
         assert evaluator.evaluation_config == evaluation_config
 
     def test_model_lists_is_none(self, evaluator):
-        assert evaluator.model_lists is None
+        assert evaluator._model_lists is None
 
     def test_evaluation_results_is_defaultdict(self, evaluator):
         assert isinstance(evaluator.evaluation_results, defaultdict)
