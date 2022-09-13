@@ -285,17 +285,15 @@ def find_best_answer(
         )
         valid_answers.extend(valid_answers_for_feature)
 
-    # If there is a valid answer then we return the answer with the highest score
-    if len(valid_answers) > 0:
-        best_answer_dict = sorted(
-            valid_answers, key=lambda x: x["score"], reverse=True
-        )[0]
-        return best_answer_dict["text"]
-
     # In the very rare edge case we have not a single non-null prediction, we create a
     # fake prediction to avoid failure
-    else:
+    if not valid_answers:
         return ""
+
+    # Otherwise, we select the answer with the largest score as the best answer, and
+    # return it
+    best_answer_dict = sorted(valid_answers, key=lambda x: x["score"], reverse=True)[0]
+    return best_answer_dict["text"]
 
 
 def find_valid_answers(
