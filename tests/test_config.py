@@ -6,31 +6,26 @@ import pytest
 
 from src.aiai_eval.config import (
     EvaluationConfig,
-    Label,
+    LabelConfig,
     MetricConfig,
     ModelConfig,
     TaskConfig,
 )
+from src.aiai_eval.enums import CountryCode, Device, Framework
 
 
 @pytest.fixture(scope="module")
 def label():
-    yield Label(name="label-name", synonyms=["synonym1", "synonym2"])
+    yield LabelConfig(name="label-name", synonyms=["synonym1", "synonym2"])
 
 
-@pytest.fixture(scope="class")
-def task_config(metric_config, label):
-    yield TaskConfig(
-        name="task-name",
-        huggingface_id="dataset-id",
-        huggingface_subset=None,
-        supertask="supertask-name",
-        metrics=[metric_config],
-        labels=[label],
-        feature_column_names=["column-name"],
-        label_column_name="label",
-        test_name="test",
-    )
+class TestLabelConfig:
+    def test_label_is_object(self, label):
+        assert isinstance(label, LabelConfig)
+
+    def test_attributes_correspond_to_arguments(self, label):
+        assert label.name == "label-name"
+        assert label.synonyms == ["synonym1", "synonym2"]
 
 
 class TestMetricConfig:
@@ -42,21 +37,27 @@ class TestMetricConfig:
         assert metric_config.pretty_name == "Metric name"
         assert metric_config.huggingface_id == "metric-id"
         assert metric_config.results_key == "metric-key"
+        assert metric_config.postprocessing_fn(10.123456789) == "10.12"
 
     def test_default_value_of_compute_kwargs(self, metric_config):
         assert metric_config.compute_kwargs == dict()
 
 
-class TestLabel:
-    def test_label_is_object(self, label):
-        assert isinstance(label, Label)
-
-    def test_attributes_correspond_to_arguments(self, label):
-        assert label.name == "label-name"
-        assert label.synonyms == ["synonym1", "synonym2"]
-
-
 class TestTaskConfig:
+    @pytest.fixture(scope="class")
+    def task_config(self, metric_config, label):
+        yield TaskConfig(
+            name="task-name",
+            huggingface_id="dataset-id",
+            huggingface_subset=None,
+            supertask="supertask-name",
+            metrics=[metric_config],
+            labels=[label],
+            feature_column_names=["column-name"],
+            label_column_name="label",
+            test_name="test",
+        )
+
     def test_task_config_is_object(self, task_config):
         assert isinstance(task_config, TaskConfig)
 
@@ -64,7 +65,6 @@ class TestTaskConfig:
         self, task_config, metric_config, label
     ):
         assert task_config.name == "task-name"
-        assert task_config.pretty_name == "task name"
         assert task_config.huggingface_id == "dataset-id"
         assert task_config.huggingface_subset is None
         assert task_config.supertask == "supertask-name"
@@ -73,6 +73,9 @@ class TestTaskConfig:
         assert task_config.feature_column_names == ["column-name"]
         assert task_config.label_column_name == "label"
         assert task_config.test_name == "test"
+
+    def test_pretty_name(self, task_config):
+        assert task_config.pretty_name == "task name"
 
     def test_id2label(self, task_config, label):
         assert task_config.id2label == [label.name]
@@ -102,13 +105,21 @@ class TestEvaluationConfig:
         assert isinstance(evaluation_config, EvaluationConfig)
 
     def test_attributes_correspond_to_arguments(self, evaluation_config):
+        auth = os.environ.get("HUGGINGFACE_HUB_TOKEN", True)
         assert evaluation_config.raise_error_on_invalid_model is True
         assert evaluation_config.cache_dir == ".aiai_cache"
-        assert evaluation_config.use_auth_token == os.environ["HUGGINGFACE_HUB_TOKEN"]
+        assert evaluation_config.use_auth_token == auth
         assert evaluation_config.progress_bar is False
-        assert evaluation_config.save_results is True
+        assert evaluation_config.save_results is False
         assert evaluation_config.verbose is True
+        assert evaluation_config.track_carbon_emissions is False
+        assert evaluation_config.country_code == CountryCode.DNK
+        assert evaluation_config.prefer_device == Device.CPU
+        assert evaluation_config.only_return_log is False
         assert evaluation_config.testing is True
+
+    def test_device(self, evaluation_config):
+        assert evaluation_config.device == "cpu"
 
 
 class TestModelConfig:
@@ -117,7 +128,7 @@ class TestModelConfig:
         yield ModelConfig(
             model_id="model-id",
             revision="revision",
-            framework="framework",
+            framework=Framework.JAX,
         )
 
     def test_model_config_is_object(self, model_config):
@@ -126,4 +137,4 @@ class TestModelConfig:
     def test_attributes_correspond_to_arguments(self, model_config):
         assert model_config.model_id == "model-id"
         assert model_config.revision == "revision"
-        assert model_config.framework == "framework"
+        assert model_config.framework == Framework.JAX

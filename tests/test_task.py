@@ -1,12 +1,13 @@
 """Unit tests for the `task` module."""
 
-import numpy as np
+from typing import List, Sequence, Tuple
+
 import pytest
 from datasets.arrow_dataset import Dataset
 from datasets.metric import Metric
-from spacy.language import Language
-from transformers.tokenization_utils_base import PreTrainedTokenizerBase
+from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
+from src.aiai_eval.config import TaskConfig
 from src.aiai_eval.task import Task
 
 
@@ -16,16 +17,32 @@ class TaskDummy(Task):
     This class is used to test the methods of Task.
     """
 
-    def _preprocess_data(self, dataset: Dataset, framework: str, **kwargs) -> Dataset:
-        return Dataset.from_dict(dict(a=[1, 2, 3], b=[4, 5, 6]))
+    def _prepare_predictions_and_labels(
+        self,
+        predictions: Sequence,
+        dataset: Dataset,
+        prepared_dataset: Dataset,
+        **kwargs,
+    ) -> List[Tuple[list, list]]:
+        return list()
+
+    def _spacy_preprocess_fn(self, examples: BatchEncoding) -> BatchEncoding:
+        return examples
+
+    def _pytorch_preprocess_fn(
+        self,
+        examples: BatchEncoding,
+        tokenizer: PreTrainedTokenizerBase,
+        pytorch_model_config: dict,
+        task_config: TaskConfig,
+    ) -> BatchEncoding:
+        return examples
+
+    def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
+        return list()
 
     def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase):
         return None
-
-    def _get_spacy_predictions(
-        self, model: Language, prepared_dataset: Dataset, batch_size: int
-    ) -> list:
-        return list()
 
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
         return True
@@ -52,20 +69,6 @@ class TestTaskAttributes:
             assert isinstance(metric, Metric)
 
 
-def test_prepare_predictions_and_labels_output_is_trivial(task):
-    predictions = np.array([1, 2, 3])
-    dataset = Dataset.from_dict(dict(labels=[1, 2, 2]))
-    prepared = task._prepare_predictions_and_labels(
-        predictions=predictions,
-        dataset=dataset,
-        prepared_dataset=dataset,
-    )
-    np.testing.assert_equal(
-        actual=prepared,
-        desired=[(predictions, np.array(dataset["labels"]))],
-    )
-
-
 class TestLoadData:
     @pytest.fixture(scope="class")
     def loaded_data(self, task):
@@ -80,14 +83,20 @@ class TestAbstractMethods:
     def abstract_metods(self):
         return Task.__abstractmethods__
 
-    def test_preprocess_data_is_abstract(self, abstract_metods):
-        assert "_preprocess_data" in abstract_metods
+    def test_prepare_predictions_and_labels_is_abstract(self, abstract_metods):
+        assert "_prepare_predictions_and_labels" in abstract_metods
+
+    def test_spacy_preprocess_fn_is_abstract(self, abstract_metods):
+        assert "_spacy_preprocess_fn" in abstract_metods
+
+    def test_pytorch_preprocess_fn_is_abstract(self, abstract_metods):
+        assert "_pytorch_preprocess_fn" in abstract_metods
+
+    def test_extract_spacy_predictions_is_abstract(self, abstract_metods):
+        assert "_extract_spacy_predictions" in abstract_metods
 
     def test_load_data_collator_is_abstract(self, abstract_metods):
         assert "_load_data_collator" in abstract_metods
-
-    def test_get_spacy_predictions_and_labels_is_abstract(self, abstract_metods):
-        assert "_get_spacy_predictions" in abstract_metods
 
     def test_check_if_model_is_trained_for_task_is_abstract(self, abstract_metods):
         assert "_check_if_model_is_trained_for_task" in abstract_metods

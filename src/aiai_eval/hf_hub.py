@@ -1,19 +1,21 @@
 """Functions related to the Hugging Face Hub."""
 
-from typing import Optional, Tuple
+from typing import Optional
 
-import spacy
 from huggingface_hub import HfApi, ModelFilter
 from huggingface_hub.utils import RepositoryNotFoundError
 from requests.exceptions import RequestException
 
 from .config import EvaluationConfig, ModelConfig
+from .enums import Framework
 from .exceptions import (
     HuggingFaceHubDown,
     InvalidFramework,
     ModelDoesNotExist,
+    ModelFetchFailed,
     NoInternetConnection,
 )
+from .model_loading import load_spacy_model
 from .utils import internet_connection_available
 
 
@@ -28,34 +30,36 @@ def model_exists_on_hf_hub(model_id: str) -> bool:
         bool:
             If model exists on Hugginface Hub or not.
     """
+    # Extract the revision from the model_id, if present
+    model_id, revision = model_id.split("@") if "@" in model_id else (model_id, "main")
+
+    # Connect to the Hugging Face Hub API
     hf_api = HfApi()
+
+    # Check if the model exists
     try:
-        hf_api.model_info(model_id)
+        hf_api.model_info(repo_id=model_id, revision=revision)
         return True
     except RepositoryNotFoundError:
         return False
 
 
-def check_if_model_exist(model_id: str) -> Tuple[bool, bool]:
-    """Checks if a model exists on Huggingface or as an available spacy model.
+def model_exists_on_spacy(model_id: str) -> bool:
+    """Checks if a model exists as a spaCy model.
 
     Args:
         model_id (str):
             The name of the model.
 
     Returns:
-        tuple of bools:
-            A bool specifying whether the model exists on Huggingface Hub and bool a
-            specifying if model the exists as an available spacy model.
+        bool:
+            Whether the model exists as a spaCy model.
     """
-    model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
     try:
-        spacy.load(model_id)
-        model_is_spacy = True
-    except OSError:
-        model_is_spacy = False
-
-    return model_on_hf_hub, model_is_spacy
+        load_spacy_model(model_id=model_id)
+        return True
+    except ModelFetchFailed:
+        return False
 
 
 def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> ModelConfig:
@@ -72,7 +76,7 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
             The model configuration.
 
     Raises:
-        ModelDoesNotExistOnHuggingFaceHub:
+        ModelDoesNotExist:
             If the model id does not exist on the Hugging Face Hub.
         InvalidFramework:
             If the specified framework is not implemented.
@@ -97,16 +101,23 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
         author = None
         model_name = model_id_without_revision
 
-    # Attempt to fetch model data from the Hugging Face Hub.
-    # Check if id exists, before creating model config, for more clear exception handling.
-    model_on_hf_hub, model_is_spacy = check_if_model_exist(model_id=model_id)
+    # Check if model exists on Hugging Face Hub or as a spaCy model
+    model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
+    model_on_spacy = model_exists_on_spacy(model_id=model_id)
 
-    if not model_on_hf_hub and not model_is_spacy:
+    # If it does not exist on Hugging Face Hub or as a spaCy model, raise an error
+    if not model_on_hf_hub and not model_on_spacy:
         raise ModelDoesNotExist(model_id=model_id)
 
+    # If it exists as a spaCy model, we return the spaCy model config
+    if model_on_spacy:
+        return ModelConfig(model_id=model_id, revision="", framework=Framework.SPACY)
+
+    # Otherwise it exists on the Hugging Face Hub, and we attempt to fetch the
+    # information from there
     try:
 
-        # Define the API object
+        # Define the Hugging Face Hub API object
         api = HfApi()
 
         # Fetch the model metadata
@@ -124,18 +135,18 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
         tags = models[0].tags
 
         # Extract the framework, which defaults to PyTorch
-        framework = "pytorch"
+        framework = Framework.PYTORCH
         if "pytorch" in tags:
             pass
         elif "jax" in tags:
-            framework = "jax"
+            framework = Framework.JAX
         elif "spacy" in tags:
-            framework = "spacy"
+            framework = Framework.SPACY
         elif "tf" in tags or "tensorflow" in tags or "keras" in tags:
             raise InvalidFramework("tensorflow")
 
-        # Construct the model config
-        model_config = ModelConfig(
+        # Construct and return the model config
+        return ModelConfig(
             model_id=models[0].modelId,
             framework=framework,
             revision=revision,
@@ -149,6 +160,3 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
             raise HuggingFaceHubDown()
         else:
             raise NoInternetConnection()
-
-    # Return the model config
-    return model_config

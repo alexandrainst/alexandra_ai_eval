@@ -1,6 +1,5 @@
 """Utility functions for the project."""
 
-import enum
 import gc
 import importlib
 import logging
@@ -8,7 +7,6 @@ import os
 import random
 import re
 import warnings
-from dataclasses import dataclass
 from typing import List, Optional, Sequence, Union
 
 import numpy as np
@@ -17,7 +15,9 @@ import requests
 import torch
 from datasets.utils import disable_progress_bar
 from requests import RequestException
+from wasabi import msg as wasabi_msg
 
+from .enums import Device, Framework
 from .exceptions import InvalidArchitectureForTask
 
 logger = logging.getLogger(__name__)
@@ -63,11 +63,13 @@ def clear_memory():
         torch.cuda.empty_cache()
 
 
-def enforce_reproducibility(framework: str, seed: int = 703) -> np.random.Generator:
+def enforce_reproducibility(
+    framework: Framework, seed: int = 703
+) -> np.random.Generator:
     """Ensures reproducibility of experiments.
 
     Args:
-        framework (str):
+        framework (Framework):
             The framework used for the benchmarking.
         seed (int):
             Seed for the random number generator.
@@ -79,7 +81,7 @@ def enforce_reproducibility(framework: str, seed: int = 703) -> np.random.Genera
     random.seed(seed)
     np.random.seed(seed)
     rng = np.random.default_rng(seed)
-    if framework in ("pytorch", "jax"):
+    if framework in [Framework.PYTORCH, Framework.JAX]:
         torch.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
         os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
@@ -138,6 +140,10 @@ def block_terminal_output():
     logging.getLogger("filelock").setLevel(logging.ERROR)
     logging.getLogger("absl").setLevel(logging.ERROR)
     logging.getLogger("datasets").setLevel(logging.ERROR)
+    logging.getLogger("codecarbon").setLevel(logging.ERROR)
+
+    # Disable `wasabi` logging, used in spaCy
+    wasabi_msg.no_print = True
 
     # Disable the tokeniser progress bars
     disable_progress_bar()
@@ -155,23 +161,6 @@ def internet_connection_available() -> bool:
         return True
     except RequestException:
         return False
-
-
-class Device(str, enum.Enum):
-    """The compute device to use for the evaluation.
-
-    Attributes:
-        CPU:
-            CPU device.
-        MPS:
-            MPS GPU, used in M-series MacBooks.
-        CUDA:
-            CUDA GPU, used with NVIDIA GPUs.
-    """
-
-    CPU = "cpu"
-    MPS = "mps"
-    CUDA = "cuda"
 
 
 def get_available_devices() -> List[Device]:
@@ -200,21 +189,6 @@ def get_available_devices() -> List[Device]:
     return available_devices
 
 
-@dataclass
-class Label:
-    """A label in a dataset task.
-
-    Attributes:
-        name (str):
-            The name of the label.
-        synonyms (list of str):
-            The synonyms of the label.
-    """
-
-    name: str
-    synonyms: List[str]
-
-
 def check_supertask(architectures: Sequence[str], supertask: str):
     """Checks if the supertask corresponds to the architectures.
 
@@ -230,8 +204,8 @@ def check_supertask(architectures: Sequence[str], supertask: str):
             If the PascalCase version of the supertask is not found in any of the
             architectures.
     """
-    # Create boolean variable that checks if the supertask exists among the
-    # available architectures
+    # Create boolean variable that checks if the supertask exists among the available
+    # architectures
     supertask_is_an_architecture = any(
         kebab_to_pascal(supertask) in architecture for architecture in architectures
     )

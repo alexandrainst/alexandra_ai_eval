@@ -3,7 +3,23 @@
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from .utils import Device, Label, get_available_devices
+from .enums import CountryCode, Device, Framework
+from .utils import get_available_devices
+
+
+@dataclass
+class LabelConfig:
+    """Configuration for a label in a dataset task.
+
+    Attributes:
+        name (str):
+            The name of the label.
+        synonyms (list of str):
+            The synonyms of the label.
+    """
+
+    name: str
+    synonyms: List[str]
 
 
 @dataclass
@@ -57,7 +73,7 @@ class TaskConfig:
             The supertask of the task, describing the overall type of task.
         metrics (sequence of MetricConfig objects):
             The metrics used to evaluate the task.
-        labels (sequence of Label objects):
+        labels (sequence of LabelConfig objects):
             The labels used in the task.
         feature_column_names (list of str):
             The names of the feature columns for the dataset.
@@ -81,7 +97,7 @@ class TaskConfig:
     huggingface_subset: Optional[str]
     supertask: str
     metrics: List[MetricConfig]
-    labels: List[Label]
+    labels: List[LabelConfig]
     feature_column_names: List[str]
     label_column_name: str
     test_name: Optional[str]
@@ -136,7 +152,7 @@ class EvaluationConfig:
             Whether to print verbose output.
         track_carbon_usage (bool):
             Whether to track carbon usage.
-        country_iso_code (str):
+        country_code (CountryCode):
             The 3-letter alphabet ISO Code of the country where the compute
             infrastructure is hosted. Only relevant if no internet connection is
             available. Only relevant if `track_carbon_emissions` is set to True. A list
@@ -159,7 +175,7 @@ class EvaluationConfig:
     save_results: bool
     verbose: bool
     track_carbon_emissions: bool
-    country_iso_code: str
+    country_code: CountryCode
     prefer_device: Device
     only_return_log: bool = False
     testing: bool = False
@@ -199,10 +215,10 @@ class ModelConfig:
             The ID of the model.
         revision (str):
             The revision of the model.
-        framework (str):
+        framework (Framework):
             The framework of the model.
     """
 
     model_id: str
     revision: str
-    framework: str
+    framework: Framework

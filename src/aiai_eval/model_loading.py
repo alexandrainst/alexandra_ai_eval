@@ -1,22 +1,22 @@
 """Functions related to the loading of models."""
 
-import subprocess
 import warnings
 from subprocess import CalledProcessError
 from typing import Any, Dict
 
 import spacy
+from spacy.cli.download import download as download_spacy
 from transformers.models.auto.configuration_auto import AutoConfig
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
 from .config import EvaluationConfig, ModelConfig, TaskConfig
+from .enums import Framework
 from .exceptions import InvalidEvaluation, InvalidFramework, ModelFetchFailed
 from .model_adjustment import adjust_model_to_task
 from .utils import check_supertask, get_class_by_name, is_module_installed
 
-# Ignore warnings from spaCy. This has to be called after the import,
-# as the __init__.py file of spaCy sets the warning levels of spaCy
-# warning W036
+# Ignore warnings from spaCy. This has to be called after the import, as the
+# __init__.py file of spaCy sets the warning levels of spaCy warning W036
 warnings.filterwarnings("ignore", module="spacy*")
 
 
@@ -37,23 +37,23 @@ def load_model(
 
     Returns:
         dict:
-            A dictionary containing at least the key 'model', with the value being
-            the model. Can contain other objects related to the model, such as its
+            A dictionary containing at least the key 'model', with the value being the
+            model. Can contain other objects related to the model, such as its
             tokenizer.
 
     Raises:
-        RuntimeError:
+        InvalidFramework:
             If the framework is not recognized.
     """
     # Ensure that the framework is installed
-    from_flax = model_config.framework == "jax"
+    from_flax = model_config.framework == Framework.JAX
 
-    # If the framework is JAX then change it to PyTorch, since we will convert
-    # JAX models to PyTorch upon download
-    if model_config.framework == "jax":
-        model_config.framework = "pytorch"
+    # If the framework is JAX then change it to PyTorch, since we will convert JAX
+    # models to PyTorch upon download
+    if model_config.framework == Framework.JAX:
+        model_config.framework = Framework.PYTORCH
 
-    if model_config.framework == "pytorch":
+    if model_config.framework == Framework.PYTORCH:
         return load_pytorch_model(
             model_config=model_config,
             from_flax=from_flax,
@@ -61,8 +61,8 @@ def load_model(
             evaluation_config=evaluation_config,
         )
 
-    elif model_config.framework == "spacy":
-        return load_spacy_model(model_config=model_config)
+    elif model_config.framework == Framework.SPACY:
+        return load_spacy_model(model_id=model_config.model_id)
 
     else:
         raise InvalidFramework(model_config.framework)
@@ -81,12 +81,22 @@ def load_pytorch_model(
             The configuration of the model.
         from_flax (bool):
             Whether the model is a Flax model.
+        task_config (TaskConfig):
+            The task configuration.
+        evaluation_config (EvaluationConfig):
+            The evaluation configuration.
 
     Returns:
         dict:
-            A dictionary containing at least the key 'model', with the value being
-            the model. Can contain other objects related to the model, such as its
+            A dictionary containing at least the key 'model', with the value being the
+            model. Can contain other objects related to the model, such as its
             tokenizer.
+
+    Raises:
+        InvalidEvaluation:
+            If the model either does not have any registered frameworks, of it is a
+            private model and `use_auth_token` has not been set, or if the supertask
+            does not correspond to a Hugging Face AutoModel class.
     """
     try:
         # Load the configuration of the pretrained model
@@ -106,8 +116,12 @@ def load_pytorch_model(
             module_name="transformers",
         )
 
+        # If the model class could not be found then raise an error
         if not model_cls:
-            raise ValueError(f"The supertask `{supertask}` was not recognised.")
+            raise InvalidEvaluation(
+                f"The supertask '{supertask}' does not correspond to a Hugging Face "
+                " AutoModel type (such as `AutoModelForSequenceClassification`)."
+            )
 
         # Load the model with the correct model class
         model = model_cls.from_pretrained(  # type: ignore[attr-defined]
@@ -135,8 +149,8 @@ def load_pytorch_model(
         task_config=task_config,
     )
 
-    # If the model is a subclass of a RoBERTa model then we have to add a prefix
-    # space to the tokens, by the way the model is constructed.
+    # If the model is a subclass of a RoBERTa model then we have to add a prefix space
+    # to the tokens, by the way the model is constructed.
     m_id = model_config.model_id
     prefix = "Roberta" in type(model).__name__
     params = dict(use_fast=True, add_prefix_space=prefix)
@@ -147,8 +161,8 @@ def load_pytorch_model(
         **params,
     )
 
-    # Set the maximal length of the tokenizer to the model's maximal length.
-    # This is required for proper truncation
+    # Set the maximal length of the tokenizer to the model's maximal length. This is
+    # required for proper truncation
     if not hasattr(tokenizer, "model_max_length") or tokenizer.model_max_length > 1_000:
 
         if hasattr(tokenizer, "max_model_input_sizes"):
@@ -170,29 +184,32 @@ def load_pytorch_model(
     return dict(model=model, tokenizer=tokenizer)
 
 
-def load_spacy_model(model_config: ModelConfig) -> Dict[str, Any]:
+def load_spacy_model(model_id: str) -> Dict[str, Any]:
     """Load a spaCy model.
 
     Args:
-        model_config (ModelConfig):
-            The configuration of the model.
+        model_id (str):
+            The ID of the model.
 
     Returns:
         dict:
-            A dictionary containing at least the key 'model', with the value being
-            the model. Can contain other objects related to the model, such as its
+            A dictionary containing at least the key 'model', with the value being the
+            model. Can contain other objects related to the model, such as its
             tokenizer.
+
+    Raises:
+        ModelFetchFailed:
+            If the model could not be downloaded.
     """
-    local_model_id = model_config.model_id.split("/")[-1]
+    local_model_id = model_id.split("/")[-1]
 
     # Download the model if it has not already been so
     try:
         if not is_module_installed(local_model_id):
-            url = (
-                f"https://huggingface.co/{model_config.model_id}/resolve/main/"
-                f"{local_model_id}-any-py3-none-any.whl"
-            )
-            subprocess.run(["pip3", "install", url])
+            try:
+                download_spacy(model=local_model_id)
+            except SystemExit:
+                pass
 
     except CalledProcessError as e:
         raise ModelFetchFailed(model_id=local_model_id, error_msg=e.output)
@@ -202,11 +219,11 @@ def load_spacy_model(model_config: ModelConfig) -> Dict[str, Any]:
         model = spacy.load(local_model_id)
     except OSError as e:
         raise ModelFetchFailed(
-            model_id=model_config.model_id,
+            model_id=model_id,
             error_msg=str(e),
             message=(
-                f"Download of {model_config.model_id} failed, with "
-                f"the following error message: {str(e)}."
+                f"Download of {model_id} failed, with the following error message: "
+                f"{str(e)}."
             ),
         )
     return dict(model=model)

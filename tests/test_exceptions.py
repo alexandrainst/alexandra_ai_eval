@@ -1,17 +1,23 @@
 """Unit tests for the `exceptions` module."""
 
+import numpy as np
 import pytest
 
+from src.aiai_eval.enums import Framework
 from src.aiai_eval.exceptions import (
+    FrameworkCannotHandleTask,
     HuggingFaceHubDown,
     InvalidArchitectureForTask,
     InvalidEvaluation,
     InvalidFramework,
+    InvalidTask,
     InvalidTokenizer,
+    MissingCountryISOCode,
     MissingLabel,
     ModelDoesNotExist,
     ModelFetchFailed,
     ModelNotTrainedForTask,
+    MPSFallbackNotEnabled,
     NoInternetConnection,
     PreprocessingFailed,
     UnsupportedModelType,
@@ -27,15 +33,24 @@ class TestInvalidEvaluation:
         yield "Test message."
 
     @pytest.fixture(scope="class")
-    def exception(self, message):
+    def exception(self):
+        yield InvalidEvaluation()
+
+    @pytest.fixture(scope="class")
+    def exception_with_message(self, message):
         yield InvalidEvaluation(message=message)
 
     def test_invalid_evaluation_is_an_exception(self, exception):
         with pytest.raises(InvalidEvaluation):
             raise exception
 
-    def test_message_is_stored(self, exception, message):
-        assert exception.message == message
+    def test_default_message(self, exception):
+        assert exception.message == (
+            "This model cannot be evaluated on the given dataset."
+        )
+
+    def test_custom_message_is_stored(self, exception_with_message, message):
+        assert exception_with_message.message == message
 
 
 class TestModelDoesNotExist:
@@ -50,41 +65,32 @@ class TestModelDoesNotExist:
         yield "test_message"
 
     @pytest.fixture(scope="class")
-    def exception_without_message(self, model_id):
+    def exception(self, model_id):
         yield ModelDoesNotExist(model_id=model_id)
 
     @pytest.fixture(scope="class")
     def exception_with_message(self, model_id, message):
         yield ModelDoesNotExist(model_id=model_id, message=message)
 
-    def test_model_does_not_exist_is_an_exception_without_message(
-        self, exception_without_message
-    ):
+    def test_model_does_not_exist_is_an_exception(self, exception):
         with pytest.raises(ModelDoesNotExist):
-            raise exception_without_message
-
-    def test_model_does_not_exist_is_an_exception_with_message(
-        self, exception_with_message
-    ):
-        with pytest.raises(ModelDoesNotExist):
-            raise exception_with_message
+            raise exception
 
     def test_model_id_is_stored(self, exception_with_message, model_id):
         assert exception_with_message.model_id == model_id
 
-    def test_message_is_stored_with_message(self, exception_with_message, message):
+    def test_custom_message_is_stored(self, exception_with_message, message):
         assert exception_with_message.message == message
 
-    def test_message_is_stored_without_message(
-        self, exception_without_message, model_id
-    ):
+    def test_default_message(self, exception, model_id):
         message = (
-            f"The model ID '{model_id}' is not a valid model ID on the Hugging Face Hub, "
-            f"nor is it a valid spaCy model ID. In case of a Huggingface model, Please check "
-            "the model ID, and try again. In case of a spaCy model, please make sure that you "
-            "have spaCy installed, and that the model is installed on your system."
+            f"The model ID '{model_id}' is not a valid model ID on the Hugging "
+            "Face Hub, nor is it a valid spaCy model ID. In case of a Hugging "
+            "Face model, please check the model ID, and try again. In case of a "
+            "spaCy model, please make sure that you have spaCy installed, and "
+            "that the model is installed on your system."
         )
-        assert exception_without_message.message == message
+        assert exception.message == message
 
 
 class TestModelFetchFailed:
@@ -103,7 +109,7 @@ class TestModelFetchFailed:
         yield "Test message"
 
     @pytest.fixture(scope="class")
-    def exception_without_message(self, model_id, error_msg):
+    def exception(self, model_id, error_msg):
         yield ModelFetchFailed(model_id=model_id, error_msg=error_msg)
 
     @pytest.fixture(scope="class")
@@ -120,25 +126,23 @@ class TestModelFetchFailed:
     def test_error_msg_is_stored(self, exception_with_message, error_msg):
         assert exception_with_message.error_msg == error_msg
 
-    def test_message_is_stored_if_nonempty(self, exception_with_message, message):
+    def test_custom_message_is_stored(self, exception_with_message, message):
         assert exception_with_message.message == message
 
-    def test_message_is_stored_if_empty(
-        self, exception_without_message, model_id, error_msg
-    ):
+    def test_default_message(self, exception, model_id, error_msg):
         message = (
             f"Download of {model_id} from the Hugging Face Hub failed, with "
             f"the following error message: {error_msg}."
         )
-        assert exception_without_message.message == message
+        assert exception.message == message
 
 
 class TestInvalidFramework:
     """Unit tests for the InvalidFramework exception class."""
 
-    @pytest.fixture(scope="class")
-    def framework(self):
-        yield "test_framework"
+    @pytest.fixture(scope="class", params=["test_framework", Framework.PYTORCH])
+    def framework(self, request):
+        yield request.param
 
     @pytest.fixture(scope="class")
     def exception(self, framework):
@@ -152,8 +156,7 @@ class TestInvalidFramework:
         assert exception.framework == framework
 
     def test_message_is_stored(self, exception, framework):
-        message = f"The framework {framework} is not supported."
-        assert exception.message == message
+        assert exception.message == f"The framework {framework} is not supported."
 
 
 class TestPreprocessingFailed:
@@ -164,23 +167,22 @@ class TestPreprocessingFailed:
         yield "Test message."
 
     @pytest.fixture(scope="class")
-    def exception(self, message):
-        yield PreprocessingFailed(message=message)
+    def exception(self):
+        yield PreprocessingFailed()
 
     @pytest.fixture(scope="class")
-    def exception_with_default_message(self):
-        yield PreprocessingFailed()
+    def exception_with_message(self, message):
+        yield PreprocessingFailed(message=message)
 
     def test_preprocessing_failed_is_an_exception(self, exception):
         with pytest.raises(PreprocessingFailed):
             raise exception
 
-    def test_message_is_stored(self, exception, message):
-        assert exception.message == message
+    def test_custom_message_is_stored(self, exception_with_message, message):
+        assert exception_with_message.message == message
 
-    def test_default_message_is_stored(self, exception_with_default_message):
-        message = "Preprocessing of the dataset could not be done."
-        assert exception_with_default_message.message == message
+    def test_default_message(self, exception):
+        assert exception.message == "Preprocessing of the dataset could not be done."
 
 
 class TestMissingLabel:
@@ -224,23 +226,22 @@ class TestHuggingFaceHubDown:
         yield "Test message."
 
     @pytest.fixture(scope="class")
-    def exception(self, message):
-        yield HuggingFaceHubDown(message=message)
+    def exception(self):
+        yield HuggingFaceHubDown()
 
     @pytest.fixture(scope="class")
-    def exception_with_default_message(self):
-        yield HuggingFaceHubDown()
+    def exception_with_message(self, message):
+        yield HuggingFaceHubDown(message=message)
 
     def test_hugging_face_hub_down_is_an_exception(self, exception):
         with pytest.raises(HuggingFaceHubDown):
             raise exception
 
-    def test_message_is_stored(self, exception, message):
-        assert exception.message == message
+    def test_custom_message_is_stored(self, exception_with_message, message):
+        assert exception_with_message.message == message
 
-    def test_default_message_is_stored(self, exception_with_default_message):
-        message = "The Hugging Face Hub is currently down."
-        assert exception_with_default_message.message == message
+    def test_default_message(self, exception):
+        assert exception.message == "The Hugging Face Hub is currently down."
 
 
 class TestNoInternetConnection:
@@ -251,27 +252,30 @@ class TestNoInternetConnection:
         yield "Test message."
 
     @pytest.fixture(scope="class")
-    def exception(self, message):
-        yield NoInternetConnection(message=message)
+    def exception(self):
+        yield NoInternetConnection()
 
     @pytest.fixture(scope="class")
-    def exception_with_default_message(self):
-        yield NoInternetConnection()
+    def exception_with_message(self, message):
+        yield NoInternetConnection(message=message)
 
     def test_no_internet_connection_is_an_exception(self, exception):
         with pytest.raises(NoInternetConnection):
             raise exception
 
-    def test_message_is_stored(self, exception, message):
-        assert exception.message == message
+    def test_custom_message_is_stored(self, exception_with_message, message):
+        assert exception_with_message.message == message
 
-    def test_default_message_is_stored(self, exception_with_default_message):
-        message = "There is currently no internet connection."
-        assert exception_with_default_message.message == message
+    def test_default_message(self, exception):
+        assert exception.message == "There is currently no internet connection."
 
 
 class TestUnsupportedModelType:
     """Unit tests for the UnsupportedModelType exception class."""
+
+    @pytest.fixture(scope="class")
+    def message(self):
+        yield "Test message."
 
     @pytest.fixture(scope="class")
     def model_type(self):
@@ -281,6 +285,10 @@ class TestUnsupportedModelType:
     def exception(self, model_type):
         yield UnsupportedModelType(model_type=model_type)
 
+    @pytest.fixture(scope="class")
+    def exception_with_message(self, message, model_type):
+        yield UnsupportedModelType(message=message, model_type=model_type)
+
     def test_unsupported_model_type_is_an_exception(self, exception):
         with pytest.raises(UnsupportedModelType):
             raise exception
@@ -288,36 +296,47 @@ class TestUnsupportedModelType:
     def test_model_type_is_stored(self, exception, model_type):
         assert exception.model_type == model_type
 
-    def test_message_is_stored(self, exception, model_type):
+    def test_custom_message_is_stored(self, exception_with_message, message):
+        assert exception_with_message.message == message
+
+    def test_default_message(self, exception, model_type):
         message = (
-            f"Received an unsupported model type: {model_type}, "
-            "supported types are `nn.Module` and `PretrainedModel`."
+            f"Received an unsupported model type: {model_type}, supported types are "
+            "`nn.Module` and `PretrainedModel`."
         )
         assert exception.message == message
 
 
-class TestWrongFeatureColumnName:
-    """Unit tests for the WrongFeatureColumnName exception class."""
+class TestMissingCountryISOCode:
+    """Unit tests for the MissingCountryISOCode exception class."""
 
     @pytest.fixture(scope="class")
-    def feature_column_name(self):
-        yield "column_name"
+    def message(self):
+        yield "Test message."
 
     @pytest.fixture(scope="class")
-    def exception(self, feature_column_name):
-        yield WrongFeatureColumnName(feature_column_names=feature_column_name)
+    def exception(self):
+        yield MissingCountryISOCode()
 
-    def test_wrong_feature_column_name_is_an_exception(self, exception):
-        with pytest.raises(WrongFeatureColumnName):
+    @pytest.fixture(scope="class")
+    def exception_with_message(self, message):
+        yield MissingCountryISOCode(message=message)
+
+    def test_missing_country_iso_code_is_an_exception(self, exception):
+        with pytest.raises(MissingCountryISOCode):
             raise exception
 
-    def test_model_type_is_stored(self, exception, feature_column_name):
-        assert exception.feature_column_names == [feature_column_name]
+    def test_custom_message_is_stored(self, exception_with_message, message):
+        assert exception_with_message.message == message
 
-    def test_message_is_stored(self, exception, feature_column_name):
+    def test_default_message(self, exception):
         message = (
-            f"The provided feature column name(s) '{feature_column_name}' were "
-            "incorrect."
+            "The carbon tracker calculates carbon usage based on power consumption, "
+            "and the country where the compute infrastructure is hosted. Internet "
+            "connection was not available and hence the location of the infrastructure "
+            "could not be automatically fetched, because of the location must be set, "
+            "this is done by setting the 'country_code' in the config or "
+            "`--country-iso-code` via the CLI to the correct ISO code."
         )
         assert exception.message == message
 
@@ -325,9 +344,17 @@ class TestWrongFeatureColumnName:
 class TestInvalidArchitectureForTask:
     """Unit tests for the InvalidArchitectureForTask exception class."""
 
-    @pytest.fixture(scope="class")
-    def architectures(self):
-        yield ["test_model_type"]
+    @pytest.fixture(
+        scope="class",
+        params=[
+            ["test_model_type"],
+            ["test_model_type", "test_model_type2"],
+            np.array(["test_model_type"]),
+            np.array(["test_model_type", "test_model_type2"]),
+        ],
+    )
+    def architectures(self, request):
+        yield request.param
 
     @pytest.fixture(scope="class")
     def supertask(self):
@@ -347,20 +374,94 @@ class TestInvalidArchitectureForTask:
         assert exception.supertask == supertask
 
     def test_architecture_is_stored(self, exception, architectures):
-        assert exception.architectures == architectures
+        if isinstance(architectures, np.ndarray):
+            np.testing.assert_equal(exception.architectures, architectures)
+        else:
+            assert exception.architectures == architectures
 
     def test_message_is_stored(self, exception, architectures, supertask):
         message = (
-            f"The provided model-id has the following architectures: {str(architectures)}, "
-            f"none of which fits the provided task's supertask: {supertask}. Please provide another "
-            f"model ID which is a {supertask}-type model, or provide another task which fits the "
+            "The provided model-id has the following architectures: "
+            f"{str(architectures)}, none of which fits the provided task's "
+            f"supertask: {supertask}. Please provide another model ID which is a "
+            f"{supertask}-type model, or provide another task which fits the "
             f"aforementioned architectures."
+        )
+        assert exception.message == message
+
+
+class TestWrongFeatureColumnName:
+    """Unit tests for the WrongFeatureColumnName exception class."""
+
+    @pytest.fixture(
+        scope="class",
+        params=[
+            "feature_name",
+            ["feature_name"],
+            ["feature_name", "feature_name2"],
+            np.array(["feature_name"]),
+            np.array(["feature_name", "feature_name2"]),
+        ],
+    )
+    def feature_column_names(self, request):
+        yield request.param
+
+    @pytest.fixture(scope="class")
+    def exception(self, feature_column_names):
+        yield WrongFeatureColumnName(feature_column_names=feature_column_names)
+
+    def test_wrong_feature_column_name_is_an_exception(self, exception):
+        with pytest.raises(WrongFeatureColumnName):
+            raise exception
+
+    def test_model_type_is_stored(self, exception, feature_column_names):
+        if isinstance(feature_column_names, str):
+            feature_column_names = [feature_column_names]
+        if isinstance(feature_column_names, np.ndarray):
+            np.testing.assert_equal(
+                exception.feature_column_names, feature_column_names
+            )
+        else:
+            assert exception.feature_column_names == feature_column_names
+
+    def test_message_is_stored(self, exception, feature_column_names):
+        if isinstance(feature_column_names, str):
+            feature_column_names = [feature_column_names]
+        message = (
+            f"The provided feature column name(s) '{', '.join(feature_column_names)}' "
+            "were incorrect."
+        )
+        assert exception.message == message
+
+
+class TestMPSFallbackNotEnabled:
+    """Unit tests for the MPSFallbackNotEnabled exception class."""
+
+    @pytest.fixture(scope="class")
+    def exception(self):
+        yield MPSFallbackNotEnabled()
+
+    def test_mps_fallback_not_enabled_is_an_exception(self, exception):
+        with pytest.raises(MPSFallbackNotEnabled):
+            raise exception
+
+    def test_message_is_stored(self, exception):
+        message = (
+            "You are using an MPS backend, such as an M1 GPU, but you have not "
+            "enabled the MPS fallback to CPU. Enable this by setting the "
+            "PYTORCH_ENABLE_MPS_FALLBACK environment variable to '1'. You can run the "
+            "evaluation with this enabled by running `PYTORCH_ENABLE_MPS_FALLBACK=1 "
+            "evaluate ...`."
         )
         assert exception.message == message
 
 
 class TestInvalidTokenizer:
     """Unit tests for the InvalidTokenizer exception class."""
+
+    @pytest.fixture(scope="class")
+    def message(self):
+        yield "Test message."
 
     @pytest.fixture(scope="class")
     def tokenizer_type(self):
@@ -370,6 +471,10 @@ class TestInvalidTokenizer:
     def exception(self, tokenizer_type):
         yield InvalidTokenizer(tokenizer_type=tokenizer_type)
 
+    @pytest.fixture(scope="class")
+    def exception_with_message(self, message, tokenizer_type):
+        yield InvalidTokenizer(message=message, tokenizer_type=tokenizer_type)
+
     def test_invalid_tokenizer_is_an_exception(self, exception):
         with pytest.raises(InvalidTokenizer):
             raise exception
@@ -377,36 +482,86 @@ class TestInvalidTokenizer:
     def test_tokenizer_is_stored(self, exception, tokenizer_type):
         assert exception.tokenizer_type == tokenizer_type
 
-    def test_message_is_stored(self, exception, tokenizer_type):
+    def test_custom_message_is_stored(self, exception_with_message, message):
+        assert exception_with_message.message == message
+
+    def test_default_message(self, exception, tokenizer_type):
         message = f"The provided tokenizer type: {tokenizer_type} is not supported."
         assert exception.message == message
 
 
-class TestModelNotTrainedForTask:
-    """Unit tests for the ModelNotTrainedForTask exception class."""
-
-    @pytest.fixture(scope="class")
-    def framework(self):
-        yield "test_framework"
+class TestInvalidTask:
+    """Unit tests for the InvalidTask exception class."""
 
     @pytest.fixture(scope="class")
     def task(self):
         yield "test_task"
 
     @pytest.fixture(scope="class")
-    def exception(self, framework, task):
-        yield ModelNotTrainedForTask(framework=framework, task=task)
+    def exception(self, task):
+        yield InvalidTask(task=task)
+
+    def test_invalid_task_is_an_exception(self, exception):
+        with pytest.raises(InvalidTask):
+            raise exception
+
+    def test_task_is_stored(self, exception, task):
+        assert exception.task == task
+
+    def test_message_is_stored(self, exception, task):
+        assert exception.message == f"The task '{task}' is not supported."
+
+
+class TestModelNotTrainedForTask:
+    """Unit tests for the ModelNotTrainedForTask exception class."""
+
+    @pytest.fixture(scope="class")
+    def task(self):
+        yield "test_task"
+
+    @pytest.fixture(scope="class")
+    def exception(self, task):
+        yield ModelNotTrainedForTask(task=task)
 
     def test_model_not_trained_for_task_is_an_exception(self, exception):
         with pytest.raises(ModelNotTrainedForTask):
             raise exception
 
-    def test_model_id_is_stored(self, exception, framework):
-        assert exception.framework == framework
+    def test_task_is_stored(self, exception, task):
+        assert exception.task == task
+
+    def test_message_is_stored(self, exception, task):
+        assert exception.message == f"The model is not trained for the task {task}."
+
+
+class TestFrameworkCannotHandleTask:
+    """Unit tests for the FrameworkCannotHandleTask exception class."""
+
+    @pytest.fixture(scope="class")
+    def task(self):
+        yield "test_task"
+
+    @pytest.fixture(scope="class", params=["test_framework", Framework.PYTORCH])
+    def framework(self, request):
+        yield request.param
+
+    @pytest.fixture(scope="class")
+    def exception(self, task, framework):
+        yield FrameworkCannotHandleTask(task=task, framework=framework)
+
+    def test_framework_cannot_handle_task_is_an_exception(self, exception):
+        with pytest.raises(FrameworkCannotHandleTask):
+            raise exception
 
     def test_task_is_stored(self, exception, task):
         assert exception.task == task
 
-    def test_message_is_stored(self, exception, framework, task):
-        message = f"The {framework} model is not trained for the task {task}."
+    def test_framework_is_stored(self, exception, framework):
+        assert exception.framework == framework
+
+    def test_message_is_stored(self, exception, task, framework):
+        message = (
+            f"Evaluation of {str(framework)} models on the {task} task is not "
+            "supported."
+        )
         assert exception.message == message

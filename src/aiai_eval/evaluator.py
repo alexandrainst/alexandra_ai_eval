@@ -1,15 +1,15 @@
 """Main Evaluator class, used to evaluate finetuned models."""
 
-
 import json
 import logging
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Sequence, Union
+from typing import Dict, List, Sequence, Union
 
-from .config import Device, EvaluationConfig, TaskConfig
+from .config import EvaluationConfig, TaskConfig
+from .enums import CountryCode, Device
 from .exceptions import InvalidEvaluation, ModelDoesNotExist
-from .hf_hub import check_if_model_exist
+from .hf_hub import model_exists_on_hf_hub, model_exists_on_spacy
 from .task_configs import get_all_task_configs
 from .task_factory import TaskFactory
 
@@ -36,7 +36,7 @@ class Evaluator:
             specified then it will be used as the token. Defaults to False.
         track_carbon_emissions (bool, optional):
             Whether to track carbon usage. Defaults to False.
-        country_iso_code (str, optional):
+        country_code (CountryCode or str, optional):
             The 3-letter alphabet ISO Code of the country where the compute
             infrastructure is hosted. Only relevant if no internet connection is
             available. Only relevant if `track_carbon_emissions` is set to True.
@@ -68,11 +68,17 @@ class Evaluator:
         cache_dir: str = ".aiai_cache",
         use_auth_token: Union[bool, str] = False,
         track_carbon_emissions: bool = False,
-        country_iso_code: str = "",
+        country_code: Union[str, CountryCode] = CountryCode.EMPTY,  # type: ignore[attr-defined]
         prefer_device: Device = Device.CUDA,
         only_return_log: bool = False,
         verbose: bool = False,
     ):
+        # If `country_code` is a string then convert it to a `CountryCode` enum
+        if isinstance(country_code, str):
+            country_code_enum = CountryCode(country_code.lower())
+        else:
+            country_code_enum = country_code
+
         # Build evaluation configuration
         self.evaluation_config = EvaluationConfig(
             raise_error_on_invalid_model=raise_error_on_invalid_model,
@@ -82,7 +88,7 @@ class Evaluator:
             save_results=save_results,
             verbose=verbose,
             track_carbon_emissions=track_carbon_emissions,
-            country_iso_code=country_iso_code,
+            country_code=country_code_enum,
             prefer_device=prefer_device,
             only_return_log=only_return_log,
         )
@@ -105,7 +111,7 @@ class Evaluator:
         self,
         model_id: Union[Sequence[str], str],
         task: Union[Sequence[str], str],
-    ) -> Union[Dict[str, Dict[str, dict]], Dict[str, Dict[str, str]]]:
+    ) -> Dict[str, dict]:
         """Evaluates models on datasets.
 
         Args:
@@ -165,7 +171,7 @@ class Evaluator:
     def _prepare_model_ids(
         self,
         model_id: Union[Sequence[str], str],
-    ) -> Sequence[str]:
+    ) -> List[str]:
         """Prepare the model ID(s) to be evaluated.
 
         Args:
@@ -180,13 +186,13 @@ class Evaluator:
         if isinstance(model_id, str):
             model_ids = [model_id]
         else:
-            model_ids = model_id
+            model_ids = list(model_id)
         return model_ids
 
     def _prepare_task_configs(
         self,
         task_name: Union[Sequence[str], str],
-    ) -> Sequence[TaskConfig]:
+    ) -> List[TaskConfig]:
         """Prepare the model ID(s) to be evaluated.
 
         Args:
@@ -194,7 +200,7 @@ class Evaluator:
                 The task name(s) to evaluate the model(s) on.
 
         Returns:
-            sequence of TaskConfig objects:
+            list of TaskConfig objects:
                 The prepared list of task configurations.
         """
         # Create a dictionary that maps evaluation tasks to their associated evaluation
@@ -213,7 +219,7 @@ class Evaluator:
         self,
         model_id: str,
         task_config: TaskConfig,
-    ):
+    ) -> None:
         """Evaluate a single model on a single task.
 
         Args:
@@ -221,15 +227,20 @@ class Evaluator:
                 The model ID to use.
             task_config (TaskConfig):
                 The dataset task configuration to use.
+
+        Raises:
+            ModelDoesNotExist:
+                If the model does not exist on the Hugging Face Hub.
         """
         logger.info(
             f"Evaluating the {model_id} model on the {task_config.pretty_name} task."
         )
 
-        # check if model exists on HuggingFace Hub or as a spacy model
-        model_on_hf_hub, model_is_spacy = check_if_model_exist(model_id=model_id)
+        # Check if model exists on Hugging Face Hub or as a spaCy model
+        model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
+        model_on_spacy = model_exists_on_spacy(model_id=model_id)
 
-        if not model_on_hf_hub and not model_is_spacy:
+        if not model_on_hf_hub and not model_on_spacy:
             raise ModelDoesNotExist(model_id=model_id)
 
         try:
@@ -245,6 +256,8 @@ class Evaluator:
             logger.debug(f'The error message was "{e}".')
 
     def __call__(
-        self, model_id: Union[Sequence[str], str], task: Union[Sequence[str], str]
-    ):
+        self,
+        model_id: Union[Sequence[str], str],
+        task: Union[Sequence[str], str],
+    ) -> Dict[str, dict]:
         return self.evaluate(model_id=model_id, task=task)

@@ -4,8 +4,8 @@ from typing import Tuple, Union
 
 import click
 
-from .config import Device
 from .country_codes import ALL_COUNTRY_CODES
+from .enums import CountryCode, Device
 from .evaluator import Evaluator
 from .task_configs import get_all_task_configs
 
@@ -51,11 +51,11 @@ from .task_configs import get_all_task_configs
     help="""Whether to track carbon usage.""",
 )
 @click.option(
-    "--country-iso-code",
+    "--country-code",
     type=click.Choice([""] + ALL_COUNTRY_CODES),
     default="",
     show_default=True,
-    metavar="ISO 3166-1 ALPHA-3 LANGUAGE CODE",
+    metavar="COUNTRY CODE",
     help="""The 3-letter alphabet ISO Code of the country where the compute
     infrastructure is hosted. Only relevant if no internet connection is available.
     Only relevant if `--track-carbon-emissions` is set. A list of all such codes are
@@ -90,7 +90,7 @@ from .task_configs import get_all_task_configs
 )
 @click.option(
     "--prefer-device",
-    type=click.Choice(["cuda", "mps", "cpu"]),
+    type=click.Choice([device.lower() for device in Device.__members__.keys()]),
     default="cuda",
     show_default=True,
     help="""The device to prefer when evaluating the model. If the device is not
@@ -109,12 +109,12 @@ def evaluate(
     auth_token: str,
     use_auth_token: bool,
     track_carbon_emissions: bool,
-    country_iso_code: str,
+    country_code: str,
     no_progress_bar: bool,
     no_save_results: bool,
     raise_error_on_invalid_model: bool,
     cache_dir: str,
-    prefer_device: Device,
+    prefer_device: str,
     verbose: bool,
 ):
     """Benchmark finetuned models."""
@@ -138,8 +138,8 @@ def evaluate(
         cache_dir=cache_dir,
         use_auth_token=auth,
         track_carbon_emissions=track_carbon_emissions,
-        country_iso_code=country_iso_code,
-        prefer_device=prefer_device,
+        country_code=CountryCode(country_code.lower()),
+        prefer_device=Device(prefer_device.lower()),
         verbose=verbose,
     )
 

@@ -34,6 +34,10 @@ class TaskFactory:
         Returns:
             task (Task):
                 The evaluation task.
+
+        Raises:
+            InvalidTask:
+                If the task name is unknown.
         """
         # Get the dataset configuration
         task_config: TaskConfig

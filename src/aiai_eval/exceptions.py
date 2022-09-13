@@ -2,6 +2,8 @@
 
 from typing import Dict, Sequence, Union
 
+from .enums import Framework
+
 
 class InvalidEvaluation(Exception):
     def __init__(
@@ -12,16 +14,17 @@ class InvalidEvaluation(Exception):
 
 
 class ModelDoesNotExist(Exception):
-    def __init__(self, model_id: str, message=""):
+    def __init__(self, model_id: str, message: str = ""):
         self.model_id = model_id
         self.message = (
             message
             if message
             else (
-                f"The model ID '{model_id}' is not a valid model ID on the Hugging Face Hub, "
-                f"nor is it a valid spaCy model ID. In case of a Huggingface model, Please check "
-                "the model ID, and try again. In case of a spaCy model, please make sure that you "
-                "have spaCy installed, and that the model is installed on your system."
+                f"The model ID '{model_id}' is not a valid model ID on the Hugging "
+                "Face Hub, nor is it a valid spaCy model ID. In case of a Hugging "
+                "Face model, please check the model ID, and try again. In case of a "
+                "spaCy model, please make sure that you have spaCy installed, and "
+                "that the model is installed on your system."
             )
         )
         super().__init__(self.message)
@@ -42,9 +45,9 @@ class ModelFetchFailed(Exception):
 
 
 class InvalidFramework(Exception):
-    def __init__(self, framework: str):
+    def __init__(self, framework: Union[Framework, str]):
         self.framework = framework
-        self.message = f"The framework {framework} is not supported."
+        self.message = f"The framework {str(framework)} is not supported."
         super().__init__(self.message)
 
 
@@ -85,8 +88,8 @@ class UnsupportedModelType(Exception):
             self.message = message
         else:
             self.message = (
-                f"Received an unsupported model type: {model_type}, "
-                "supported types are `nn.Module` and `PretrainedModel`."
+                f"Received an unsupported model type: {model_type}, supported types "
+                "are `nn.Module` and `PretrainedModel`."
             )
         self.model_type = model_type
 
@@ -101,7 +104,7 @@ class MissingCountryISOCode(Exception):
             "and the country where the compute infrastructure is hosted. Internet "
             "connection was not available and hence the location of the infrastructure "
             "could not be automatically fetched, because of the location must be set, "
-            "this is done by setting the 'country_iso_code' in the config or "
+            "this is done by setting the 'country_code' in the config or "
             "`--country-iso-code` via the CLI to the correct ISO code."
         ),
     ):
@@ -125,6 +128,7 @@ class InvalidArchitectureForTask(Exception):
 
 class WrongFeatureColumnName(Exception):
     def __init__(self, feature_column_names: Union[str, Sequence[str]]):
+
         # Ensure that feature_column_names is a sequence
         if isinstance(feature_column_names, str):
             feature_column_names = [feature_column_names]
@@ -170,18 +174,18 @@ class InvalidTask(Exception):
 
 
 class ModelNotTrainedForTask(Exception):
-    def __init__(self, framework: str, task: str):
+    def __init__(self, task: str):
         self.task = task
-        self.framework = framework
-        self.message = f"The {framework} model is not trained for the task {self.task}."
+        self.message = f"The model is not trained for the task {self.task}."
         super().__init__(self.message)
 
 
 class FrameworkCannotHandleTask(Exception):
-    def __init__(self, framework: str, task: str):
+    def __init__(self, framework: Union[Framework, str], task: str):
         self.task = task
         self.framework = framework
         self.message = (
-            f"Evaluation of {framework} models on the {task} task is not supported."
+            f"Evaluation of {str(framework)} models on the {task} task is not "
+            "supported."
         )
         super().__init__(self.message)
