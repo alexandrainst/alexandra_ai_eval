@@ -15,7 +15,7 @@ import requests
 import torch
 from datasets.utils import disable_progress_bar
 from requests import RequestException
-from wasabi import msg
+from wasabi import msg as wasabi_msg
 
 from .enums import Device, Framework
 from .exceptions import InvalidArchitectureForTask
@@ -143,7 +143,7 @@ def block_terminal_output():
     logging.getLogger("codecarbon").setLevel(logging.ERROR)
 
     # Disable `wasabi` logging, used in spaCy
-    msg.no_print = True
+    wasabi_msg.no_print = True
 
     # Disable the tokeniser progress bars
     disable_progress_bar()
