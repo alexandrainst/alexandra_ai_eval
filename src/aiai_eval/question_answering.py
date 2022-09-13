@@ -1,6 +1,6 @@
 """Class for question-answering tasks."""
 from collections import defaultdict
-from typing import Dict, Iterable, List, Sequence, Tuple, Union
+from typing import List, Sequence, Tuple
 
 import numpy as np
 import torch
