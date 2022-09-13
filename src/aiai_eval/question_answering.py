@@ -257,7 +257,6 @@ def find_best_answer(
             The best answer for the example.
     """
     # Loop through all the features associated to the current example
-    min_null_score = 0.0
     valid_answers = list()
     for feature_index in feature_indices:
 
