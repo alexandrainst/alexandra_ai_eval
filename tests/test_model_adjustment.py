@@ -126,7 +126,7 @@ class TestAlterClassificationLayer:
                 new_dim = model.classifier.weight.data.shape[0]
                 old_dim = old_model.classifier.weight.data.shape[0]
             except AttributeError:
-                new_dim = model.classifier.weight.data.shape[0]
+                new_dim = model.classifier.out_proj.weight.data.shape[0]
                 old_dim = old_model.classifier.out_proj.weight.data.shape[0]
             assert new_dim == old_dim + 1
 
