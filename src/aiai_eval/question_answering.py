@@ -192,15 +192,12 @@ def postprocess_predictions(
     predictions = list()
     for example_index, example in enumerate(dataset):
 
-        # Extract the indices of the features associated with the current example
-        feature_indices = features_per_example[example_index]
-
         # Extract the best valid answer associated with the current example
         best_answer = find_best_answer(
             all_start_logits=all_start_logits,
             all_end_logits=all_end_logits,
             prepared_dataset=prepared_dataset,
-            feature_indices=feature_indices,
+            feature_indices=features_per_example[example_index],
             context=example["context"],
             max_answer_length=30,
             num_best_logits=20,
