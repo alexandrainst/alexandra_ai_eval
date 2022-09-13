@@ -205,3 +205,25 @@ QA = TaskConfig(
     label_column_name="answers",
     test_name="test",
 )
+
+
+OFFENSIVE = TaskConfig(
+    name="offensive-text-classification",
+    huggingface_id="DDSC/dkhate",
+    huggingface_subset=None,
+    supertask="sequence-classification",
+    metrics=[MCC, MACRO_F1],
+    labels=[
+        LabelConfig(
+            name="NOT_OFFENSIVE",
+            synonyms=["NOT", "NOT OFFENSIVE", "LABEL_0"],
+        ),
+        LabelConfig(
+            name="OFFENSIVE",
+            synonyms=["OFF", "LABEL_1"],
+        ),
+    ],
+    feature_column_names=["text"],
+    label_column_name="label",
+    test_name="test",
+)
