@@ -34,6 +34,7 @@ def evaluate(model_id: str, task: str) -> str:
         raise_error_on_invalid_model=True,
         track_carbon_emissions=True,
         only_return_log=True,
+        use_auth_token=True,
     )
 
     # Evaluate the model on the task
