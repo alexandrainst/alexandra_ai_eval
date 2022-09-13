@@ -16,6 +16,7 @@ from src.aiai_eval.exceptions import (
     MissingLabel,
     ModelDoesNotExist,
     ModelFetchFailed,
+    ModelIsPrivate,
     ModelNotTrainedForTask,
     MPSFallbackNotEnabled,
     NoInternetConnection,
@@ -89,6 +90,45 @@ class TestModelDoesNotExist:
             "Face model, please check the model ID, and try again. In case of a "
             "spaCy model, please make sure that you have spaCy installed, and "
             "that the model is installed on your system."
+        )
+        assert exception.message == message
+
+
+class TestModelIsPrivate:
+    """Unit tests for the ModelIsPrivate exception class."""
+
+    @pytest.fixture(scope="class")
+    def model_id(self):
+        yield "test_model_id"
+
+    @pytest.fixture(scope="class")
+    def message(self):
+        yield "test_message"
+
+    @pytest.fixture(scope="class")
+    def exception(self, model_id):
+        yield ModelIsPrivate(model_id=model_id)
+
+    @pytest.fixture(scope="class")
+    def exception_with_message(self, model_id, message):
+        yield ModelIsPrivate(model_id=model_id, message=message)
+
+    def test_model_is_private_is_an_exception(self, exception):
+        with pytest.raises(ModelIsPrivate):
+            raise exception
+
+    def test_model_id_is_stored(self, exception_with_message, model_id):
+        assert exception_with_message.model_id == model_id
+
+    def test_custom_message_is_stored(self, exception_with_message, message):
+        assert exception_with_message.message == message
+
+    def test_default_message(self, exception, model_id):
+        message = (
+            f"The model ID '{model_id}' is a private model on the Hugging Face "
+            "Hub. Please make sure that you have the correct credentials, are "
+            "logged in to the Hugging Face Hub via `huggingface-cli login`, and "
+            "ensure that `use_auth_token` is set (`--use-auth-token` in the CLI)."
         )
         assert exception.message == message
 
