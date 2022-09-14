@@ -8,9 +8,7 @@ from typing import Dict, List, Sequence, Union
 
 from .config import EvaluationConfig, TaskConfig
 from .enums import CountryCode, Device
-from .exceptions import InvalidEvaluation, ModelDoesNotExist
-from .hf_hub import model_exists_on_hf_hub
-from .model_loading import model_exists_on_spacy
+from .exceptions import InvalidEvaluation
 from .task_configs import get_all_task_configs
 from .task_factory import TaskFactory
 
@@ -236,13 +234,6 @@ class Evaluator:
         logger.info(
             f"Evaluating the {model_id} model on the {task_config.pretty_name} task."
         )
-
-        # Check if model exists on Hugging Face Hub or as a spaCy model
-        model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
-        model_on_spacy = model_exists_on_spacy(model_id=model_id)
-
-        if not model_on_hf_hub and not model_on_spacy:
-            raise ModelDoesNotExist(model_id=model_id)
 
         try:
             task = self.task_factory.build_task(task_config)
