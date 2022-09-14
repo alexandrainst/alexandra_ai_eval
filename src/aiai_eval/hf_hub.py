@@ -1,8 +1,9 @@
 """Functions related to the Hugging Face Hub."""
 
-from typing import Optional
+from typing import Optional, Union
 
 from huggingface_hub import HfApi, ModelFilter
+from huggingface_hub.hf_api import ModelInfo
 from huggingface_hub.utils import RepositoryNotFoundError
 from requests.exceptions import RequestException
 
@@ -12,15 +13,36 @@ from .exceptions import (
     HuggingFaceHubDown,
     InvalidFramework,
     ModelDoesNotExist,
-    ModelFetchFailed,
+    ModelIsPrivate,
     NoInternetConnection,
 )
-from .model_loading import load_spacy_model
+from .model_loading import model_exists_on_spacy
 from .utils import internet_connection_available
 
 
+def get_hf_hub_model_info(model_id: str) -> ModelInfo:
+    """Fetches information about a model on the Hugging Face Hub.
+
+    Args:
+        model_id (str):
+            The model ID to check.
+
+    Returns:
+        ModelInfo:
+            The model information.
+    """
+    # Extract the revision from the model_id, if present
+    model_id, revision = model_id.split("@") if "@" in model_id else (model_id, "main")
+
+    # Connect to the Hugging Face Hub API
+    hf_api = HfApi()
+
+    # Get the model info, and return it
+    return hf_api.model_info(repo_id=model_id, revision=revision)
+
+
 def model_exists_on_hf_hub(model_id: str) -> bool:
-    """Function checks if `model_id` exists on Huggingface Hub.
+    """Function checks if `model_id` exists on Hugging Face Hub.
 
     Args:
         model_id (str):
@@ -30,36 +52,30 @@ def model_exists_on_hf_hub(model_id: str) -> bool:
         bool:
             If model exists on Hugginface Hub or not.
     """
-    # Extract the revision from the model_id, if present
-    model_id, revision = model_id.split("@") if "@" in model_id else (model_id, "main")
-
-    # Connect to the Hugging Face Hub API
-    hf_api = HfApi()
-
-    # Check if the model exists
     try:
-        hf_api.model_info(repo_id=model_id, revision=revision)
+        get_hf_hub_model_info(model_id=model_id)
         return True
     except RepositoryNotFoundError:
         return False
 
 
-def model_exists_on_spacy(model_id: str) -> bool:
-    """Checks if a model exists as a spaCy model.
+def model_is_private_on_hf_hub(model_id: str) -> Union[bool, None]:
+    """Function checks if `model_id` is a private model on Hugging Face Hub.
 
     Args:
         model_id (str):
-            The name of the model.
+            The model ID to check.
 
     Returns:
-        bool:
-            Whether the model exists as a spaCy model.
+        bool or None:
+            If model is private on Hugginface Hub or not. If model does not exist,
+            returns None.
     """
     try:
-        load_spacy_model(model_id=model_id)
-        return True
-    except ModelFetchFailed:
-        return False
+        model_info = get_hf_hub_model_info(model_id=model_id)
+        return model_info.private
+    except RepositoryNotFoundError:
+        return None
 
 
 def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> ModelConfig:
@@ -108,6 +124,15 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
     # If it does not exist on Hugging Face Hub or as a spaCy model, raise an error
     if not model_on_hf_hub and not model_on_spacy:
         raise ModelDoesNotExist(model_id=model_id)
+
+    # If it *does* exist on the Hugging Face Hub, but it is private and we have not
+    # specified a token, raise an error
+    elif (
+        model_on_hf_hub
+        and model_is_private_on_hf_hub(model_id=model_id)
+        and not evaluation_config.use_auth_token
+    ):
+        raise ModelIsPrivate(model_id=model_id)
 
     # If it exists as a spaCy model, we return the spaCy model config
     if model_on_spacy:

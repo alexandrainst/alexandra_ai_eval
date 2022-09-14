@@ -87,10 +87,13 @@ class TestAlterClassificationLayer:
                 flat_dataset_synonyms=model.config.id2label,
                 dataset_num_labels=len(model.config.id2label),
             )
-            assert (
-                model.classifier.weight.data.shape
-                == old_model.classifier.weight.data.shape
-            )
+            try:
+                clf_shape = model.classifier.weight.data.shape
+                old_clf_shape = old_model.classifier.weight.data.shape
+            except AttributeError:
+                clf_shape = model.classifier.out_proj.weight.data.shape
+                old_clf_shape = old_model.classifier.out_proj.weight.data.shape
+            assert clf_shape == old_clf_shape
 
     def test_raise_error_if_all_labels_are_new(self, model, task_config):
         if task_config.supertask in {"sequence-classification", "token-classification"}:
@@ -119,9 +122,12 @@ class TestAlterClassificationLayer:
                 flat_dataset_synonyms=model_id2label,
                 dataset_num_labels=len(model_id2label),
             )
-
-            old_dim = old_model.classifier.weight.data.shape[0]
-            new_dim = model.classifier.weight.data.shape[0]
+            try:
+                new_dim = model.classifier.weight.data.shape[0]
+                old_dim = old_model.classifier.weight.data.shape[0]
+            except AttributeError:
+                new_dim = model.classifier.out_proj.weight.data.shape[0]
+                old_dim = old_model.classifier.out_proj.weight.data.shape[0]
             assert new_dim == old_dim + 1
 
     def test_raise_error_if_not_classification_model(self, model, task_config):

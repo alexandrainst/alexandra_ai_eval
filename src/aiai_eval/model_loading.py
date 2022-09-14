@@ -11,7 +11,12 @@ from transformers.models.auto.tokenization_auto import AutoTokenizer
 
 from .config import EvaluationConfig, ModelConfig, TaskConfig
 from .enums import Framework
-from .exceptions import InvalidEvaluation, InvalidFramework, ModelFetchFailed
+from .exceptions import (
+    InvalidEvaluation,
+    InvalidFramework,
+    ModelFetchFailed,
+    ModelIsPrivate,
+)
 from .model_adjustment import adjust_model_to_task
 from .utils import check_supertask, get_class_by_name, is_module_installed
 
@@ -135,12 +140,21 @@ def load_pytorch_model(
 
     # If an error occured then throw an informative exception
     except (OSError, ValueError):
-        raise InvalidEvaluation(
-            f"The model {model_config.model_id} either does not have a frameworks "
-            "registered, or it is a private model. If it is a private model then "
-            "enable the `--use-auth-token` flag and make  sure that you are "
-            "logged in to the Hub via the `huggingface-cli login` command."
-        )
+
+        # Importing here to avoid a circular import
+        from .hf_hub import model_is_private_on_hf_hub
+
+        # If the model is private then raise an informative error
+        if model_is_private_on_hf_hub(model_id=model_config.model_id):
+            raise ModelIsPrivate(model_id=model_config.model_id)
+
+        # Otherwise, the model does not have any frameworks registered, so raise an
+        # error
+        else:
+            raise InvalidEvaluation(
+                f"The model {model_config.model_id} does not have any frameworks "
+                "registered."
+            )
 
     # Ensure that the model is compatible with the task
     adjust_model_to_task(
@@ -227,3 +241,21 @@ def load_spacy_model(model_id: str) -> Dict[str, Any]:
             ),
         )
     return dict(model=model)
+
+
+def model_exists_on_spacy(model_id: str) -> bool:
+    """Checks if a model exists as a spaCy model.
+
+    Args:
+        model_id (str):
+            The name of the model.
+
+    Returns:
+        bool:
+            Whether the model exists as a spaCy model.
+    """
+    try:
+        load_spacy_model(model_id=model_id)
+        return True
+    except ModelFetchFailed:
+        return False

@@ -215,9 +215,11 @@ def alter_classification_layer(
     # dealing with other tasks.
     try:
         clf_weight = model.classifier.weight.data
+        use_out_proj = False
     except AttributeError:
         try:
             clf_weight = model.classifier.out_proj.weight.data
+            use_out_proj = True
         except AttributeError:
             raise InvalidEvaluation("Model does not seem to be a classification model.")
 
@@ -232,7 +234,10 @@ def alter_classification_layer(
     # Assign the new weights to the new classification layer, and replace the old
     # classification layer with this one
     new_clf.weight = new_clf_weight
-    model.classifier = new_clf
+    if use_out_proj:
+        model.classifier.out_proj = new_clf
+    else:
+        model.classifier = new_clf
 
     # Update the number of labels the model thinks it has. This is required to
     # avoid exceptions when evaluating

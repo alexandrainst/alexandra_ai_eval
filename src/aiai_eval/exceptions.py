@@ -30,6 +30,22 @@ class ModelDoesNotExist(Exception):
         super().__init__(self.message)
 
 
+class ModelIsPrivate(Exception):
+    def __init__(self, model_id: str, message: str = ""):
+        self.model_id = model_id
+        self.message = (
+            message
+            if message
+            else (
+                f"The model ID '{model_id}' is a private model on the Hugging Face "
+                "Hub. Please make sure that you have the correct credentials, are "
+                "logged in to the Hugging Face Hub via `huggingface-cli login`, and "
+                "ensure that `use_auth_token` is set (`--use-auth-token` in the CLI)."
+            )
+        )
+        super().__init__(self.message)
+
+
 class ModelFetchFailed(Exception):
     def __init__(self, model_id: str, error_msg: str, message: str = ""):
         self.model_id = model_id
