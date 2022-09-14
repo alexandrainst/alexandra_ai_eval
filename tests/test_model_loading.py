@@ -4,14 +4,10 @@ from copy import deepcopy
 
 import pytest
 
-from src.aiai_eval.config import ModelConfig
-from src.aiai_eval.enums import Framework
-from src.aiai_eval.exceptions import (
-    InvalidEvaluation,
-    InvalidFramework,
-    ModelFetchFailed,
-)
-from src.aiai_eval.model_loading import load_model, load_pytorch_model, load_spacy_model
+from src.aiai_eval.exceptions import InvalidFramework, ModelDoesNotExist
+from src.aiai_eval.hf_hub_utils import get_model_config_from_hf_hub
+from src.aiai_eval.model_loading import get_model_config, load_model
+from src.aiai_eval.spacy_utils import get_model_config_from_spacy
 
 
 class TestLoadModel:
@@ -38,62 +34,41 @@ class TestLoadModel:
                 )
 
 
-class TestLoadPytorchModel:
-    def test_raise_error_if_supertask_does_not_correspond_to_automodel_type(
-        self, evaluation_config, task_config
+class TestGetModelConfig:
+    @pytest.fixture(scope="class")
+    def hf_model_id(self):
+        yield "bert-base-uncased"
+
+    @pytest.fixture(scope="class")
+    def spacy_model_id(self):
+        yield "en_core_web_sm"
+
+    @pytest.fixture(scope="class")
+    def non_existing_model_id(self):
+        yield "invalid-model-id"
+
+    def test_model_configs_are_the_same_for_hf_models(
+        self, hf_model_id, evaluation_config
     ):
-        model_config = ModelConfig(
-            model_id="saattrupdan/wav2vec2-xls-r-300m-ftspeech",
-            revision="main",
-            framework=Framework.PYTORCH,
+        model_config_1 = get_model_config(
+            model_id=hf_model_id, evaluation_config=evaluation_config
         )
-        task_config_copy = deepcopy(task_config)
-        task_config_copy.supertask = "wav-2-vec-2-for-c-t-c"
-        with pytest.raises(InvalidEvaluation):
-            load_pytorch_model(
-                model_config=model_config,
-                from_flax=False,
-                task_config=task_config_copy,
-                evaluation_config=evaluation_config,
-            )
-
-    def test_raise_error_if_model_not_accessible(self, evaluation_config, task_config):
-        model_config = ModelConfig(
-            model_id="invalid-model-id",
-            revision="main",
-            framework=Framework.PYTORCH,
+        model_config_2 = get_model_config_from_hf_hub(
+            model_id=hf_model_id, evaluation_config=evaluation_config
         )
-        with pytest.raises(InvalidEvaluation):
-            load_pytorch_model(
-                model_config=model_config,
-                from_flax=False,
-                task_config=task_config,
-                evaluation_config=evaluation_config,
-            )
+        assert model_config_1 == model_config_2
 
-    def test_output_dict_has_both_model_and_tokenizer(
-        self, evaluation_config, task_config, model_configs
+    def test_model_configs_are_the_same_for_spacy_models(
+        self, spacy_model_id, evaluation_config
     ):
-        for model_config in model_configs:
-            if model_config.framework == Framework.PYTORCH:
-                model_dict = load_pytorch_model(
-                    model_config=model_config,
-                    from_flax=False,
-                    task_config=task_config,
-                    evaluation_config=evaluation_config,
-                )
-                assert "model" in model_dict
-                assert "tokenizer" in model_dict
+        model_config_1 = get_model_config(
+            model_id=spacy_model_id, evaluation_config=evaluation_config
+        )
+        model_config_2 = get_model_config_from_spacy(model_id=spacy_model_id)
+        assert model_config_1 == model_config_2
 
-
-class TestLoadSpacyModel:
-    def test_raise_error_if_model_is_not_available(self):
-        with pytest.raises(ModelFetchFailed):
-            load_spacy_model(model_id="invalid-model-id")
-
-    def test_output_dict_has_model_but_no_tokenizer(self, model_configs):
-        for model_config in model_configs:
-            if model_config.framework == Framework.SPACY:
-                model_dict = load_spacy_model(model_id=model_config.model_id)
-                assert "model" in model_dict
-                assert "tokenizer" not in model_dict
+    def test_invalid_model_id(self, evaluation_config):
+        with pytest.raises(ModelDoesNotExist):
+            get_model_config(
+                model_id="invalid-model-id", evaluation_config=evaluation_config
+            )

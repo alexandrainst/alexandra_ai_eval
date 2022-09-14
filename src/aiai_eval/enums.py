@@ -40,7 +40,7 @@ class Framework(enum.Enum):
 
 
 country_code_enum_list = [
-    (country_code, country_code.lower()) for country_code in ALL_COUNTRY_CODES
+    (country_code, country_code.upper()) for country_code in ALL_COUNTRY_CODES
 ]
 country_code_enum_list += [("EMPTY", "")]
 CountryCode = enum.Enum("CountryCode", country_code_enum_list)  # type: ignore[misc]

@@ -26,5 +26,9 @@ class TestCountryCode:
     def test_is_enum(self):
         assert isinstance(CountryCode, enum.EnumMeta)
 
-    def test_country_code_list(self):
+    def test_country_code_enum_keys_are_country_codes(self):
         assert list(CountryCode.__members__.keys()) == ALL_COUNTRY_CODES + ["EMPTY"]
+
+    def test_country_code_enum_values_are_country_codes(self):
+        enum_values = [obj.value for obj in CountryCode.__members__.values()]
+        assert enum_values == ALL_COUNTRY_CODES + [""]
