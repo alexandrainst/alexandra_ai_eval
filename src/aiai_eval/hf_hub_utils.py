@@ -49,9 +49,11 @@ def load_model_from_hf_hub(
 
     Raises:
         InvalidEvaluation:
-            If the model either does not have any registered frameworks, of it is a
-            private model and `use_auth_token` has not been set, or if the supertask
-            does not correspond to a Hugging Face AutoModel class.
+            If the model either does not have any registered frameworks, or if the
+            supertask does not correspond to a Hugging Face AutoModel class.
+        ModelIsPrivate:
+            If the model is private on the Hugging Face Hub, and `use_auth_token` is
+            not set.
     """
     try:
         # Load the configuration of the pretrained model
@@ -157,6 +159,8 @@ def get_hf_hub_model_info(model_id: str) -> ModelInfo:
             The model information.
 
     Raises:
+        RepositoryNotFoundError:
+            If the model does not exist on the Hugging Face Hub.
         HuggingFaceHubDown:
             If the model id exists, we are able to request other adresses,
             but we failed to fetch the desired model.
@@ -187,7 +191,7 @@ def get_hf_hub_model_info(model_id: str) -> ModelInfo:
 
 
 def model_is_private_on_hf_hub(model_id: str) -> Union[bool, None]:
-    """Function checks if `model_id` is a private model on Hugging Face Hub.
+    """Checkes whether a model is private on the Hugging Face Hub.
 
     Args:
         model_id (str):
@@ -203,6 +207,24 @@ def model_is_private_on_hf_hub(model_id: str) -> Union[bool, None]:
         return model_info.private
     except RepositoryNotFoundError:
         return None
+
+
+def model_exists_on_hf_hub(model_id: str) -> Union[bool, None]:
+    """Checks whether a model exists on the Hugging Face Hub.
+
+    Args:
+        model_id (str):
+            The model ID to check.
+
+    Returns:
+        bool:
+            If model exists on the Hugging Face Hub or not.
+    """
+    try:
+        get_hf_hub_model_info(model_id=model_id)
+        return True
+    except RepositoryNotFoundError:
+        return False
 
 
 def get_model_config_from_hf_hub(

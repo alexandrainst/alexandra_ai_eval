@@ -8,6 +8,7 @@ from .exceptions import InvalidFramework, ModelDoesNotExist, ModelIsPrivate
 from .hf_hub_utils import (
     get_model_config_from_hf_hub,
     load_model_from_hf_hub,
+    model_exists_on_hf_hub,
     model_is_private_on_hf_hub,
 )
 from .spacy_utils import (
@@ -86,8 +87,8 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
     """
     # Check if model exists on Hugging Face Hub, as well as checking if the model is
     # private
+    model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
     model_is_private = model_is_private_on_hf_hub(model_id=model_id)
-    model_on_hf_hub = model_is_private is not None
 
     if model_on_hf_hub:
 
