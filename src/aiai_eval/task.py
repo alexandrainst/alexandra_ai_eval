@@ -32,9 +32,8 @@ from .exceptions import (
     UnsupportedModelType,
     WrongFeatureColumnName,
 )
-from .hf_hub import get_model_config
 from .metric_configs import EMISSIONS, POWER
-from .model_loading import load_model
+from .model_loading import get_model_config, load_model
 from .scoring import log_scores
 from .utils import clear_memory, enforce_reproducibility
 
