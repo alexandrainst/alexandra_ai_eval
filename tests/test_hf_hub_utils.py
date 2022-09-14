@@ -3,7 +3,7 @@
 from copy import deepcopy
 
 import pytest
-from huggingface_hub import ModelInfo
+from huggingface_hub.hf_api import ModelInfo
 
 from src.aiai_eval.config import ModelConfig
 from src.aiai_eval.enums import Framework
