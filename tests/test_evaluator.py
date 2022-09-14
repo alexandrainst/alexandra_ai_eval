@@ -44,34 +44,33 @@ class TestEvaluator:
         assert evaluator.task_factory.evaluation_config == evaluator.evaluation_config
 
 
-class TestEvaluate:
-    def test_evaluate_is_identical_to_evaluate_single(
-        self, evaluator, task_config, model_configs
-    ):
-        if len(model_configs) > 1:
+def test_evaluate_is_identical_to_evaluate_single(
+    evaluator, task_config, model_configs
+):
+    if len(model_configs) > 1:
 
-            model_ids = [model_config.model_id for model_config in model_configs]
+        model_ids = [model_config.model_id for model_config in model_configs]
 
-            # Get results from evaluate
-            evaluator.evaluate(model_id=model_ids, task=task_config.name)
-            evaluate_results = [
-                evaluator.evaluation_results[task_config.name][model_id]
-                for model_id in model_ids
-            ]
+        # Get results from evaluate
+        evaluator.evaluate(model_id=model_ids, task=task_config.name)
+        evaluate_results = [
+            evaluator.evaluation_results[task_config.name][model_id]
+            for model_id in model_ids
+        ]
 
-            # Reset evaluation results
-            evaluator.evaluation_results = defaultdict(dict)
+        # Reset evaluation results
+        evaluator.evaluation_results = defaultdict(dict)
 
-            # Get results from evaluate_single
-            for model_id in model_ids:
-                evaluator._evaluate_single(task_config=task_config, model_id=model_id)
-            evaluate_single_results = [
-                evaluator.evaluation_results[task_config.name][model_id]
-                for model_id in model_ids
-            ]
+        # Get results from evaluate_single
+        for model_id in model_ids:
+            evaluator._evaluate_single(task_config=task_config, model_id=model_id)
+        evaluate_single_results = [
+            evaluator.evaluation_results[task_config.name][model_id]
+            for model_id in model_ids
+        ]
 
-            # Check that the results are the same
-            assert evaluate_results == evaluate_single_results
+        # Check that the results are the same
+        assert evaluate_results == evaluate_single_results
 
 
 class TestPrepareModelIds:
