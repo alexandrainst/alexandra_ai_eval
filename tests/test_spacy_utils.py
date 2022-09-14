@@ -17,10 +17,10 @@ class TestModelExistsOnSpacy:
         yield "invalid-model-id"
 
     def test_existing_model_id_exists(self, existing_model_id):
-        assert model_exists_on_spacy(existing_model_id)
+        assert model_exists_on_spacy(model_id=existing_model_id)
 
     def test_non_existing_model_id_does_not_exist(self, non_existing_model_id):
-        assert not model_exists_on_spacy(non_existing_model_id)
+        assert not model_exists_on_spacy(model_id=non_existing_model_id)
 
 
 class TestLoadSpacyModel:
