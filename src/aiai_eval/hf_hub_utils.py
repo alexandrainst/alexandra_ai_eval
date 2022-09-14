@@ -173,7 +173,12 @@ def get_hf_hub_model_info(model_id: str) -> ModelInfo:
     try:
         return hf_api.model_info(repo_id=model_id, revision=revision)
 
-    # If fetching from the Hugging Face Hub failed then throw a reasonable exception
+    # If the repository was not found on Hugging Face Hub then raise that error
+    except RepositoryNotFoundError as e:
+        raise e
+
+    # If fetching from the Hugging Face Hub failed in a different way then throw a
+    # reasonable exception
     except RequestException:
         if internet_connection_available():
             raise HuggingFaceHubDown()
@@ -222,6 +227,8 @@ def get_model_config_from_hf_hub(
             but we failed to fetch the desired model.
         NoInternetConnection:
             We are not able to request other adresses.
+        InvalidFramework:
+            If the model only exists as a TensorFlow model.
     """
     # Extract the revision from the model ID, if it is specified
     if "@" in model_id:
