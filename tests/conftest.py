@@ -6,8 +6,7 @@ import pytest
 
 from src.aiai_eval.config import EvaluationConfig, MetricConfig
 from src.aiai_eval.enums import CountryCode, Device
-from src.aiai_eval.hf_hub import get_model_config
-from src.aiai_eval.model_loading import load_spacy_model
+from src.aiai_eval.model_loading import get_model_config, load_spacy_model
 from src.aiai_eval.task_configs import get_all_task_configs
 
 

@@ -100,24 +100,9 @@ class TestPrepareTaskConfigs:
         assert prepared_task_config == [task_config]
 
 
-class TestEvaluateSingle:
-    @pytest.fixture(scope="class")
-    def non_existing_model_id(self):
-        yield "invalid-model-id"
-
-    def test_evaluate_single_raise_exception_model_not_found(
-        self, evaluator, non_existing_model_id, task_config
-    ):
-        with pytest.raises(ModelDoesNotExist):
-            evaluator._evaluate_single(
-                task_config=task_config, model_id=non_existing_model_id
-            )
-
-    def test_evaluate_single(
-        self, evaluator, model_configs, task_config, model_total_scores
-    ):
-        for idx, model_config in enumerate(model_configs):
-            model_id = model_config.model_id
-            evaluator._evaluate_single(task_config=task_config, model_id=model_id)
-            results = evaluator.evaluation_results[task_config.name][model_id]
-            assert results["total"] == model_total_scores[idx]
+def test_evaluate_single(evaluator, model_configs, task_config, model_total_scores):
+    for idx, model_config in enumerate(model_configs):
+        model_id = model_config.model_id
+        evaluator._evaluate_single(task_config=task_config, model_id=model_id)
+        results = evaluator.evaluation_results[task_config.name][model_id]
+        assert results["total"] == model_total_scores[idx]
