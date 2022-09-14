@@ -8,12 +8,12 @@ from huggingface_hub.utils import RepositoryNotFoundError
 
 from src.aiai_eval.config import ModelConfig
 from src.aiai_eval.enums import Framework
-from src.aiai_eval.exceptions import InvalidEvaluation, ModelIsPrivate
+from src.aiai_eval.exceptions import InvalidEvaluation
 from src.aiai_eval.hf_hub_utils import (
     get_hf_hub_model_info,
     get_model_config_from_hf_hub,
     load_model_from_hf_hub,
-    model_is_private_on_hf_hub,
+    model_exists_on_hf_hub,
 )
 
 
@@ -50,26 +50,6 @@ class TestLoadModelFromHfHub:
                 evaluation_config=evaluation_config,
             )
 
-    def test_raise_error_if_model_is_private_and_auth_token_not_set(
-        self, evaluation_config, task_config
-    ):
-        # Create copy of the evaluation configuration where the auth token is not set
-        evaluation_config_copy = deepcopy(evaluation_config)
-        evaluation_config_copy.use_auth_token = False
-
-        model_config = ModelConfig(
-            model_id="saattrupdan/nbailab-base-ner-scandi-v2",
-            revision="main",
-            framework=Framework.PYTORCH,
-        )
-        with pytest.raises(ModelIsPrivate):
-            load_model_from_hf_hub(
-                model_config=model_config,
-                from_flax=False,
-                task_config=task_config,
-                evaluation_config=evaluation_config_copy,
-            )
-
     def test_output_dict_has_both_model_and_tokenizer(
         self, evaluation_config, task_config, model_configs
     ):
@@ -103,27 +83,20 @@ class TestGetHfHubModelInfo:
             get_hf_hub_model_info(model_id=non_existing_model_id)
 
 
-class TestModelIsPrivateOnHfHub:
+class TestModelExistsOnHfHub:
     @pytest.fixture(scope="class")
-    def public_model_id(self):
+    def existing_model_id(self):
         yield "bert-base-uncased"
-
-    @pytest.fixture(scope="class")
-    def private_model_id(self):
-        yield "saattrupdan/nbailab-base-ner-scandi-v2"
 
     @pytest.fixture(scope="class")
     def non_existing_model_id(self):
         yield "invalid-model-id"
 
-    def test_public_model_is_not_private(self, public_model_id):
-        assert not model_is_private_on_hf_hub(model_id=public_model_id)
-
-    def test_private_model_is_private(self, private_model_id):
-        assert model_is_private_on_hf_hub(model_id=private_model_id)
+    def test_existing_model_id_exists(self, existing_model_id):
+        assert model_exists_on_hf_hub(model_id=existing_model_id)
 
     def test_non_existing_model_id_does_not_exist(self, non_existing_model_id):
-        assert model_is_private_on_hf_hub(model_id=non_existing_model_id) is None
+        assert not model_exists_on_hf_hub(model_id=non_existing_model_id)
 
 
 class TestGetModelConfigFromHfHub:
