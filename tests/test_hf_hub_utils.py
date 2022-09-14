@@ -4,14 +4,11 @@ from copy import deepcopy
 
 import pytest
 from huggingface_hub.hf_api import ModelInfo
+from huggingface_hub.utils import RepositoryNotFoundError
 
 from src.aiai_eval.config import ModelConfig
 from src.aiai_eval.enums import Framework
-from src.aiai_eval.exceptions import (
-    InvalidEvaluation,
-    ModelIsPrivate,
-    RepositoryNotFoundError,
-)
+from src.aiai_eval.exceptions import InvalidEvaluation, ModelIsPrivate
 from src.aiai_eval.hf_hub_utils import (
     get_hf_hub_model_info,
     get_model_config_from_hf_hub,
