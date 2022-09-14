@@ -10,7 +10,11 @@ from .hf_hub_utils import (
     load_model_from_hf_hub,
     model_is_private_on_hf_hub,
 )
-from .spacy_utils import load_spacy_model, model_exists_on_spacy
+from .spacy_utils import (
+    get_model_config_from_spacy,
+    load_spacy_model,
+    model_exists_on_spacy,
+)
 
 
 def load_model(
@@ -75,32 +79,35 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
             The model configuration.
 
     Raises:
+        ModelIsPrivate:
+            If the model is private and `use_auth_token` has not been set.
         ModelDoesNotExist:
             If the model id does not exist on the Hugging Face Hub.
-        InvalidFramework:
-            If the specified framework is not implemented.
     """
-    # Check if model exists on Hugging Face Hub or as a spaCy model, as well as
-    # checking if the model is private
+    # Check if model exists on Hugging Face Hub, as well as checking if the model is
+    # private
     model_is_private = model_is_private_on_hf_hub(model_id=model_id)
     model_on_hf_hub = model_is_private is not None
-    model_on_spacy = model_exists_on_spacy(model_id=model_id)
 
-    # If it does not exist on Hugging Face Hub or as a spaCy model, raise an error
-    if not model_on_hf_hub and not model_on_spacy:
-        raise ModelDoesNotExist(model_id=model_id)
+    if model_on_hf_hub:
 
-    # If it *does* exist on the Hugging Face Hub, but it is private and we have not
-    # specified a token, raise an error
-    elif model_on_hf_hub and model_is_private and not evaluation_config.use_auth_token:
-        raise ModelIsPrivate(model_id=model_id)
+        # If the model is private and an authentication token has not been provided,
+        # raise an error
+        if model_is_private and not evaluation_config.use_auth_token:
+            raise ModelIsPrivate(model_id=model_id)
 
-    # If it exists as a spaCy model, we return the spaCy model config
-    if model_on_spacy:
-        return ModelConfig(model_id=model_id, revision="", framework=Framework.SPACY)
-
-    # Otherwise it exists on the Hugging Face Hub, and we attempt to fetch the
-    else:
+        # Otherwise, fetch the model configuration from the Hugging Face Hub
         return get_model_config_from_hf_hub(
             model_id=model_id, evaluation_config=evaluation_config
         )
+
+    else:
+        # Check if model exists as a spaCy model
+        model_on_spacy = model_exists_on_spacy(model_id=model_id)
+
+        # If it does not exist on Hugging Face Hub or as a spaCy model, raise an error
+        if not model_on_hf_hub and not model_on_spacy:
+            raise ModelDoesNotExist(model_id=model_id)
+
+        # Otherwise, load the model configuration from spaCy
+        return get_model_config_from_spacy(model_id=model_id)

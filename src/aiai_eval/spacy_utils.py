@@ -8,6 +8,8 @@ import spacy
 from spacy.cli.download import download as download_spacy
 from spacy.language import Language
 
+from .config import ModelConfig
+from .enums import Framework
 from .exceptions import ModelFetchFailed
 from .utils import is_module_installed
 
@@ -79,3 +81,17 @@ def model_exists_on_spacy(model_id: str) -> bool:
         return True
     except ModelFetchFailed:
         return False
+
+
+def get_model_config_from_spacy(model_id: str) -> ModelConfig:
+    """Get the model configuration from a spaCy model.
+
+    Args:
+        model_id (str):
+            The ID of the model.
+
+    Returns:
+        ModelConfig:
+            The model configuration.
+    """
+    return ModelConfig(model_id=model_id, revision="", framework=Framework.SPACY)
