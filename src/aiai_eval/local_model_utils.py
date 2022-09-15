@@ -122,7 +122,7 @@ def load_local_pytorch_model(
         for arg in model_args
     }
 
-    # Initialize the model with the (potentiall empty) set of keyword arguments
+    # Initialize the model with the (potentially empty) set of keyword arguments
     model = model_cls(**model_kwargs)
 
     # Load the model weights
@@ -301,13 +301,13 @@ def get_from_config(
 
                 # Define the base user prompt
                 base_prompt = (
-                    "The configuration did not contain the {key!r} entry. Please "
+                    f"The configuration did not contain the {key!r} entry. Please "
                     "specify its value"
                 )
                 if user_prompt_default_value is not None:
                     user_prompt = (
-                        "The configuration did not contain the {key!r} entry. Press "
-                        "Enter to use the default value {user_prompt_default_value!r} "
+                        f"The configuration did not contain the {key!r} entry. Press "
+                        f"Enter to use the default value {user_prompt_default_value!r} "
                         "or specify a new value"
                     )
 
