@@ -15,13 +15,12 @@ from datasets.load import load_dataset, load_metric
 from spacy.language import Language
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
-from transformers.configuration_utils import PretrainedConfig
 from transformers.data.data_collator import DataCollator
 from transformers.modeling_utils import PreTrainedModel
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .co2 import get_carbon_tracker
-from .config import EvaluationConfig, TaskConfig
+from .config import EvaluationConfig, ModelConfig, TaskConfig
 from .enums import Framework
 from .exceptions import (
     InvalidEvaluation,
@@ -90,7 +89,9 @@ class Task(ABC):
         """
         # Fetch the model config
         model_config = get_model_config(
-            model_id=model_id, evaluation_config=self.evaluation_config
+            model_id=model_id,
+            task_config=self.task_config,
+            evaluation_config=self.evaluation_config,
         )
 
         # Set random seeds to enforce reproducibility of the randomly initialised
@@ -149,7 +150,7 @@ class Task(ABC):
             self._preprocess_data(
                 bootstrapped_dataset,
                 framework=model_config.framework,
-                model_config=model.config,
+                model_config=model_config,
                 tokenizer=tokenizer,
             )
             for bootstrapped_dataset in bootstrapped_datasets
@@ -167,6 +168,7 @@ class Task(ABC):
                 test_itr_scores_or_err = self._evaluate_single_iteration(
                     idx=idx,
                     model=model,
+                    model_config=model_config,
                     tokenizer=tokenizer,
                     framework=model_config.framework,
                     dataset=bootstrapped_datasets[idx],
@@ -209,6 +211,7 @@ class Task(ABC):
         self,
         idx: int,
         model: Union[nn.Module, Language],
+        model_config: ModelConfig,
         tokenizer: Optional[PreTrainedTokenizerBase],
         dataset: Dataset,
         prepared_dataset: Dataset,
@@ -221,6 +224,8 @@ class Task(ABC):
                 The index of the current iteration.
             model (PyTorch module or spaCy Language):
                 The model.
+            model_config (ModelConfig):
+                The model configuration.
             tokenizer (Hugging Face tokenizer or None):
                 The tokenizer, or None if the model does not require a tokenizer.
             dataset (Dataset):
@@ -267,7 +272,7 @@ class Task(ABC):
 
             # Extract attributes if they are available
             try:
-                model_id2label = model.config.id2label  # type: ignore[attr-defined]
+                model_id2label = model_config.id2label  # type: ignore[attr-defined]
             except AttributeError:
                 model_id2label = None
             try:
@@ -597,7 +602,7 @@ class Task(ABC):
                 preprocess_fn = partial(
                     self._pytorch_preprocess_fn,
                     tokenizer=kwargs["tokenizer"],
-                    pytorch_model_config=kwargs["model_config"],
+                    model_config=kwargs["model_config"],
                     task_config=self.task_config,
                 )
                 preprocessed = dataset.map(
@@ -665,7 +670,7 @@ class Task(ABC):
         self,
         examples: BatchEncoding,
         tokenizer: PreTrainedTokenizerBase,
-        pytorch_model_config: PretrainedConfig,
+        model_config: ModelConfig,
         task_config: TaskConfig,
     ) -> BatchEncoding:
         """Preprocess the data for PyTorch.
@@ -675,8 +680,8 @@ class Task(ABC):
                 The examples to preprocess.
             tokenizer (Hugging Face tokenizer):
                 The tokenizer.
-            pytorch_model_config (PretrainedConfig):
-                The PyTorch model configuration.
+            model_config (ModelConfig):
+                The model configuration.
             task_config (TaskConfig):
                 The task configuration.
 
