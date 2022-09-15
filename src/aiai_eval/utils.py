@@ -15,6 +15,7 @@ import requests
 import torch
 from datasets.utils import disable_progress_bar
 from requests import RequestException
+from transformers.utils.logging import set_verbosity_error
 from wasabi import msg as wasabi_msg
 
 from .enums import Device, Framework
@@ -147,6 +148,9 @@ def block_terminal_output():
 
     # Disable the tokeniser progress bars
     disable_progress_bar()
+
+    # Disable the transformers logging
+    set_verbosity_error()
 
 
 def internet_connection_available() -> bool:

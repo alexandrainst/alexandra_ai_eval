@@ -34,7 +34,7 @@ from .exceptions import (
 from .metric_configs import EMISSIONS, POWER
 from .model_loading import get_model_config, load_model
 from .scoring import log_scores
-from .utils import clear_memory, enforce_reproducibility
+from .utils import block_terminal_output, clear_memory, enforce_reproducibility
 
 # Set up a logger
 logger = logging.getLogger(__name__)
@@ -87,6 +87,9 @@ class Task(ABC):
             InvalidEvaluation:
                 If an error occurs during evaluation.
         """
+        # Ensure that terminal output is blocked
+        block_terminal_output()
+
         # Fetch the model config
         model_config = get_model_config(
             model_id=model_id,
