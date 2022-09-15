@@ -184,7 +184,7 @@ class Evaluator:
 
         except Exception as e:
             if self.evaluation_config.verbose:
-                logger.debug(traceback.format_exc())
+                raise e
             else:
                 logger.error(f"{type(e).__name__}: {e}")
             return dict(error=dict(type=type(e), message=str(e)))
