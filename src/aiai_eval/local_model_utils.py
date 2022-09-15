@@ -2,6 +2,7 @@
 
 import inspect
 import json
+import logging
 import sys
 from importlib import import_module
 from pathlib import Path
@@ -15,6 +16,8 @@ from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 from .config import EvaluationConfig, ModelConfig, TaskConfig
 from .enums import Framework
 from .model_adjustment import adjust_model_to_task
+
+logger = logging.getLogger(__name__)
 
 
 def load_local_pytorch_model(
@@ -119,7 +122,8 @@ def load_local_pytorch_model(
 
     # Remove the arguments that have default values
     defaults_tuple = model_cls.__init__.__defaults__  # type: ignore[misc]
-    model_args = model_args[: -len(defaults_tuple)]
+    if defaults_tuple is not None:
+        model_args = model_args[: -len(defaults_tuple)]
 
     # Get the type hints for the class initializer
     type_hints = get_type_hints(model_cls.__init__)  # type: ignore[misc]
@@ -342,29 +346,11 @@ def get_from_config(
                     user_prompt = f"{base_prompt}: "
 
             # Prompt the user to enter the value
-            user_input = input(user_prompt)
-
-            # If the user input is blank (i.e. they pressed Enter) and there is a
-            # default value, then we use the default value
-            if not user_input and user_prompt_default_value is not None:
-                config[key] = user_prompt_default_value
-
-            # Otherwise, we parse the user input, depending on the expected type
-            else:
-                if expected_type is str:
-                    config[key] = user_input
-                elif expected_type is int:
-                    config[key] = int(user_input)
-                elif expected_type is float:
-                    config[key] = float(user_input)
-                elif expected_type is bool:
-                    config[key] = user_input.lower() == "true"
-                elif expected_type is list:
-                    config[key] = user_input.split()
-                elif expected_type is dict:
-                    config[key] = dict(
-                        item.split("=") for item in user_input.split(",")
-                    )
+            config[key] = get_missing_key_value_from_user(
+                user_prompt=user_prompt,
+                expected_type=expected_type,
+                default_value=user_prompt_default_value,
+            )
 
         # Save the new modified config
         if not config_path.exists():
@@ -373,3 +359,60 @@ def get_from_config(
 
     # Return the value of the key
     return config[key]
+
+
+def get_missing_key_value_from_user(
+    user_prompt: Optional[str],
+    expected_type: type,
+    default_value: Optional[Any] = None,
+):
+    """Get a missing key from the user.
+
+    Args:
+        user_prompt (str or None):
+            The prompt to show the user when asking for the value. If None then the
+            prompt will be automatically generated.
+        expected_type (type):
+            The expected type of the value.
+        default_value (Any or None, optional):
+            The default value that a user can press Enter to use, when prompted. If
+            None then the user cannot choose a default value. Defaults to None.
+
+    Returns:
+        Any:
+            The value of the key, of data type `expected_type`.
+    """
+    # Prompt the user to enter the value
+    user_input = input(user_prompt)
+
+    # If the user input is blank (i.e. they pressed Enter) and there is a default
+    # value, then we use the default value
+    if not user_input and default_value is not None:
+        return default_value
+
+    # Otherwise, we parse the user input, depending on the expected type
+    else:
+
+        # We try to parse the input, and if it fails then we prompt the user to enter
+        # it again
+        while True:
+            try:
+                if expected_type is int:
+                    return int(user_input)
+                elif expected_type is float:
+                    return float(user_input)
+                elif expected_type is bool:
+                    return user_input.lower() == "true"
+                elif expected_type is list:
+                    return user_input.split()
+                elif expected_type is dict:
+                    return dict(item.split("=") for item in user_input.split(","))
+                else:
+                    return user_input
+
+            except ValueError:
+                logger.error(
+                    f"The value {user_input!r} is not of type {expected_type.__name__}."
+                    " Please try again."
+                )
+                user_input = input(user_prompt)
