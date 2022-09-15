@@ -2,6 +2,7 @@
 
 import json
 import logging
+import traceback
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Union
@@ -182,7 +183,10 @@ class Evaluator:
             return self.evaluation_results
 
         except Exception as e:
-            logger.error(f"{type(e).__name__}: {e}")
+            if self.evaluation_config.verbose:
+                logger.debug(traceback.format_exc())
+            else:
+                logger.error(f"{type(e).__name__}: {e}")
             return dict(error=dict(type=type(e), message=str(e)))
 
     def _prepare_model_ids(
