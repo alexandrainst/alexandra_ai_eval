@@ -213,12 +213,32 @@ class ModelConfig:
     Attributes:
         model_id (str):
             The ID of the model.
+        tokenizer_id (str):
+            The ID of the tokenizer.
         revision (str):
             The revision of the model.
         framework (Framework):
             The framework of the model.
+        id2label (None or list of str):
+            The model's mapping from ID to label. If None, the model does not have a
+            mapping from ID to label.
+        label2id (None or dict of str to int, optional):
+            The model's mapping from label to ID. If None, the model does not have a
+            mapping from label to ID. Defaults to None.
+        num_labels (None or int):
+            The number of labels in the model. If None, the model does not have a
+            mapping between labels and IDs.
     """
 
     model_id: str
+    tokenizer_id: str
     revision: str
     framework: Framework
+    id2label: Optional[List[str]]
+    label2id: Optional[Dict[str, int]] = None
+
+    @property
+    def num_labels(self) -> Union[int, None]:
+        if self.id2label is None:
+            return None
+        return len(self.id2label)

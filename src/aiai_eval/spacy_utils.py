@@ -94,4 +94,10 @@ def get_model_config_from_spacy(model_id: str) -> ModelConfig:
         ModelConfig:
             The model configuration.
     """
-    return ModelConfig(model_id=model_id, revision="", framework=Framework.SPACY)
+    return ModelConfig(
+        model_id=model_id,
+        tokenizer_id="",
+        revision="",
+        framework=Framework.SPACY,
+        id2label=None,
+    )
