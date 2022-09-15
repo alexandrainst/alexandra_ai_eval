@@ -50,6 +50,21 @@ def load_local_pytorch_model(
             folder, or if the model architecture file does not contain a class
             subclassing `torch.nn.Module`.
     """
+    # TEMPORARY: If the model's `id2label` mapping has fewer labels than the dataset,
+    # then raise an informative error. This is a temporary fix until we have a better
+    # solution for handling this case.
+    if model_config.id2label is not None and len(model_config.id2label) < len(
+        task_config.id2label
+    ):
+        raise ValueError(
+            f"The model {model_config.model_id!r} has fewer labels than the dataset "
+            f"{task_config.name!r} (the model has the labels {model_config.id2label} "
+            f"and the dataset has the labels {task_config.id2label}). We do not "
+            "currently support this case. If the above-mentioned model labels are "
+            "wrong, then please adjust these in the configuration JSON file, located "
+            f"in the {model_config.model_id!r} folder."
+        )
+
     # Ensure that the model_folder is a Path object
     model_folder = Path(model_config.model_id)
 
