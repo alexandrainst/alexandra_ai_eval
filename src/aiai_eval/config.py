@@ -164,6 +164,14 @@ class EvaluationConfig:
             Defaults to "cuda".
         only_return_log (bool, optional):
             Whether to only return the log. Defaults to False.
+        architecture_fname (str or None, optional):
+            The name of the architecture file, if local models are used. If None, the
+            architecture file will be automatically detected as the first Python script
+            in the model directory. Defaults to None.
+        weight_fname (str or None, optional):
+            The name of the file containing the model weights, if local models are
+            used. If None, the weight file will be automatically detected as the first
+            "*.bin" file in the model directory. Defaults to None.
         testing (bool, optional):
             Whether a unit test is being run. Defaults to False.
     """
@@ -178,6 +186,8 @@ class EvaluationConfig:
     country_code: CountryCode
     prefer_device: Device
     only_return_log: bool = False
+    architecture_fname: Optional[str] = None
+    weight_fname: Optional[str] = None
     testing: bool = False
 
     @property

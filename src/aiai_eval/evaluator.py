@@ -4,7 +4,7 @@ import json
 import logging
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Sequence, Union
+from typing import Dict, List, Optional, Sequence, Union
 
 from .config import EvaluationConfig, TaskConfig
 from .enums import CountryCode, Device
@@ -47,6 +47,14 @@ class Evaluator:
             Defaults to "cuda".
         only_return_log (bool, optional):
             Whether to only return the log of the evaluation. Defaults to False.
+        architecture_fname (str or None, optional):
+            The name of the architecture file, if local models are used. If None, the
+            architecture file will be automatically detected as the first Python script
+            in the model directory. Defaults to None.
+        weight_fname (str or None, optional):
+            The name of the file containing the model weights, if local models are
+            used. If None, the weight file will be automatically detected as the first
+            "*.bin" file in the model directory. Defaults to None.
         verbose (bool, optional):
             Whether to output additional output. Defaults to False.
 
@@ -70,6 +78,8 @@ class Evaluator:
         country_code: Union[str, CountryCode] = CountryCode.EMPTY,  # type: ignore[attr-defined]
         prefer_device: Device = Device.CUDA,
         only_return_log: bool = False,
+        architecture_fname: Optional[str] = None,
+        weight_fname: Optional[str] = None,
         verbose: bool = False,
     ):
         # If `country_code` is a string then convert it to a `CountryCode` enum
@@ -89,6 +99,8 @@ class Evaluator:
             track_carbon_emissions=track_carbon_emissions,
             country_code=country_code_enum,
             prefer_device=prefer_device,
+            architecture_fname=architecture_fname,
+            weight_fname=weight_fname,
             only_return_log=only_return_log,
         )
 
