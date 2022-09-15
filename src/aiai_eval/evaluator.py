@@ -2,7 +2,6 @@
 
 import json
 import logging
-import traceback
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Union
