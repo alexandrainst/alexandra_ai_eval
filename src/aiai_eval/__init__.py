@@ -4,6 +4,7 @@
 
 import logging
 import os
+import sys
 
 import colorama
 import pkg_resources
@@ -42,3 +43,7 @@ os.environ["PYTORCH_ENABLE_MPS_FALLBACK"] = "1"
 # Tell Windows machines to use UTF-8 encoding
 os.environ["ConEmuDefaultCp"] = "65001"
 os.environ["PYTHONIOENCODING"] = "UTF-8"
+
+
+# Remove traceback in error handling
+sys.tracebacklimit = 0
