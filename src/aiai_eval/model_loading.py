@@ -70,6 +70,7 @@ def load_model(
                 model_config=model_config,
                 device=evaluation_config.device,
                 task_config=task_config,
+                evaluation_config=evaluation_config,
             )
         else:
             raise ModelDoesNotExist(model_id=model_config.model_id)

@@ -12,7 +12,7 @@ import torch.nn as nn
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
-from .config import ModelConfig, TaskConfig
+from .config import EvaluationConfig, ModelConfig, TaskConfig
 from .enums import Framework
 from .model_adjustment import adjust_model_to_task
 
@@ -21,8 +21,7 @@ def load_local_pytorch_model(
     model_config: ModelConfig,
     device: str,
     task_config: TaskConfig,
-    architecture_fname: Optional[Union[str, Path]] = None,
-    weight_fname: Optional[Union[str, Path]] = None,
+    evaluation_config: EvaluationConfig,
 ) -> Dict[str, Union[nn.Module, PreTrainedTokenizerBase]]:
     """Load a local PyTorch model from a path.
 
@@ -37,21 +36,16 @@ def load_local_pytorch_model(
             Name of the file containing the model architecture, which is located inside
             the model folder. If None then the first Python script found in the model
             folder will be used. Defaults to None.
-        weight_fname (str or Path or None, optional):
-            Name of the file containing the model weights, which is located inside
-            the model folder. If None then the first file found in the model folder
-            ending with ".bin" will be used. Defaults to None.
-        config_fname (str or Path or None, optional):
-            Name of the file containing the model configuration, which is located
-            inside the model folder. If None then the first file found in the model
-            folder ending with ".json" will be used. If no file is found then the the
-            configuration will be taken from the task configuration. In other words,
-            assume that the model is configured in the same way as the dataset.
-            Defaults to None.
 
     Returns:
         dict:
             A dictionary containing the model and tokenizer.
+
+    Raises:
+        ValueError:
+            If no model architecture file or model weight file is found in the model
+            folder, or if the model architecture file does not contain a class
+            subclassing `torch.nn.Module`.
     """
     # Ensure that the model_folder is a Path object
     model_folder = Path(model_config.model_id)
@@ -60,16 +54,43 @@ def load_local_pytorch_model(
     sys.path.insert(0, str(model_folder))
 
     # If no architecture_fname is provided, then use the first Python script found
-    if architecture_fname is None:
-        architecture_path = next(model_folder.glob("*.py"))
+    arc_fname = evaluation_config.architecture_fname
+    if arc_fname is None:
+        try:
+            architecture_path = next(model_folder.glob("*.py"))
+
+        # Raise an error if no Python script is found
+        except StopIteration:
+            raise ValueError(
+                f"No Python script found in the model folder {model_folder}."
+            )
     else:
-        architecture_path = model_folder / architecture_fname
+        if not arc_fname.endswith(".py"):
+            arc_fname = arc_fname + ".py"
+        architecture_path = model_folder / arc_fname
+
+        # Raise an error if the architecture file does not exist
+        if not architecture_path.exists():
+            raise ValueError(
+                f"The model architecture file {architecture_path} does not exist."
+            )
 
     # If no weight_fname is provided, then use the first file found ending with ".bin"
-    if weight_fname is None:
-        weight_path = next(model_folder.glob("*.bin"))
+    if evaluation_config.weight_fname is None:
+        try:
+            weight_path = next(model_folder.glob("*.bin"))
+
+        # Raise an error if no weight file is found
+        except StopIteration:
+            raise ValueError(
+                f"No model weights found in the model folder {model_folder}."
+            )
     else:
-        weight_path = model_folder / weight_fname
+        weight_path = model_folder / evaluation_config.weight_fname
+
+        # Raise an error if the weight file does not exist
+        if not weight_path.exists():
+            raise ValueError(f"The model weights file {weight_path} does not exist.")
 
     # Import the module containing the model architecture
     module_name = architecture_path.stem
