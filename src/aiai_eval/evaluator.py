@@ -137,47 +137,53 @@ class Evaluator:
                 of the datasets, with values being new dictionaries having the model
                 IDs as keys.
         """
-        # Prepare the model IDs and tasks
-        model_ids = self._prepare_model_ids(model_id)
-        task_configs = self._prepare_task_configs(task_name=task)
+        try:
+            # Prepare the model IDs and tasks
+            model_ids = self._prepare_model_ids(model_id)
+            task_configs = self._prepare_task_configs(task_name=task)
 
-        # If there are multiple models and/or tasks specified, then we log an initial
-        # message containing all the upcoming evaluations. The individual (model, task)
-        # pairs will also be logged individually later
-        if len(model_ids) > 1 or len(task_configs) > 1:
+            # If there are multiple models and/or tasks specified, then we log an
+            # initial message containing all the upcoming evaluations. The individual
+            # (model, task) pairs will also be logged individually later
+            if len(model_ids) > 1 or len(task_configs) > 1:
 
-            # Prepare model string for logging
-            if len(model_ids) == 1:
-                model_str = f"{model_ids[0]} model"
-            else:
-                model_str = ", ".join(model_id for model_id in model_ids[:-1])
-                model_str += f" and {model_ids[-1]} models"
+                # Prepare model string for logging
+                if len(model_ids) == 1:
+                    model_str = f"{model_ids[0]} model"
+                else:
+                    model_str = ", ".join(model_id for model_id in model_ids[:-1])
+                    model_str += f" and {model_ids[-1]} models"
 
-            # Prepare task string for logging
-            if len(task_configs) == 1:
-                task_str = f"{task_configs[0].pretty_name} task"
-            else:
-                task_str = ", ".join(cfg.pretty_name for cfg in task_configs[:-1])
-                task_str += f" and {task_configs[-1].pretty_name} tasks"
+                # Prepare task string for logging
+                if len(task_configs) == 1:
+                    task_str = f"{task_configs[0].pretty_name} task"
+                else:
+                    task_str = ", ".join(cfg.pretty_name for cfg in task_configs[:-1])
+                    task_str += f" and {task_configs[-1].pretty_name} tasks"
 
-            # Log status
-            logger.info(f"Evaluating the {model_str} on the {task_str}.")
+                # Log status
+                logger.info(f"Evaluating the {model_str} on the {task_str}.")
 
-        # Evaluate all the models in `model_ids` on all the datasets in `dataset_tasks`
-        for task_config in task_configs:
-            for m_id in model_ids:
-                self._evaluate_single(
-                    task_config=task_config,
-                    model_id=m_id,
-                )
+            # Evaluate all the models in `model_ids` on all the datasets in
+            # `dataset_tasks`
+            for task_config in task_configs:
+                for m_id in model_ids:
+                    self._evaluate_single(
+                        task_config=task_config,
+                        model_id=m_id,
+                    )
 
-        # Save the evaluation results
-        if self.evaluation_config.save_results:
-            output_path = Path.cwd() / "aiai_evaluation_results.json"
-            with output_path.open("w") as f:
-                json.dump(self.evaluation_results, f)
+            # Save the evaluation results
+            if self.evaluation_config.save_results:
+                output_path = Path.cwd() / "aiai_evaluation_results.json"
+                with output_path.open("w") as f:
+                    json.dump(self.evaluation_results, f)
 
-        return self.evaluation_results
+            return self.evaluation_results
+
+        except Exception as e:
+            logger.error(f"{type(e).__name__}: {e}")
+            return dict(error=dict(type=type(e), message=str(e)))
 
     def _prepare_model_ids(
         self,
