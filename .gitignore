@@ -102,3 +102,6 @@ aiai_evaluation_results.json
 # Gradio logs
 flagged/
 gradio_cached_examples/
+
+# Data
+attack/
