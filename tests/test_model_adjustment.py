@@ -47,34 +47,6 @@ class TestAdjustModelToTask:
         )
         assert set(task_config.id2label).issubset(set(model.config.id2label))
 
-    def test_raise_error_if_gap_in_model_id2label_dict(
-        self,
-        model,
-        model_config,
-        task_config,
-    ):
-        model.config.id2label = {0: "label1", 2: "label2"}
-        with pytest.raises(InvalidEvaluation):
-            adjust_model_to_task(
-                model=model,
-                model_config=model_config,
-                task_config=task_config,
-            )
-
-    def test_raise_error_if_gap_in_model_id2label_list(
-        self,
-        model,
-        model_config,
-        task_config,
-    ):
-        model.config.id2label = ["label"]
-        with pytest.raises(InvalidEvaluation):
-            adjust_model_to_task(
-                model=model,
-                model_config=model_config,
-                task_config=task_config,
-            )
-
 
 class TestAlterClassificationLayer:
     def test_no_change_if_model_has_correct_number_of_labels(self, model, task_config):
@@ -118,7 +90,7 @@ class TestAlterClassificationLayer:
             alter_classification_layer(
                 model=model,
                 model_id2label=model_id2label,
-                old_model_id2label=model.config.id2label,
+                old_model_id2label=list(model.config.id2label),
                 flat_dataset_synonyms=model_id2label,
                 dataset_num_labels=len(model_id2label),
             )
