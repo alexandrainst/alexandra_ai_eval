@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Sequence, Union
 
 from .config import EvaluationConfig, TaskConfig
 from .enums import CountryCode, Device
-from .exceptions import InvalidEvaluation
+from .exceptions import InvalidArchitectureForTask, InvalidEvaluation
 from .task_configs import get_all_task_configs
 from .task_factory import TaskFactory
 
@@ -168,10 +168,18 @@ class Evaluator:
             # `dataset_tasks`
             for task_config in task_configs:
                 for m_id in model_ids:
-                    self._evaluate_single(
-                        task_config=task_config,
-                        model_id=m_id,
-                    )
+                    try:
+                        self._evaluate_single(
+                            task_config=task_config,
+                            model_id=m_id,
+                        )
+                    except InvalidArchitectureForTask:
+                        logger.info(
+                            f"Skipping evaluation of model {m_id} on task "
+                            f"{task_config.pretty_name} as the architecture is not "
+                            f"compatible with the task."
+                        )
+                        continue
 
             # Save the evaluation results
             if self.evaluation_config.save_results:
@@ -267,6 +275,11 @@ class Evaluator:
                 "Skipping."
             )
             logger.debug(f'The error message was "{e}".')
+        # except InvalidArchitectureForTask as e:
+        #    raise InvalidArchitectureForTask(
+        #        architectures=e.architectures,
+        #        supertask=e.supertask,
+        #    ) from e
 
     def __call__(
         self,
