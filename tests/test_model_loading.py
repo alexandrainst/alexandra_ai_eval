@@ -48,10 +48,12 @@ class TestGetModelConfig:
         yield "invalid-model-id"
 
     def test_model_configs_are_the_same_for_hf_models(
-        self, hf_model_id, evaluation_config
+        self, hf_model_id, evaluation_config, task_config
     ):
         model_config_1 = get_model_config(
-            model_id=hf_model_id, evaluation_config=evaluation_config
+            model_id=hf_model_id,
+            task_config=task_config,
+            evaluation_config=evaluation_config,
         )
         model_config_2 = get_model_config_from_hf_hub(
             model_id=hf_model_id, evaluation_config=evaluation_config
@@ -59,16 +61,20 @@ class TestGetModelConfig:
         assert model_config_1 == model_config_2
 
     def test_model_configs_are_the_same_for_spacy_models(
-        self, spacy_model_id, evaluation_config
+        self, spacy_model_id, evaluation_config, task_config
     ):
         model_config_1 = get_model_config(
-            model_id=spacy_model_id, evaluation_config=evaluation_config
+            model_id=spacy_model_id,
+            task_config=task_config,
+            evaluation_config=evaluation_config,
         )
         model_config_2 = get_model_config_from_spacy(model_id=spacy_model_id)
         assert model_config_1 == model_config_2
 
-    def test_invalid_model_id(self, evaluation_config):
+    def test_invalid_model_id(self, evaluation_config, task_config):
         with pytest.raises(ModelDoesNotExist):
             get_model_config(
-                model_id="invalid-model-id", evaluation_config=evaluation_config
+                model_id="invalid-model-id",
+                task_config=task_config,
+                evaluation_config=evaluation_config,
             )

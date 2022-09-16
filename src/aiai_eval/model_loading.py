@@ -11,6 +11,11 @@ from .hf_hub_utils import (
     model_exists_on_hf_hub,
     model_is_private_on_hf_hub,
 )
+from .local_model_utils import (
+    get_model_config_locally,
+    load_local_pytorch_model,
+    model_exists_locally,
+)
 from .spacy_utils import (
     get_model_config_from_spacy,
     load_spacy_model,
@@ -52,12 +57,23 @@ def load_model(
         model_config.framework = Framework.PYTORCH
 
     if model_config.framework == Framework.PYTORCH:
-        return load_model_from_hf_hub(
-            model_config=model_config,
-            from_flax=from_flax,
-            task_config=task_config,
-            evaluation_config=evaluation_config,
-        )
+
+        if model_exists_on_hf_hub(model_id=model_config.model_id):
+            return load_model_from_hf_hub(
+                model_config=model_config,
+                from_flax=from_flax,
+                task_config=task_config,
+                evaluation_config=evaluation_config,
+            )
+        elif model_exists_locally(model_id=model_config.model_id):
+            return load_local_pytorch_model(
+                model_config=model_config,
+                device=evaluation_config.device,
+                task_config=task_config,
+                evaluation_config=evaluation_config,
+            )
+        else:
+            raise ModelDoesNotExist(model_id=model_config.model_id)
 
     elif model_config.framework == Framework.SPACY:
         return load_spacy_model(model_id=model_config.model_id)
@@ -66,12 +82,16 @@ def load_model(
         raise InvalidFramework(model_config.framework)
 
 
-def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> ModelConfig:
-    """Fetches configuration for a model from the Hugging Face Hub.
+def get_model_config(
+    model_id: str, task_config: TaskConfig, evaluation_config: EvaluationConfig
+) -> ModelConfig:
+    """Fetches configuration for a model.
 
     Args:
         model_id (str):
-            The full Hugging Face Hub ID of the model.
+            The ID of the model.
+        task_config (TaskConfig):
+            The task configuration.
         evaluation_config (EvaluationConfig):
             The configuration of the benchmark.
 
@@ -85,11 +105,14 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
         ModelDoesNotExist:
             If the model id does not exist on the Hugging Face Hub.
     """
-    # Check if model exists on Hugging Face Hub, as well as checking if the model is
-    # private
+    # Check if model exists from any of the available model sources
     model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
     model_is_private = model_is_private_on_hf_hub(model_id=model_id)
+    model_on_spacy = model_exists_on_spacy(model_id=model_id)
+    model_is_local = model_exists_locally(model_id=model_id)
 
+    # If the model exists on the Hugging Face Hub, then fetch the model config from
+    # there
     if model_on_hf_hub:
 
         # If the model is private and an authentication token has not been provided,
@@ -102,13 +125,17 @@ def get_model_config(model_id: str, evaluation_config: EvaluationConfig) -> Mode
             model_id=model_id, evaluation_config=evaluation_config
         )
 
-    else:
-        # Check if model exists as a spaCy model
-        model_on_spacy = model_exists_on_spacy(model_id=model_id)
-
-        # If it does not exist on Hugging Face Hub or as a spaCy model, raise an error
-        if not model_on_hf_hub and not model_on_spacy:
-            raise ModelDoesNotExist(model_id=model_id)
-
-        # Otherwise, load the model configuration from spaCy
+    # Otherwise, if the model exists on Spacy, then fetch the model config from there
+    elif model_on_spacy:
         return get_model_config_from_spacy(model_id=model_id)
+
+    # Otherwise, if the model exists locally, then fetch the model config from there
+    elif model_is_local:
+        return get_model_config_locally(
+            model_folder=model_id,
+            dataset_id2label=task_config.id2label,
+        )
+
+    # If it does not exist on any of the available model sources, raise an error
+    else:
+        raise ModelDoesNotExist(model_id=model_id)

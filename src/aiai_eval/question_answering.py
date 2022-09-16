@@ -8,7 +8,7 @@ from datasets.arrow_dataset import Dataset
 from transformers.data.data_collator import DataCollator, default_data_collator
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
-from .config import TaskConfig
+from .config import ModelConfig, TaskConfig
 from .exceptions import FrameworkCannotHandleTask
 from .task import Task
 
@@ -33,7 +33,7 @@ class QuestionAnswering(Task):
         self,
         examples: BatchEncoding,
         tokenizer: PreTrainedTokenizerBase,
-        pytorch_model_config: dict,
+        model_config: ModelConfig,
         task_config: TaskConfig,
     ) -> BatchEncoding:
         return prepare_test_examples(

@@ -1,5 +1,6 @@
 """Adjusting a model's configuration, to make it suitable for a task."""
 
+from copy import deepcopy
 from typing import Optional, Union
 
 import torch
@@ -12,21 +13,22 @@ from .enums import Framework
 from .exceptions import InvalidEvaluation
 
 
-# TODO: Set this up to work with PyTorch modules as well.
 def adjust_model_to_task(
-    model: PreTrainedModel,
+    model: nn.Module,
     model_config: ModelConfig,
     task_config: TaskConfig,
 ) -> None:
     """Adjust the model to the task.
 
     This ensures that the label IDs in the model are consistent with the label IDs in
-    the dataset. If there are labels in the dataset which the model has not been
-    trained on, then the model's classification layer is extended to include these
-    labels.
+    the dataset.
+
+    If the model is a Hugging Face model and there are labels in the dataset which the
+    model has not been trained on, then the model's classification layer is extended to
+    include these labels.
 
     Args:
-        model (PreTrainedModel):
+        model (PyTorch model):
             The model to adjust the label ids of.
         model_config (ModelConfig):
             The model configuration.
@@ -37,55 +39,20 @@ def adjust_model_to_task(
         InvalidEvaluation:
             If there is a gap in the indexing dictionary of the model.
     """
-    # Define the types of the label conversions
-    model_label2id: Optional[dict]
+    # Define the model's label conversion
     model_id2label: Optional[Union[dict, list]]
 
-    # Get the `label2id` and `id2label` conversions from the model config
-    try:
-        model_label2id = {
-            lbl.upper(): idx for lbl, idx in model.config.label2id.items()
-        }
-    except AttributeError:
-        model_label2id = None
-    try:
-        try:
-            model_num_labels = len(model.config.id2label)
-            if not isinstance(model.config.id2label, list):
-                model_id2label = dict(model.config.id2label)
-            else:
-                model_id2label = model.config.id2label
-            model_id2label = [
-                model_id2label[idx].upper() for idx in range(model_num_labels)
-            ]
-        except (IndexError, KeyError):
-            raise InvalidEvaluation(
-                "There is a gap in the indexing dictionary of the model."
-            )
-    except AttributeError:
-        model_id2label = None
-
-    # If one of `label2id` or `id2label` exists in the model config, then define the
-    # other one from it
-    if model_label2id is not None and model_id2label is None:
-        model_id2label = {idx: lbl.upper() for lbl, idx in model_label2id.items()}
-        model_id2label = [model_id2label[idx] for idx in range(len(model_id2label))]
-        model.config.id2label = model_id2label
-    if model_label2id is None and model_id2label is not None:
-        model_label2id = {lbl.upper(): id for id, lbl in enumerate(model_id2label)}
-        model.config.label2id = model_label2id
-
-    # If the model does not have `label2id` or `id2label` conversions, then use the
-    # defaults
-    if model_label2id is None or model_id2label is None:
-        model.config.label2id = task_config.label2id
-        model.config.id2label = task_config.id2label
+    # If the model does not have label conversions, then use the defaults
+    if model_config.id2label is None:
+        model_id2label = task_config.id2label
 
     # If the model *does* have conversions, then ensure that it can deal with all the
     # labels in the default conversions. This ensures that we can smoothly deal with
     # labels that the model have not been trained on (it will just always get those
     # labels wrong)
     else:
+
+        model_id2label = deepcopy(model_config.id2label)
 
         # Collect the dataset labels and model labels in the `model_id2label`
         # conversion list
@@ -136,16 +103,14 @@ def adjust_model_to_task(
         }
 
         # Get the old model id2label conversion
-        old_model_id2label = [
-            model.config.id2label[idx].upper()
-            for idx in range(len(model.config.id2label))
-        ]
+        old_model_id2label = model_config.id2label
 
         # Alter the model's classification layer to match the dataset if the model is
-        # missing labels
+        # missing labels. This only works if the model is a Hugging Face PyTorch model
         if (
             len(model_id2label) > len(old_model_id2label)
             and model_config.framework == Framework.PYTORCH
+            and isinstance(model, PreTrainedModel)
         ):
             alter_classification_layer(
                 model=model,
@@ -155,9 +120,18 @@ def adjust_model_to_task(
                 dataset_num_labels=task_config.num_labels,
             )
 
-        # Update the model's own conversions with the new ones
-        model.config.id2label = model_id2label
-        model.config.label2id = model_label2id
+        # Update the label conversion in the model config
+        model_config.id2label = model_id2label
+        model_config.label2id = model_label2id
+
+        # If the model is a Hugging Face model then update the label conversions that
+        # the model thinks it has, as well as the number of labels it thinks that it
+        # has. This helps prevent errors when the model is used for evaluation.
+        if isinstance(model, PreTrainedModel):
+            model.config.num_labels = len(model_id2label)
+            model.num_labels = len(model_id2label)
+            model.config.id2label = model_id2label
+            model.config.label2id = model_label2id
 
 
 def alter_classification_layer(
@@ -238,8 +212,3 @@ def alter_classification_layer(
         model.classifier.out_proj = new_clf
     else:
         model.classifier = new_clf
-
-    # Update the number of labels the model thinks it has. This is required to
-    # avoid exceptions when evaluating
-    model.config.num_labels = len(model_id2label)
-    model.num_labels = len(model_id2label)

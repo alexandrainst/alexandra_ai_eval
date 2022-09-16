@@ -1,6 +1,6 @@
 """Command-line interface for evaluation of models."""
 
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 import click
 
@@ -97,6 +97,22 @@ from .task_configs import get_all_task_configs
     available then another device will be used.""",
 )
 @click.option(
+    "--architecture-fname",
+    type=str,
+    default="None",
+    help="""The name of the architecture file, if local models are used. If None, the
+    architecture file will be automatically detected as the first Python script in the
+    model directory. Defaults to None.""",
+)
+@click.option(
+    "--weight-fname",
+    type=str,
+    default="None",
+    help="""The name of the file containing the model weights, if local models are
+    used. If None, the architecture file will be automatically detected as the first
+    Python script in the model directory. Defaults to None.""",
+)
+@click.option(
     "--verbose",
     "-v",
     is_flag=True,
@@ -115,6 +131,8 @@ def evaluate(
     raise_error_on_invalid_model: bool,
     cache_dir: str,
     prefer_device: str,
+    architecture_fname: str,
+    weight_fname: str,
     verbose: bool,
 ):
     """Benchmark finetuned models."""
@@ -129,6 +147,14 @@ def evaluate(
     model_ids = list(model_id)
     tasks = list(task)
     auth: Union[str, bool] = auth_token if auth_token != "" else use_auth_token
+    architecture_fname_or_none: Optional[str] = architecture_fname
+    weight_fname_or_none: Optional[str] = weight_fname
+
+    # Set `arc_fname` and `weight_fname` to None if they are "None"
+    if architecture_fname_or_none == "None":
+        architecture_fname_or_none = None
+    if weight_fname_or_none == "None":
+        weight_fname_or_none = None
 
     # Initialise the benchmarker class
     evaluator = Evaluator(
@@ -140,6 +166,8 @@ def evaluate(
         track_carbon_emissions=track_carbon_emissions,
         country_code=CountryCode(country_code.lower()),
         prefer_device=Device(prefer_device.lower()),
+        architecture_fname=architecture_fname_or_none,
+        weight_fname=weight_fname_or_none,
         verbose=verbose,
     )
 

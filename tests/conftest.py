@@ -57,7 +57,11 @@ def model_configs(evaluation_config, task_config):
         "offensive-text-classification": ["DaNLP/da-electra-hatespeech-detection"],
     }
     yield [
-        get_model_config(model_id=model_id, evaluation_config=evaluation_config)
+        get_model_config(
+            model_id=model_id,
+            task_config=task_config,
+            evaluation_config=evaluation_config,
+        )
         for model_id in model_id_mapping[task_config.name]
     ]
 
@@ -103,6 +107,6 @@ def model_total_scores(model_configs):
 def spacy_model(model_configs):
     for model_config in model_configs:
         if model_config.framework == "spacy":
-            return load_spacy_model(model_config=model_config)["model"]
+            return load_spacy_model(model_id=model_config.model_id)["model"]
     else:
         return None

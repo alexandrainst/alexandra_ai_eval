@@ -4,7 +4,7 @@ import json
 import logging
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Sequence, Union
+from typing import Dict, List, Optional, Sequence, Union
 
 from .config import EvaluationConfig, TaskConfig
 from .enums import CountryCode, Device
@@ -47,6 +47,14 @@ class Evaluator:
             Defaults to "cuda".
         only_return_log (bool, optional):
             Whether to only return the log of the evaluation. Defaults to False.
+        architecture_fname (str or None, optional):
+            The name of the architecture file, if local models are used. If None, the
+            architecture file will be automatically detected as the first Python script
+            in the model directory. Defaults to None.
+        weight_fname (str or None, optional):
+            The name of the file containing the model weights, if local models are
+            used. If None, the weight file will be automatically detected as the first
+            "*.bin" file in the model directory. Defaults to None.
         verbose (bool, optional):
             Whether to output additional output. Defaults to False.
 
@@ -70,6 +78,8 @@ class Evaluator:
         country_code: Union[str, CountryCode] = CountryCode.EMPTY,  # type: ignore[attr-defined]
         prefer_device: Device = Device.CUDA,
         only_return_log: bool = False,
+        architecture_fname: Optional[str] = None,
+        weight_fname: Optional[str] = None,
         verbose: bool = False,
     ):
         # If `country_code` is a string then convert it to a `CountryCode` enum
@@ -89,6 +99,8 @@ class Evaluator:
             track_carbon_emissions=track_carbon_emissions,
             country_code=country_code_enum,
             prefer_device=prefer_device,
+            architecture_fname=architecture_fname,
+            weight_fname=weight_fname,
             only_return_log=only_return_log,
         )
 
@@ -125,47 +137,56 @@ class Evaluator:
                 of the datasets, with values being new dictionaries having the model
                 IDs as keys.
         """
-        # Prepare the model IDs and tasks
-        model_ids = self._prepare_model_ids(model_id)
-        task_configs = self._prepare_task_configs(task_name=task)
+        try:
+            # Prepare the model IDs and tasks
+            model_ids = self._prepare_model_ids(model_id)
+            task_configs = self._prepare_task_configs(task_name=task)
 
-        # If there are multiple models and/or tasks specified, then we log an initial
-        # message containing all the upcoming evaluations. The individual (model, task)
-        # pairs will also be logged individually later
-        if len(model_ids) > 1 or len(task_configs) > 1:
+            # If there are multiple models and/or tasks specified, then we log an
+            # initial message containing all the upcoming evaluations. The individual
+            # (model, task) pairs will also be logged individually later
+            if len(model_ids) > 1 or len(task_configs) > 1:
 
-            # Prepare model string for logging
-            if len(model_ids) == 1:
-                model_str = f"{model_ids[0]} model"
+                # Prepare model string for logging
+                if len(model_ids) == 1:
+                    model_str = f"{model_ids[0]} model"
+                else:
+                    model_str = ", ".join(model_id for model_id in model_ids[:-1])
+                    model_str += f" and {model_ids[-1]} models"
+
+                # Prepare task string for logging
+                if len(task_configs) == 1:
+                    task_str = f"{task_configs[0].pretty_name} task"
+                else:
+                    task_str = ", ".join(cfg.pretty_name for cfg in task_configs[:-1])
+                    task_str += f" and {task_configs[-1].pretty_name} tasks"
+
+                # Log status
+                logger.info(f"Evaluating the {model_str} on the {task_str}.")
+
+            # Evaluate all the models in `model_ids` on all the datasets in
+            # `dataset_tasks`
+            for task_config in task_configs:
+                for m_id in model_ids:
+                    self._evaluate_single(
+                        task_config=task_config,
+                        model_id=m_id,
+                    )
+
+            # Save the evaluation results
+            if self.evaluation_config.save_results:
+                output_path = Path.cwd() / "aiai_evaluation_results.json"
+                with output_path.open("w") as f:
+                    json.dump(self.evaluation_results, f)
+
+            return self.evaluation_results
+
+        except Exception as e:
+            if self.evaluation_config.verbose:
+                raise e
             else:
-                model_str = ", ".join(model_id for model_id in model_ids[:-1])
-                model_str += f" and {model_ids[-1]} models"
-
-            # Prepare task string for logging
-            if len(task_configs) == 1:
-                task_str = f"{task_configs[0].pretty_name} task"
-            else:
-                task_str = ", ".join(cfg.pretty_name for cfg in task_configs[:-1])
-                task_str += f" and {task_configs[-1].pretty_name} tasks"
-
-            # Log status
-            logger.info(f"Evaluating the {model_str} on the {task_str}.")
-
-        # Evaluate all the models in `model_ids` on all the datasets in `dataset_tasks`
-        for task_config in task_configs:
-            for m_id in model_ids:
-                self._evaluate_single(
-                    task_config=task_config,
-                    model_id=m_id,
-                )
-
-        # Save the evaluation results
-        if self.evaluation_config.save_results:
-            output_path = Path.cwd() / "aiai_evaluation_results.json"
-            with output_path.open("w") as f:
-                json.dump(self.evaluation_results, f)
-
-        return self.evaluation_results
+                logger.error(f"{type(e).__name__}: {e}")
+            return dict(error=dict(type=type(e), message=str(e)))
 
     def _prepare_model_ids(
         self,

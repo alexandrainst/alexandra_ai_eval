@@ -23,8 +23,10 @@ class TestLoadModelFromHfHub:
     ):
         model_config = ModelConfig(
             model_id="saattrupdan/wav2vec2-xls-r-300m-ftspeech",
+            tokenizer_id="saattrupdan/wav2vec2-xls-r-300m-ftspeech",
             revision="main",
             framework=Framework.PYTORCH,
+            id2label=None,
         )
         task_config_copy = deepcopy(task_config)
         task_config_copy.supertask = "wav-2-vec-2-for-c-t-c"
@@ -39,8 +41,10 @@ class TestLoadModelFromHfHub:
     def test_raise_error_if_model_not_accessible(self, evaluation_config, task_config):
         model_config = ModelConfig(
             model_id="invalid-model-id",
+            tokenizer_id="invalid-model-id",
             revision="main",
             framework=Framework.PYTORCH,
+            id2label=None,
         )
         with pytest.raises(InvalidEvaluation):
             load_model_from_hf_hub(

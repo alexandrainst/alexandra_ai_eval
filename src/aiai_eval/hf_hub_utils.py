@@ -1,6 +1,6 @@
 """Utility functions related to the Hugging Face Hub."""
 
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from huggingface_hub import HfApi, ModelFilter
 from huggingface_hub.hf_api import ModelInfo
@@ -114,11 +114,11 @@ def load_model_from_hf_hub(
 
     # If the model is a subclass of a RoBERTa model then we have to add a prefix space
     # to the tokens, by the way the model is constructed.
-    m_id = model_config.model_id
+    tokenizer_id = model_config.tokenizer_id
     prefix = "Roberta" in type(model).__name__
     params = dict(use_fast=True, add_prefix_space=prefix)
     tokenizer = AutoTokenizer.from_pretrained(
-        m_id,
+        tokenizer_id,
         revision=model_config.revision,
         use_auth_token=evaluation_config.use_auth_token,
         **params,
@@ -301,9 +301,88 @@ def get_model_config_from_hf_hub(
     elif "tf" in tags or "tensorflow" in tags or "keras" in tags:
         raise InvalidFramework("tensorflow")
 
+    # Extract the model ID
+    model_id = models[0].modelId
+
+    # Get the label conversions
+    id2label, label2id = get_label_conversions(
+        model_id=model_id,
+        revision=revision,
+        use_auth_token=evaluation_config.use_auth_token,
+    )
+
     # Construct and return the model config
     return ModelConfig(
-        model_id=models[0].modelId,
+        model_id=model_id,
+        tokenizer_id=model_id,
         framework=framework,
         revision=revision,
+        id2label=id2label,
+        label2id=label2id,
     )
+
+
+def get_label_conversions(
+    model_id: str,
+    revision: str,
+    use_auth_token: Union[bool, str],
+) -> Tuple[Union[List[str], None], Union[Dict[str, int], None]]:
+    """Function to get the label conversions from the Hugging Face Hub.
+
+    Args:
+        model_id (str):
+            The Hugging Face ID of the model.
+        revision (str):
+            The revision of the model.
+        use_auth_token (bool or str):
+            Whether to use the authentication token or not, or the token itself.
+
+    Returns:
+        pair of list and dict:
+            The `id2label` mapping and the `label2id` mapping. Either of them can be
+            None, if the model does not have a label mapping.
+    """
+    # Attempt to fetch the model config from the Hugging Face Hub, if it exists
+    try:
+
+        # Download the model config from the Hugging Face Hub
+        config = AutoConfig.from_pretrained(
+            model_id,
+            revision=revision,
+            use_auth_token=use_auth_token,
+        )
+
+        # Extract the `id2label` conversion from the model config. If it doesn't exist
+        # then we set it to None
+        try:
+            id2label = config.id2label
+        except AttributeError:
+            id2label = None
+
+        # Ensure that the `id2label` conversion is a list
+        if isinstance(id2label, dict):
+            try:
+                id2label = [id2label[idx] for idx in range(len(id2label))]
+            except KeyError:
+                raise InvalidEvaluation(
+                    "There is a gap in the indexing dictionary of the model."
+                )
+
+        # Make all labels upper case
+        if id2label is not None:
+            id2label = [label.upper() for label in id2label]
+
+        # Create `label2id` conversion from `id2label`
+        if id2label:
+            label2id = {label: idx for idx, label in enumerate(id2label)}
+        else:
+            label2id = None
+
+    # If the model config does not exist on the Hugging Face Hub, then we set the label
+    # conversions to None
+    except OSError:
+        id2label = None
+        label2id = None
+
+    # Return the label conversions
+    return id2label, label2id

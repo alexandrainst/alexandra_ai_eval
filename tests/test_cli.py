@@ -25,6 +25,8 @@ def test_cli_param_names(params):
         "raise_error_on_invalid_model",
         "cache_dir",
         "prefer_device",
+        "architecture_fname",
+        "weight_fname",
         "verbose",
         "help",
     }
@@ -43,4 +45,6 @@ def test_cli_param_types(params):
     assert params["cache_dir"] == STRING
     assert isinstance(params["prefer_device"], Choice)
     assert params["verbose"] == BOOL
+    assert params["architecture_fname"] == STRING
+    assert params["weight_fname"] == STRING
     assert params["help"] == BOOL

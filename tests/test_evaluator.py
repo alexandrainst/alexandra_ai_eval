@@ -5,7 +5,6 @@ from collections import defaultdict
 import pytest
 
 from src.aiai_eval.evaluator import Evaluator
-from src.aiai_eval.exceptions import ModelDoesNotExist
 from src.aiai_eval.task_factory import TaskFactory
 
 

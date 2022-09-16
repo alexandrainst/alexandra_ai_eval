@@ -164,6 +164,14 @@ class EvaluationConfig:
             Defaults to "cuda".
         only_return_log (bool, optional):
             Whether to only return the log. Defaults to False.
+        architecture_fname (str or None, optional):
+            The name of the architecture file, if local models are used. If None, the
+            architecture file will be automatically detected as the first Python script
+            in the model directory. Defaults to None.
+        weight_fname (str or None, optional):
+            The name of the file containing the model weights, if local models are
+            used. If None, the weight file will be automatically detected as the first
+            "*.bin" file in the model directory. Defaults to None.
         testing (bool, optional):
             Whether a unit test is being run. Defaults to False.
     """
@@ -178,6 +186,8 @@ class EvaluationConfig:
     country_code: CountryCode
     prefer_device: Device
     only_return_log: bool = False
+    architecture_fname: Optional[str] = None
+    weight_fname: Optional[str] = None
     testing: bool = False
 
     @property
@@ -213,12 +223,32 @@ class ModelConfig:
     Attributes:
         model_id (str):
             The ID of the model.
+        tokenizer_id (str):
+            The ID of the tokenizer.
         revision (str):
             The revision of the model.
         framework (Framework):
             The framework of the model.
+        id2label (None or list of str):
+            The model's mapping from ID to label. If None, the model does not have a
+            mapping from ID to label.
+        label2id (None or dict of str to int, optional):
+            The model's mapping from label to ID. If None, the model does not have a
+            mapping from label to ID. Defaults to None.
+        num_labels (None or int):
+            The number of labels in the model. If None, the model does not have a
+            mapping between labels and IDs.
     """
 
     model_id: str
+    tokenizer_id: str
     revision: str
     framework: Framework
+    id2label: Optional[List[str]]
+    label2id: Optional[Dict[str, int]] = None
+
+    @property
+    def num_labels(self) -> Union[int, None]:
+        if self.id2label is None:
+            return None
+        return len(self.id2label)

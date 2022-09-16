@@ -127,8 +127,10 @@ class TestModelConfig:
     def model_config(self):
         yield ModelConfig(
             model_id="model-id",
+            tokenizer_id="tokenizer-id",
             revision="revision",
             framework=Framework.JAX,
+            id2label=["label1", "label2"],
         )
 
     def test_model_config_is_object(self, model_config):

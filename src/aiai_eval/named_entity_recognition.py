@@ -15,7 +15,7 @@ from transformers.data.data_collator import (
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .config import TaskConfig
-from .exceptions import InvalidTokenizer, MissingLabel
+from .exceptions import InvalidEvaluation, InvalidTokenizer, MissingLabel
 from .task import Task
 from .utils import has_floats
 
@@ -40,13 +40,13 @@ class NamedEntityRecognition(Task):
         self,
         examples: BatchEncoding,
         tokenizer: PreTrainedTokenizerBase,
-        pytorch_model_config: PretrainedConfig,
+        model_config: PretrainedConfig,
         task_config: TaskConfig,
     ) -> BatchEncoding:
         return tokenize_and_align_labels(
             examples=examples,
             tokenizer=tokenizer,
-            model_label2id=pytorch_model_config.label2id,
+            model_label2id=model_config.label2id,
             dataset_id2label=task_config.id2label,
             label_column_name=task_config.label_column_name,
         )
@@ -132,7 +132,7 @@ class NamedEntityRecognition(Task):
 def tokenize_and_align_labels(
     examples: BatchEncoding,
     tokenizer: PreTrainedTokenizerBase,
-    model_label2id: dict,
+    model_label2id: Optional[dict],
     dataset_id2label: list,
     label_column_name: str,
 ) -> BatchEncoding:
@@ -143,8 +143,9 @@ def tokenize_and_align_labels(
             The examples to be tokenized.
         tokenizer (Hugging Face tokenizer):
             A pretrained tokenizer.
-        model_label2id (dict):
-            A dictionary that converts NER tags to IDs.
+        model_label2id (dict or None):
+            A dictionary that converts NER tags to IDs. If None then no label
+            conversion has been set up for the model and an error is raised.
         dataset_id2label (list):
             A list that maps IDs to NER tags.
         label_column_name (str):
@@ -155,11 +156,18 @@ def tokenize_and_align_labels(
             The tokenized data as well as labels.
 
     Raises:
+        InvalidEvaluation:
+            If the model does not have a label2id conversion set up.
         InvalidTokenizer:
             If the tokenizer is not a valid tokenizer.
         MissingLabel:
             If a label in the dataset is not present in the models label2id dictionary.
     """
+    if model_label2id is None:
+        raise InvalidEvaluation(
+            "The model does not have a label2id conversion. Please set up a label2id "
+            "conversion for the model."
+        )
 
     tokenized_inputs = tokenizer(
         examples["tokens"],

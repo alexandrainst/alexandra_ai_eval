@@ -1,6 +1,6 @@
 """Class for sequence classification tasks."""
 
-from typing import List, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
@@ -9,7 +9,12 @@ from transformers.data.data_collator import DataCollator, DataCollatorWithPaddin
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .config import TaskConfig
-from .exceptions import FrameworkCannotHandleTask, MissingLabel, WrongFeatureColumnName
+from .exceptions import (
+    FrameworkCannotHandleTask,
+    InvalidEvaluation,
+    MissingLabel,
+    WrongFeatureColumnName,
+)
 from .task import Task
 from .utils import has_floats
 
@@ -34,7 +39,7 @@ class SequenceClassification(Task):
         self,
         examples: BatchEncoding,
         tokenizer: PreTrainedTokenizerBase,
-        pytorch_model_config: PretrainedConfig,
+        model_config: PretrainedConfig,
         task_config: TaskConfig,
     ) -> BatchEncoding:
         return tokenize_and_numericalize(
@@ -42,7 +47,7 @@ class SequenceClassification(Task):
             tokenizer=tokenizer,
             feature_column_names=task_config.feature_column_names,
             label_column_name=task_config.label_column_name,
-            model_label2id=pytorch_model_config.label2id,
+            model_label2id=model_config.label2id,
         )
 
     def _prepare_predictions_and_labels(
@@ -87,7 +92,7 @@ def tokenize_and_numericalize(
     tokenizer: PreTrainedTokenizerBase,
     feature_column_names: List[str],
     label_column_name: str,
-    model_label2id: dict,
+    model_label2id: Optional[dict],
 ) -> BatchEncoding:
     """Tokenize and numericalize the text in the examples.
 
@@ -100,19 +105,27 @@ def tokenize_and_numericalize(
             The names of the columns containing the features.
         label_column_name (str):
             The name of the column containing the labels.
-        model_label2id (dict):
-            The mapping from model labels to ids.
+        model_label2id (dict or None):
+            The mapping from model labels to ids. If None, the mapping is not set and
+            an error will be raised.
 
     Returns:
         BatchEncoding:
             The tokenized and numericalized examples.
 
     Raises:
+        InvalidEvaluation:
+            If the model label2id mapping is not set.
         WrongFeatureColumnName:
             If the feature column names were not found.
         MissingLabel:
             If a label in the dataset was not found in the model's label2id mapping.
     """
+    if model_label2id is None:
+        raise InvalidEvaluation(
+            "The model label2id mapping is not set. This is required for evaluation."
+        )
+
     # Attempt to tokenize the examples
     try:
         labels = examples[label_column_name]
