@@ -4,10 +4,10 @@ from copy import deepcopy
 
 import pytest
 
-from src.aiai_eval.config import LabelConfig
-from src.aiai_eval.exceptions import InvalidTask
-from src.aiai_eval.task_factory import TaskFactory
-from src.aiai_eval.utils import kebab_to_pascal
+from aiai_eval.config import LabelConfig
+from aiai_eval.exceptions import InvalidTask
+from aiai_eval.task_factory import TaskFactory
+from aiai_eval.utils import kebab_to_pascal
 
 
 @pytest.fixture(scope="module")

@@ -5,8 +5,8 @@ import pytest
 from datasets import load_dataset
 from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding
 
-from src.aiai_eval.sequence_classification import SequenceClassification
-from src.aiai_eval.task_configs import SENT
+from aiai_eval.sequence_classification import SequenceClassification
+from aiai_eval.task_configs import SENT
 
 
 @pytest.fixture(scope="module")

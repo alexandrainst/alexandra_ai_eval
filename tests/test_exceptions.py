@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from src.aiai_eval.enums import Framework
-from src.aiai_eval.exceptions import (
+from aiai_eval.enums import Framework
+from aiai_eval.exceptions import (
     FrameworkCannotHandleTask,
     HuggingFaceHubDown,
     InvalidArchitectureForTask,

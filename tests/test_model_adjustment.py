@@ -4,13 +4,10 @@ from copy import deepcopy
 
 import pytest
 
-from src.aiai_eval.enums import Framework
-from src.aiai_eval.exceptions import InvalidEvaluation
-from src.aiai_eval.model_adjustment import (
-    adjust_model_to_task,
-    alter_classification_layer,
-)
-from src.aiai_eval.utils import get_class_by_name
+from aiai_eval.enums import Framework
+from aiai_eval.exceptions import InvalidEvaluation
+from aiai_eval.model_adjustment import adjust_model_to_task, alter_classification_layer
+from aiai_eval.utils import get_class_by_name
 
 
 @pytest.fixture(scope="module")

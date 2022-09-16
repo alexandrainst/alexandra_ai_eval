@@ -4,14 +4,14 @@ import os
 
 import pytest
 
-from src.aiai_eval.config import (
+from aiai_eval.config import (
     EvaluationConfig,
     LabelConfig,
     MetricConfig,
     ModelConfig,
     TaskConfig,
 )
-from src.aiai_eval.enums import CountryCode, Device, Framework
+from aiai_eval.enums import CountryCode, Device, Framework
 
 
 @pytest.fixture(scope="module")
