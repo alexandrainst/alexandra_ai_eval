@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 def load_local_pytorch_model(
     model_config: ModelConfig,
-    device: str,
     task_config: TaskConfig,
     evaluation_config: EvaluationConfig,
 ) -> Dict[str, Union[nn.Module, PreTrainedTokenizerBase]]:
@@ -31,14 +30,10 @@ def load_local_pytorch_model(
     Args:
         model_config (ModelConfig):
             The configuration of the model.
-        device (str):
-            Device to load the model onto.
         task_config (TaskConfig):
             The task configuration.
-        architecture_fname (str or Path or None, optional):
-            Name of the file containing the model architecture, which is located inside
-            the model folder. If None then the first Python script found in the model
-            folder will be used. Defaults to None.
+        evaluation_config (EvaluationConfig):
+            The evaluation configuration.
 
     Returns:
         dict:
@@ -173,7 +168,7 @@ def load_local_pytorch_model(
     model.eval()
 
     # Move the model to the specified device
-    model.to(device)
+    model.to(evaluation_config.device)
 
     # Adjust the model to the task
     adjust_model_to_task(

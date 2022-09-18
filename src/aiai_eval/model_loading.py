@@ -68,7 +68,6 @@ def load_model(
         elif pytorch_model_exists_locally(model_id=model_config.model_id):
             return load_local_pytorch_model(
                 model_config=model_config,
-                device=evaluation_config.device,
                 task_config=task_config,
                 evaluation_config=evaluation_config,
             )
