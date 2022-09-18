@@ -11,10 +11,10 @@ from .hf_hub_utils import (
     model_exists_on_hf_hub,
     model_is_private_on_hf_hub,
 )
-from .local_model_utils import (
-    get_model_config_locally,
+from .local_pytorch_utils import (
+    get_pytorch_model_config_locally,
     load_local_pytorch_model,
-    model_exists_locally,
+    pytorch_model_exists_locally,
 )
 from .spacy_utils import (
     get_model_config_from_spacy,
@@ -65,7 +65,7 @@ def load_model(
                 task_config=task_config,
                 evaluation_config=evaluation_config,
             )
-        elif model_exists_locally(model_id=model_config.model_id):
+        elif pytorch_model_exists_locally(model_id=model_config.model_id):
             return load_local_pytorch_model(
                 model_config=model_config,
                 device=evaluation_config.device,
@@ -109,7 +109,7 @@ def get_model_config(
     model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
     model_is_private = model_is_private_on_hf_hub(model_id=model_id)
     model_on_spacy = model_exists_on_spacy(model_id=model_id)
-    model_is_local = model_exists_locally(model_id=model_id)
+    model_is_local = pytorch_model_exists_locally(model_id=model_id)
 
     # If the model exists on the Hugging Face Hub, then fetch the model config from
     # there
@@ -131,7 +131,7 @@ def get_model_config(
 
     # Otherwise, if the model exists locally, then fetch the model config from there
     elif model_is_local:
-        return get_model_config_locally(
+        return get_pytorch_model_config_locally(
             model_folder=model_id,
             dataset_id2label=task_config.id2label,
         )

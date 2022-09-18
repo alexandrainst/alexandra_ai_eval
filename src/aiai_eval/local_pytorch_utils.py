@@ -1,4 +1,4 @@
-"""Utility functions related to loading local models."""
+"""Utility functions related to loading local PyTorch models."""
 
 import inspect
 import json
@@ -189,7 +189,7 @@ def load_local_pytorch_model(
     return dict(model=model, tokenizer=tokenizer)
 
 
-def model_exists_locally(
+def pytorch_model_exists_locally(
     model_id: Union[str, Path],
     architecture_fname: Optional[Union[str, Path]] = None,
     weight_fname: Optional[Union[str, Path]] = None,
@@ -237,11 +237,11 @@ def model_exists_locally(
     return architecture_path.exists() and weight_path.exists()
 
 
-def get_model_config_locally(
+def get_pytorch_model_config_locally(
     model_folder: Union[str, Path],
     dataset_id2label: List[str],
 ) -> ModelConfig:
-    """Get the model configuration from a local model.
+    """Get the model configuration from a local PyTorch model.
 
     Args:
         model_folder (str or Path):
