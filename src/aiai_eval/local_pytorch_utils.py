@@ -189,7 +189,7 @@ def pytorch_model_exists_locally(
     architecture_fname: Optional[Union[str, Path]] = None,
     weight_fname: Optional[Union[str, Path]] = None,
 ) -> bool:
-    """Check if a model exists locally.
+    """Check if a PyTorch model exists locally.
 
     Args:
         model_id (str or Path):
