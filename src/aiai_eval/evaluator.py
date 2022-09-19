@@ -275,11 +275,6 @@ class Evaluator:
                 "Skipping."
             )
             logger.debug(f'The error message was "{e}".')
-        # except InvalidArchitectureForTask as e:
-        #    raise InvalidArchitectureForTask(
-        #        architectures=e.architectures,
-        #        supertask=e.supertask,
-        #    ) from e
 
     def __call__(
         self,
