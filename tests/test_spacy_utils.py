@@ -2,9 +2,9 @@
 
 import pytest
 
-from src.aiai_eval.enums import Framework
-from src.aiai_eval.exceptions import ModelFetchFailed
-from src.aiai_eval.spacy_utils import load_spacy_model, model_exists_on_spacy
+from aiai_eval.enums import Framework
+from aiai_eval.exceptions import ModelFetchFailed
+from aiai_eval.spacy_utils import load_spacy_model, model_exists_on_spacy
 
 
 class TestModelExistsOnSpacy:

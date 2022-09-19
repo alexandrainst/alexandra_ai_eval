@@ -7,8 +7,8 @@ from datasets.arrow_dataset import Dataset
 from datasets.metric import Metric
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
-from src.aiai_eval.config import TaskConfig
-from src.aiai_eval.task import Task
+from aiai_eval.config import TaskConfig
+from aiai_eval.task import Task
 
 
 class TaskDummy(Task):

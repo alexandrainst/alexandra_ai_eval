@@ -4,8 +4,8 @@ from collections import defaultdict
 
 import pytest
 
-from src.aiai_eval.evaluator import Evaluator
-from src.aiai_eval.task_factory import TaskFactory
+from aiai_eval.evaluator import Evaluator
+from aiai_eval.task_factory import TaskFactory
 
 
 @pytest.fixture(scope="module")

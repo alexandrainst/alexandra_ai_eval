@@ -3,7 +3,7 @@
 import pytest
 from click.types import BOOL, STRING, Choice
 
-from src.aiai_eval.cli import evaluate
+from aiai_eval.cli import evaluate
 
 
 @pytest.fixture(scope="module")
