@@ -127,6 +127,19 @@ def get_hf_model_config_locally(model_folder: Union[str, Path]) -> ModelConfig:
     # conversions
     config = AutoConfig.from_pretrained(model_folder)
 
+    # Ensure that the `id2label` conversion is a list
+    id2label = config.id2label
+    if isinstance(id2label, dict):
+        try:
+            id2label = [id2label[idx] for idx in range(len(id2label))]
+        except KeyError:
+            raise InvalidEvaluation(
+                "There is a gap in the indexing dictionary of the model."
+            )
+
+    # Make all labels upper case
+    id2label = [label.upper() for label in id2label]
+
     # Determine the framework by looking at the file format of the model
     if model_folder.glob("*.bin") or model_folder.glob("*.pt"):
         framework = Framework.PYTORCH
@@ -142,6 +155,6 @@ def get_hf_model_config_locally(model_folder: Union[str, Path]) -> ModelConfig:
         tokenizer_id=str(model_folder),
         revision="main",
         framework=framework,
-        id2label=config.id2label,
+        id2label=id2label,
         label2id=config.label2id,
     )
