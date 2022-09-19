@@ -2,8 +2,8 @@
 
 import pytest
 
-from src.aiai_eval.config import TaskConfig
-from src.aiai_eval.task_configs import get_all_task_configs
+from aiai_eval.config import TaskConfig
+from aiai_eval.task_configs import get_all_task_configs
 
 
 class TestGetAllTaskConfigs:

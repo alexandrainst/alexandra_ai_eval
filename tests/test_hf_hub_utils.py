@@ -6,10 +6,10 @@ import pytest
 from huggingface_hub.hf_api import ModelInfo
 from huggingface_hub.utils import RepositoryNotFoundError
 
-from src.aiai_eval.config import ModelConfig
-from src.aiai_eval.enums import Framework
-from src.aiai_eval.exceptions import InvalidEvaluation
-from src.aiai_eval.hf_hub_utils import (
+from aiai_eval.config import ModelConfig
+from aiai_eval.enums import Framework
+from aiai_eval.exceptions import InvalidEvaluation
+from aiai_eval.hf_hub_utils import (
     get_hf_hub_model_info,
     get_model_config_from_hf_hub,
     load_model_from_hf_hub,
