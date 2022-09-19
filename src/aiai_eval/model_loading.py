@@ -115,20 +115,16 @@ def get_model_config(
         ModelDoesNotExist:
             If the model id does not exist on the Hugging Face Hub.
     """
-    # Check if model exists from any of the available model sources
-    model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
-    model_is_private = model_is_private_on_hf_hub(model_id=model_id)
-    model_on_spacy = model_exists_on_spacy(model_id=model_id)
-    model_is_local_pt = pytorch_model_exists_locally(model_id=model_id)
-    model_is_local_hf = hf_model_exists_locally(model_id=model_id)
-
     # If the model exists on the Hugging Face Hub, then fetch the model config from
     # there
-    if model_on_hf_hub:
+    if model_exists_on_hf_hub(model_id=model_id):
 
         # If the model is private and an authentication token has not been provided,
         # raise an error
-        if model_is_private and not evaluation_config.use_auth_token:
+        if (
+            model_is_private_on_hf_hub(model_id=model_id)
+            and not evaluation_config.use_auth_token
+        ):
             raise ModelIsPrivate(model_id=model_id)
 
         # Otherwise, fetch the model configuration from the Hugging Face Hub
@@ -136,18 +132,18 @@ def get_model_config(
             model_id=model_id, evaluation_config=evaluation_config
         )
 
+    # Otherwise, if the model exists on Spacy, then fetch the model config from there
+    elif model_exists_on_spacy(model_id=model_id):
+        return get_model_config_from_spacy(model_id=model_id)
+
     # Otherwise, if the model exists locally as a Hugging Face model, then fetch the
     # model config from there
-    elif model_is_local_hf:
+    elif hf_model_exists_locally(model_id=model_id):
         return get_hf_model_config_locally(model_folder=model_id)
-
-    # Otherwise, if the model exists on Spacy, then fetch the model config from there
-    elif model_on_spacy:
-        return get_model_config_from_spacy(model_id=model_id)
 
     # Otherwise, if the model exists locally as a PyTorch model, then fetch the model
     # config from there
-    elif model_is_local_pt:
+    elif pytorch_model_exists_locally(model_id=model_id):
         return get_pytorch_model_config_locally(
             model_folder=model_id,
             dataset_id2label=task_config.id2label,
