@@ -11,7 +11,7 @@ from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
 from .config import EvaluationConfig, ModelConfig, TaskConfig
 from .enums import Framework
-from .exceptions import InvalidFramework, ModelDoesNotExist
+from .exceptions import InvalidEvaluation, InvalidFramework, ModelDoesNotExist
 from .model_adjustment import adjust_model_to_task
 
 
@@ -42,6 +42,32 @@ def load_local_hf_model(
     model_cls = getattr(transformers, architecture)
     model = model_cls.from_pretrained(model_config.model_id)
 
+    # If the model is a subclass of a RoBERTa model then we have to add a prefix space
+    # to the tokens, by the way the model is constructed.
+    tokenizer_id = model_config.tokenizer_id
+    prefix = "Roberta" in type(model).__name__
+    params = dict(use_fast=True, add_prefix_space=prefix)
+    tokenizer = AutoTokenizer.from_pretrained(
+        tokenizer_id,
+        revision=model_config.revision,
+        use_auth_token=evaluation_config.use_auth_token,
+        **params,
+    )
+
+    # Set the maximal length of the tokenizer to the model's maximal length. This is
+    # required for proper truncation
+    if not hasattr(tokenizer, "model_max_length") or tokenizer.model_max_length > 1_000:
+
+        if hasattr(tokenizer, "max_model_input_sizes"):
+            all_max_lengths = tokenizer.max_model_input_sizes.values()
+            if len(list(all_max_lengths)) > 0:
+                min_max_length = min(list(all_max_lengths))
+                tokenizer.model_max_length = min_max_length
+            else:
+                tokenizer.model_max_length = 512
+        else:
+            tokenizer.model_max_length = 512
+
     # Set the model to evaluation mode, making its predictions deterministic
     model.eval()
 
@@ -54,9 +80,6 @@ def load_local_hf_model(
         model_config=model_config,
         task_config=task_config,
     )
-
-    # Initialize the tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(model_config.tokenizer_id)
 
     # Return the model and tokenizer as a dict
     return dict(model=model, tokenizer=tokenizer)
