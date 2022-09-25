@@ -239,24 +239,24 @@ class TestFindValidAnswers:
                 0.0,
                 [
                     {
-                        "score": 7.35293436050415,
+                        "score": 7.4,
                         "text": "Penny Marshall og har Geena Davis, Tom Hanks",
                     },
                     {
-                        "score": 7.097078084945679,
+                        "score": 7.1,
                         "text": "Penny Marshall og har Geena Davis, Tom Hanks, Madonna "
                         "og Lori Petty",
                     },
                     {
-                        "score": 6.972289085388184,
+                        "score": 7.0,
                         "text": "Penny Marshall og har Geena Davis",
                     },
                     {
-                        "score": 7.0044941902160645,
+                        "score": 7.0,
                         "text": "Lori Petty",
                     },
                     {
-                        "score": 6.91378927230835,
+                        "score": 6.9,
                         "text": "Madonna og Lori Petty",
                     },
                 ],
@@ -267,7 +267,7 @@ class TestFindValidAnswers:
                 0.0,
                 [
                     {
-                        "score": 7.0044941902160645,
+                        "score": 7.0,
                         "text": "Lori Petty",
                     },
                 ],
@@ -278,7 +278,7 @@ class TestFindValidAnswers:
                 0.0,
                 [
                     {
-                        "score": 7.35293436050415,
+                        "score": 7.4,
                         "text": "Penny Marshall og har Geena Davis, Tom Hanks",
                     }
                 ],
@@ -289,16 +289,16 @@ class TestFindValidAnswers:
                 7.0,
                 [
                     {
-                        "score": 7.35293436050415,
+                        "score": 7.4,
                         "text": "Penny Marshall og har Geena Davis, Tom Hanks",
                     },
                     {
-                        "score": 7.097078084945679,
+                        "score": 7.1,
                         "text": "Penny Marshall og har Geena Davis, Tom Hanks, Madonna "
                         "og Lori Petty",
                     },
                     {
-                        "score": 7.0044941902160645,
+                        "score": 7.0,
                         "text": "Lori Petty",
                     },
                 ],
@@ -331,6 +331,9 @@ class TestFindValidAnswers:
             num_best_logits=num_best_logits,
             min_null_score=min_null_score,
         )
+        valid_answers = [
+            dict(score=round(a["score"], 1), text=a["text"]) for a in valid_answers
+        ]
         assert valid_answers == expected_answers
 
 
