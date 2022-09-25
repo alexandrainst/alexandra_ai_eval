@@ -94,7 +94,11 @@ def load_model_from_hf_hub(
     except (OSError, ValueError):
 
         # If the model is private then raise an informative error
-        if model_is_private_on_hf_hub(model_id=model_config.model_id):
+        private_model = model_is_private_on_hf_hub(
+            model_id=model_config.model_id,
+            use_auth_token=evaluation_config.use_auth_token,
+        )
+        if private_model:
             raise ModelIsPrivate(model_id=model_config.model_id)
 
         # Otherwise, the model does not have any frameworks registered, so raise an
@@ -147,12 +151,20 @@ def load_model_from_hf_hub(
     return dict(model=model, tokenizer=tokenizer)
 
 
-def get_hf_hub_model_info(model_id: str) -> ModelInfo:
+def get_hf_hub_model_info(
+    model_id: str,
+    use_auth_token: Union[bool, str],
+) -> ModelInfo:
     """Fetches information about a model on the Hugging Face Hub.
 
     Args:
         model_id (str):
             The model ID to check.
+        use_auth_token (bool or str):
+            The authentication token for the Hugging Face Hub. If a boolean value is
+            specified then the token will be fetched from the Hugging Face CLI, where
+            the user has logged in through `huggingface-cli login`. If a string is
+            specified then it will be used as the token.
 
     Returns:
         ModelInfo:
@@ -175,7 +187,12 @@ def get_hf_hub_model_info(model_id: str) -> ModelInfo:
 
     # Get the model info, and return it
     try:
-        return hf_api.model_info(repo_id=model_id, revision=revision)
+        token = None if isinstance(use_auth_token, bool) else use_auth_token
+        return hf_api.model_info(
+            repo_id=model_id,
+            revision=revision,
+            token=token,
+        )
 
     # If the repository was not found on Hugging Face Hub then raise that error
     except RepositoryNotFoundError as e:
@@ -190,12 +207,20 @@ def get_hf_hub_model_info(model_id: str) -> ModelInfo:
             raise NoInternetConnection()
 
 
-def model_is_private_on_hf_hub(model_id: str) -> Union[bool, None]:
+def model_is_private_on_hf_hub(
+    model_id: str,
+    use_auth_token: Union[bool, str],
+) -> Union[bool, None]:
     """Checkes whether a model is private on the Hugging Face Hub.
 
     Args:
         model_id (str):
             The model ID to check.
+        use_auth_token (bool or str):
+            The authentication token for the Hugging Face Hub. If a boolean value is
+            specified then the token will be fetched from the Hugging Face CLI, where
+            the user has logged in through `huggingface-cli login`. If a string is
+            specified then it will be used as the token.
 
     Returns:
         bool or None:
@@ -203,25 +228,35 @@ def model_is_private_on_hf_hub(model_id: str) -> Union[bool, None]:
             on the Hub at all then it returns None.
     """
     try:
-        model_info = get_hf_hub_model_info(model_id=model_id)
+        model_info = get_hf_hub_model_info(
+            model_id=model_id, use_auth_token=use_auth_token
+        )
         return model_info.private
     except RepositoryNotFoundError:
         return None
 
 
-def model_exists_on_hf_hub(model_id: str) -> Union[bool, None]:
+def model_exists_on_hf_hub(
+    model_id: str,
+    use_auth_token: Union[bool, str],
+) -> Union[bool, None]:
     """Checks whether a model exists on the Hugging Face Hub.
 
     Args:
         model_id (str):
             The model ID to check.
+        use_auth_token (bool or str):
+            The authentication token for the Hugging Face Hub. If a boolean value is
+            specified then the token will be fetched from the Hugging Face CLI, where
+            the user has logged in through `huggingface-cli login`. If a string is
+            specified then it will be used as the token.
 
     Returns:
         bool:
             If model exists on the Hugging Face Hub or not.
     """
     try:
-        get_hf_hub_model_info(model_id=model_id)
+        get_hf_hub_model_info(model_id=model_id, use_auth_token=use_auth_token)
         return True
     except RepositoryNotFoundError:
         return False
