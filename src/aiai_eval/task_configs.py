@@ -10,6 +10,7 @@ from .metric_configs import (
     QA_F1,
     SEQEVAL_MICRO_F1,
     SEQEVAL_MICRO_F1_NO_MISC,
+    WER,
 )
 
 
@@ -225,5 +226,17 @@ OFFENSIVE = TaskConfig(
     ],
     feature_column_names=["text"],
     label_column_name="label",
+    test_name="test",
+)
+
+ASR = TaskConfig(
+    name="automatic-speech-recognition",
+    huggingface_id="arpelarpe/nota",
+    huggingface_subset=None,
+    supertask="automatic-speech-recognition",
+    metrics=[WER],
+    labels=[],
+    feature_column_names=["audio"],
+    label_column_name="sentence",
     test_name="test",
 )
