@@ -78,13 +78,21 @@ class TestGetHfHubModelInfo:
     def non_existing_model_id(self):
         return "non-existing-model-id"
 
-    def test_model_info_is_model_info(self, existing_model_id):
-        model_info = get_hf_hub_model_info(model_id=existing_model_id)
+    def test_model_info_is_model_info(self, existing_model_id, evaluation_config):
+        model_info = get_hf_hub_model_info(
+            model_id=existing_model_id,
+            use_auth_token=evaluation_config.use_auth_token,
+        )
         assert isinstance(model_info, ModelInfo)
 
-    def test_raise_error_if_model_not_accessible(self, non_existing_model_id):
+    def test_raise_error_if_model_not_accessible(
+        self, non_existing_model_id, evaluation_config
+    ):
         with pytest.raises(RepositoryNotFoundError):
-            get_hf_hub_model_info(model_id=non_existing_model_id)
+            get_hf_hub_model_info(
+                model_id=non_existing_model_id,
+                use_auth_token=evaluation_config.use_auth_token,
+            )
 
 
 class TestModelExistsOnHfHub:
@@ -96,11 +104,19 @@ class TestModelExistsOnHfHub:
     def non_existing_model_id(self):
         yield "invalid-model-id"
 
-    def test_existing_model_id_exists(self, existing_model_id):
-        assert model_exists_on_hf_hub(model_id=existing_model_id)
+    def test_existing_model_id_exists(self, existing_model_id, evaluation_config):
+        assert model_exists_on_hf_hub(
+            model_id=existing_model_id,
+            use_auth_token=evaluation_config.use_auth_token,
+        )
 
-    def test_non_existing_model_id_does_not_exist(self, non_existing_model_id):
-        assert not model_exists_on_hf_hub(model_id=non_existing_model_id)
+    def test_non_existing_model_id_does_not_exist(
+        self, non_existing_model_id, evaluation_config
+    ):
+        assert not model_exists_on_hf_hub(
+            model_id=non_existing_model_id,
+            use_auth_token=evaluation_config.use_auth_token,
+        )
 
 
 class TestGetModelConfigFromHfHub:

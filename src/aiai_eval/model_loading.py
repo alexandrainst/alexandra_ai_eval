@@ -58,7 +58,11 @@ def load_model(
 
     if model_config.framework == Framework.PYTORCH:
 
-        if model_exists_on_hf_hub(model_id=model_config.model_id):
+        model_on_hf_hub = model_exists_on_hf_hub(
+            model_id=model_config.model_id,
+            use_auth_token=evaluation_config.use_auth_token,
+        )
+        if model_on_hf_hub:
             return load_model_from_hf_hub(
                 model_config=model_config,
                 from_flax=from_flax,
@@ -106,14 +110,19 @@ def get_model_config(
             If the model id does not exist on the Hugging Face Hub.
     """
     # Check if model exists from any of the available model sources
-    model_on_hf_hub = model_exists_on_hf_hub(model_id=model_id)
-    model_is_private = model_is_private_on_hf_hub(model_id=model_id)
-    model_on_spacy = model_exists_on_spacy(model_id=model_id)
-    model_is_local = model_exists_locally(model_id=model_id)
+    model_on_hf_hub = model_exists_on_hf_hub(
+        model_id=model_id,
+        use_auth_token=evaluation_config.use_auth_token,
+    )
 
     # If the model exists on the Hugging Face Hub, then fetch the model config from
     # there
     if model_on_hf_hub:
+
+        model_is_private = model_is_private_on_hf_hub(
+            model_id=model_id,
+            use_auth_token=evaluation_config.use_auth_token,
+        )
 
         # If the model is private and an authentication token has not been provided,
         # raise an error
@@ -126,11 +135,11 @@ def get_model_config(
         )
 
     # Otherwise, if the model exists on Spacy, then fetch the model config from there
-    elif model_on_spacy:
+    elif model_exists_on_spacy(model_id=model_id):
         return get_model_config_from_spacy(model_id=model_id)
 
     # Otherwise, if the model exists locally, then fetch the model config from there
-    elif model_is_local:
+    elif model_exists_locally(model_id=model_id):
         return get_model_config_locally(
             model_folder=model_id,
             dataset_id2label=task_config.id2label,

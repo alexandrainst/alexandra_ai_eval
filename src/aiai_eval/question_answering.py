@@ -1,4 +1,5 @@
 """Class for question-answering tasks."""
+
 from collections import defaultdict
 from typing import List, Sequence, Tuple
 
@@ -297,8 +298,8 @@ def find_best_answer(
 
 
 def find_valid_answers(
-    start_logits: torch.Tensor,
-    end_logits: torch.Tensor,
+    start_logits: np.ndarray,
+    end_logits: np.ndarray,
     offset_mapping: List[Tuple[int, int]],
     context: str,
     max_answer_length: int,
@@ -308,9 +309,9 @@ def find_valid_answers(
     """Find the valid answers from the start and end indexes.
 
     Args:
-        start_logits (torch.Tensor):
+        start_logits (NumPy array):
             The logits for the start of the answer.
-        end_logits (torch.Tensor):
+        end_logits (NumPy array):
             The logits for the end of the answer.
         offset_mapping (list of pairs of int):
             The offset mapping, being a list of pairs of integers for each token index,
