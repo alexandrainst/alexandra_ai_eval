@@ -17,7 +17,7 @@ from aiai_eval.task_configs import NER
 
 @pytest.fixture(scope="module")
 def dataset():
-    yield load_dataset("dane", split="train")
+    yield load_dataset("dane", split="test")
 
 
 @pytest.fixture(scope="module")
