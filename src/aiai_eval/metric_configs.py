@@ -75,3 +75,11 @@ POWER = MetricConfig(
     results_key="power",
     postprocessing_fn=lambda raw_score: f"{raw_score:.4f}",
 )
+
+WER = MetricConfig(
+    name="word_error_rate",
+    pretty_name="Rate of errors in words",
+    huggingface_id="wer",
+    results_key="wer",
+    postprocessing_fn=lambda raw_score: f"{raw_score:.2f}",
+)
