@@ -11,10 +11,15 @@ from .hf_hub_utils import (
     model_exists_on_hf_hub,
     model_is_private_on_hf_hub,
 )
-from .local_model_utils import (
-    get_model_config_locally,
+from .local_hf_utils import (
+    get_hf_model_config_locally,
+    hf_model_exists_locally,
+    load_local_hf_model,
+)
+from .local_pytorch_utils import (
+    get_pytorch_model_config_locally,
     load_local_pytorch_model,
-    model_exists_locally,
+    pytorch_model_exists_locally,
 )
 from .spacy_utils import (
     get_model_config_from_spacy,
@@ -69,10 +74,15 @@ def load_model(
                 task_config=task_config,
                 evaluation_config=evaluation_config,
             )
-        elif model_exists_locally(model_id=model_config.model_id):
+        elif hf_model_exists_locally(model_id=model_config.model_id):
+            return load_local_hf_model(
+                model_config=model_config,
+                task_config=task_config,
+                evaluation_config=evaluation_config,
+            )
+        elif pytorch_model_exists_locally(model_id=model_config.model_id):
             return load_local_pytorch_model(
                 model_config=model_config,
-                device=evaluation_config.device,
                 task_config=task_config,
                 evaluation_config=evaluation_config,
             )
@@ -109,24 +119,18 @@ def get_model_config(
         ModelDoesNotExist:
             If the model id does not exist on the Hugging Face Hub.
     """
-    # Check if model exists from any of the available model sources
-    model_on_hf_hub = model_exists_on_hf_hub(
-        model_id=model_id,
-        use_auth_token=evaluation_config.use_auth_token,
-    )
+    # Define variable with authentication token
+    auth = evaluation_config.use_auth_token
 
     # If the model exists on the Hugging Face Hub, then fetch the model config from
     # there
-    if model_on_hf_hub:
-
-        model_is_private = model_is_private_on_hf_hub(
-            model_id=model_id,
-            use_auth_token=evaluation_config.use_auth_token,
-        )
+    if model_exists_on_hf_hub(model_id=model_id, use_auth_token=auth):
 
         # If the model is private and an authentication token has not been provided,
         # raise an error
-        if model_is_private and not evaluation_config.use_auth_token:
+        if model_is_private_on_hf_hub(model_id=model_id, use_auth_token=auth) and (
+            auth is False or auth == ""
+        ):
             raise ModelIsPrivate(model_id=model_id)
 
         # Otherwise, fetch the model configuration from the Hugging Face Hub
@@ -138,9 +142,15 @@ def get_model_config(
     elif model_exists_on_spacy(model_id=model_id):
         return get_model_config_from_spacy(model_id=model_id)
 
-    # Otherwise, if the model exists locally, then fetch the model config from there
-    elif model_exists_locally(model_id=model_id):
-        return get_model_config_locally(
+    # Otherwise, if the model exists locally as a Hugging Face model, then fetch the
+    # model config from there
+    elif hf_model_exists_locally(model_id=model_id):
+        return get_hf_model_config_locally(model_folder=model_id)
+
+    # Otherwise, if the model exists locally as a PyTorch model, then fetch the model
+    # config from there
+    elif pytorch_model_exists_locally(model_id=model_id):
+        return get_pytorch_model_config_locally(
             model_folder=model_id,
             dataset_id2label=task_config.id2label,
         )
