@@ -29,6 +29,7 @@ SENT = TaskConfig(
     huggingface_id="DDSC/angry-tweets",
     huggingface_subset=None,
     supertask="sequence-classification",
+    architectures=["sequence-classification"],
     metrics=[MCC, MACRO_F1],
     labels=[
         LabelConfig(
@@ -55,6 +56,7 @@ NER = TaskConfig(
     huggingface_id="dane",
     huggingface_subset=None,
     supertask="token-classification",
+    architectures=["token-classification"],
     metrics=[SEQEVAL_MICRO_F1, SEQEVAL_MICRO_F1_NO_MISC],
     labels=[
         LabelConfig(
@@ -191,6 +193,7 @@ QA = TaskConfig(
     huggingface_id="alexandrainst/scandiqa",
     huggingface_subset="da",
     supertask="question-answering",
+    architectures=["question-answering"],
     metrics=[EXACT_MATCH, QA_F1],
     labels=[
         LabelConfig(
@@ -213,6 +216,7 @@ OFFENSIVE = TaskConfig(
     huggingface_id="DDSC/dkhate",
     huggingface_subset=None,
     supertask="sequence-classification",
+    architectures=["sequence-classification"],
     metrics=[MCC, MACRO_F1],
     labels=[
         LabelConfig(
@@ -234,6 +238,10 @@ ASR = TaskConfig(
     huggingface_id="arpelarpe/nota",
     huggingface_subset=None,
     supertask="automatic-speech-recognition",
+    architectures=[
+        "wav-2-vec-2-for-c-t-c",
+        "whisper-for-conditional-generation",
+    ],
     metrics=[WER],
     labels=[],
     feature_column_names=["audio"],
