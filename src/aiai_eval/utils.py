@@ -7,7 +7,7 @@ import os
 import random
 import re
 import warnings
-from typing import List, Optional, Sequence, Union
+from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pkg_resources
@@ -193,8 +193,10 @@ def get_available_devices() -> List[Device]:
     return available_devices
 
 
-def check_supertask(architectures: Sequence[str], supertask: str):
-    """Checks if the supertask corresponds to the architectures.
+def check_supertask(
+    architectures: Sequence[str], supertask: str, allowed_architectures: Sequence[str]
+) -> Tuple[Sequence[str], Sequence[str]]:
+    """Checks if the supertask corresponds to the architectures and if the architectures are among the allowed architectures.
 
     Args:
         architectures (list of str):
@@ -203,22 +205,36 @@ def check_supertask(architectures: Sequence[str], supertask: str):
             The supertask associated to a task written in kebab-case, e.g.,
             text-classification.
 
+    Returns:
+        tuple of list of str:
+            The architectures that are valid for the supertask, and the provided model architectures that
+            which are allowed for the supertask.
+
     Raises:
         InvalidArchitectureForTask:
             If the PascalCase version of the supertask is not found in any of the
             architectures.
     """
-    # Create boolean variable that checks if the supertask exists among the available
-    # architectures
-    supertask_is_an_architecture = any(
-        kebab_to_pascal(supertask) in architecture for architecture in architectures
-    )
+    # Create list which contains the supertask if it exists among the available architectures
+    supertask_which_is_architectures = [
+        supertask
+        for architecture in architectures
+        if kebab_to_pascal(supertask) in architecture
+    ]
 
-    # If the supertask is not an architecture, raise an error
-    if not supertask_is_an_architecture:
+    # Check if architecture is among the fallback allowed architectures
+    allowed_and_checked_architectures = [
+        pascal_to_kebab(architecture)
+        for architecture in architectures
+        if pascal_to_kebab(architecture) in allowed_architectures
+    ]
+
+    # If the supertask is not an architecture or the model architecture is not allowed, raise an error
+    if not supertask_which_is_architectures and not allowed_and_checked_architectures:
         raise InvalidArchitectureForTask(
             architectures=architectures, supertask=supertask
         )
+    return supertask_which_is_architectures, allowed_and_checked_architectures
 
 
 def get_class_by_name(
@@ -288,3 +304,17 @@ def kebab_to_pascal(kebab_string: str) -> str:
             The PascalCase string.
     """
     return "".join(word.title() for word in kebab_string.split("-"))
+
+
+def pascal_to_kebab(pascal_string: str) -> str:
+    """Converts a PascalCase string to kebab-case.
+
+    Args:
+        pascal_string (str):
+            The PascalCase string.
+
+    Returns:
+        str:
+            The kebab-case string.
+    """
+    return re.sub(r"(?<!^)(?=[A-Z])", "-", pascal_string).lower()
