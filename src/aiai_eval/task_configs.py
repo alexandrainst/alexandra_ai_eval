@@ -243,7 +243,16 @@ ASR = TaskConfig(
         "whisper-for-conditional-generation",
     ],
     metrics=[WER],
-    labels=[],
+    labels=[
+        LabelConfig(
+            name="LABEL_0",
+            synonyms=[],
+        ),
+        LabelConfig(
+            name="LABEL_1",
+            synonyms=[],
+        ),
+    ],
     feature_column_names=["audio"],
     label_column_name="sentence",
     test_name="test",
