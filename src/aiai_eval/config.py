@@ -1,7 +1,6 @@
 """Configuration dataclasses."""
 
 from dataclasses import dataclass, field
-from platform import architecture
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from .enums import CountryCode, Device, Framework
@@ -229,6 +228,8 @@ class ModelConfig:
             The ID of the model.
         tokenizer_id (str):
             The ID of the tokenizer.
+        processor_id (str):
+            The ID of the processor.
         revision (str):
             The revision of the model.
         framework (Framework):
@@ -246,6 +247,7 @@ class ModelConfig:
 
     model_id: str
     tokenizer_id: str
+    processor_id: str
     revision: str
     framework: Framework
     id2label: Optional[List[str]]

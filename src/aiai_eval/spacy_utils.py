@@ -97,6 +97,7 @@ def get_model_config_from_spacy(model_id: str) -> ModelConfig:
     return ModelConfig(
         model_id=model_id,
         tokenizer_id="",
+        processor_id="",
         revision="",
         framework=Framework.SPACY,
         id2label=None,
