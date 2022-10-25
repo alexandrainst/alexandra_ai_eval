@@ -72,6 +72,8 @@ class TaskConfig:
             to None.
         supertask (str):
             The supertask of the task, describing the overall type of task.
+        architectures (list of str):
+            The architectures that can be used to solve the task.
         metrics (sequence of MetricConfig objects):
             The metrics used to evaluate the task.
         labels (sequence of LabelConfig objects):
