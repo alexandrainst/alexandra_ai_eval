@@ -138,9 +138,10 @@ class AutomaticSpeechRecognition(Task):
             return doc
 
         # Preprocess the transcriptions
-        examples["sentence"] = clean_transcription(
-            examples[task_config.label_column_name]
-        )
+        examples["sentence"] = [
+            clean_transcription(example)
+            for example in examples[task_config.label_column_name]
+        ]
 
         # Preprocess labels
         examples["labels"] = tokenizer.encode(
