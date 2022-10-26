@@ -58,8 +58,7 @@ class DataCollatorCTCWithPadding:
         input_features = [
             {
                 "input_values": self.processor(
-                    feature["audio"]["array"],
-                    sampling_rate=feature["audio"]["sampling_rate"],
+                    feature["input_features"],
                 ).input_values[0]
             }
             for feature in features
@@ -168,11 +167,10 @@ class AutomaticSpeechRecognition(Task):
                 sampling_rate=feature_extractor.sampling_rate,
                 padding=True,
                 max_length=feature_extractor.sampling_rate
-                * 10,  # Allow for 10 seconds of audio
+                * 10,  # Allow 10 seconds audio
                 truncation=True,
             )
-            for idx, input_feature in enumerate(inputs.data["input_features"]):
-                examples[feature_column_name][idx]["array"] = input_feature
+            examples["input_features"] = inputs.data["input_features"]
             return examples
 
         # Preprocess the transcriptions
