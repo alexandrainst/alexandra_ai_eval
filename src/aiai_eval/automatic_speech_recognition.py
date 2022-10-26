@@ -53,32 +53,35 @@ class DataCollatorCTCWithPadding:
             dict:
                 A dictionary of the collated features.
         """
+        # Get sampling rate
+        sampling_rate = self.processor.feature_extractor.sampling_rate
+
         # Split inputs and labels since they have to be of different lenghts
         # and need different padding methods
         input_features = [
             {
-                "input_values": self.processor(
-                    feature["input_features"],
-                ).input_values[0]
+                "input_features": self.processor(
+                    feature["input_values"]["array"],
+                    sampling_rate=sampling_rate,
+                ).input_features[0]
             }
             for feature in features
         ]
         label_features = [{"input_ids": feature["labels"]} for feature in features]
 
-        # Process audio
-        batch = self.processor.pad(
+        # Create batch from input_features
+        batch = self.processor.feature_extractor.pad(
             input_features,
             padding=self.padding,
             return_tensors="pt",
         )
 
         # Process labels
-        with self.processor.as_target_processor():
-            labels_batch = self.processor.pad(
-                label_features,
-                padding=self.padding,
-                return_tensors="pt",
-            )
+        labels_batch = self.processor.tokenizer.pad(
+            label_features,
+            padding=self.padding,
+            return_tensors="pt",
+        )
 
         # Replace padding with -100 to ignore loss correctly
         non_one_entries = labels_batch.attention_mask.ne(1)
@@ -111,7 +114,6 @@ class AutomaticSpeechRecognition(Task):
         self,
         examples: BatchEncoding,
         tokenizer: PreTrainedTokenizerBase,
-        processor: Optional[AutoProcessor],
         model_config: PretrainedConfig,
         task_config: TaskConfig,
     ) -> BatchEncoding:
@@ -136,45 +138,8 @@ class AutomaticSpeechRecognition(Task):
 
             return doc
 
-        def clean_audio(
-            feature_extractor: AutoFeatureExtractor, examples: BatchEncoding
-        ) -> BatchEncoding:
-            """Cleans the audio of a document.
-            Args:
-                feature_extractor (AutoFeatureExtractor):
-                    The feature extractor used for extracting the features.
-                examples (BatchEncoding):
-                    The examples to be cleaned.
-            Returns:
-                BatchEncoding:
-                    The cleaned examples.
-            """
-            # If there is more than on feature column list raise an exception
-            if len(task_config.feature_column_names) != 1:
-                raise ValueError(
-                    "Only one feature column is supported, for the Automatic Speech Recognition task."
-                )
-
-            # Get the feature column name
-            feature_column_name = task_config.feature_column_names[0]
-
-            # Get the audio arrays
-            audio_arrays = [x["array"] for x in examples[feature_column_name]]
-
-            # Resample and pad the audio arrays
-            inputs = feature_extractor(
-                audio_arrays,
-                sampling_rate=feature_extractor.sampling_rate,
-                padding=True,
-                max_length=feature_extractor.sampling_rate
-                * 10,  # Allow 10 seconds audio
-                truncation=True,
-            )
-            examples["input_features"] = inputs.data["input_features"]
-            return examples
-
         # Preprocess the transcriptions
-        examples["sentence"] = [
+        examples[task_config.label_column_name] = [
             clean_transcription(example)
             for example in examples[task_config.label_column_name]
         ]
@@ -184,12 +149,14 @@ class AutomaticSpeechRecognition(Task):
             list(examples[task_config.label_column_name])
         )
 
-        # Load feature extractor
-        feature_extractor = AutoFeatureExtractor.from_pretrained(model_config.model_id)
+        # If there is more than on feature column list raise an exception
+        if len(task_config.feature_column_names) != 1:
+            raise ValueError(
+                "Only one feature column is supported, for the Automatic Speech Recognition task."
+            )
 
-        # Clean the audio
-        examples = clean_audio(feature_extractor, examples)
-
+        # Rename the feature column to input_values
+        examples["input_values"] = examples.pop(task_config.feature_column_names[0])
         return examples
 
     def _spacy_preprocess_fn(self, examples: dict) -> dict:
@@ -205,7 +172,6 @@ class AutomaticSpeechRecognition(Task):
     def _load_data_collator(
         self, processor: PreTrainedTokenizerBase
     ) -> DataCollatorCTCWithPadding:
-        processor = Wav2Vec2Processor.from_pretrained("openai/whisper-small")
         return DataCollatorCTCWithPadding(processor=processor)
 
     def _prepare_predictions_and_labels(

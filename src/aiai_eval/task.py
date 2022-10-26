@@ -697,7 +697,6 @@ class Task(ABC):
         self,
         examples: BatchEncoding,
         tokenizer: PreTrainedTokenizerBase,
-        processor: Optional[AutoProcessor],
         model_config: ModelConfig,
         task_config: TaskConfig,
     ) -> BatchEncoding:
