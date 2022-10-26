@@ -131,6 +131,7 @@ class Task(ABC):
         # Extract the model and tokenizer
         model = model_dict["model"]
         tokenizer = model_dict.get("tokenizer")
+        processor = model_dict.get("processor")
 
         # Log the number of parameters in the model
         if model_config.framework == Framework.PYTORCH:
@@ -172,6 +173,7 @@ class Task(ABC):
                     model=model,
                     model_config=model_config,
                     tokenizer=tokenizer,
+                    processor=processor,
                     framework=model_config.framework,
                     dataset=bootstrapped_datasets[idx],
                     prepared_dataset=prepared_datasets[idx],
@@ -215,6 +217,7 @@ class Task(ABC):
         model: Union[nn.Module, Language],
         model_config: ModelConfig,
         tokenizer: Optional[PreTrainedTokenizerBase],
+        processor: Optional[AutoProcessor],
         dataset: Dataset,
         prepared_dataset: Dataset,
         framework: Framework,
@@ -267,6 +270,7 @@ class Task(ABC):
             model_predictions = self._get_model_predictions(
                 model=model,
                 tokenizer=tokenizer,
+                processor=processor,
                 prepared_dataset=prepared_dataset,
                 batch_size=batch_size,
                 framework=framework,
@@ -397,12 +401,14 @@ class Task(ABC):
             split=self.task_config.test_name,
         )
 
-    def _prepare_pytorch_batch(self, batch: dict) -> dict:
+    def _prepare_pytorch_batch(self, batch: dict, input_modality: str) -> dict:
         """Prepare a batch for the PyTorch model.
 
         Args:
             batch (dict):
                 The batch.
+            input_modality (str):
+                The input modality, can be 'audio' or 'text'.
 
         Returns:
             dict:
@@ -414,11 +420,15 @@ class Task(ABC):
         }
 
         # Create a view of the batch with only desired features
-        accepted_transformer_features = [
-            "input_ids",
-            "attention_mask",
-            "token_type_ids",
-        ]
+        if input_modality == "text":
+            accepted_transformer_features = [
+                "input_ids",
+                "attention_mask",
+                "token_type_ids",
+            ]
+        elif input_modality == "audio":
+            accepted_transformer_features = ["input_features"]
+
         batch = {
             key: value
             for key, value in batch.items()
@@ -432,6 +442,7 @@ class Task(ABC):
         self,
         model: Union[nn.Module, Language],
         tokenizer: Optional[PreTrainedTokenizerBase],
+        processor: Optional[AutoProcessor],
         prepared_dataset: Dataset,
         batch_size: int,
         framework: Framework,
@@ -465,7 +476,10 @@ class Task(ABC):
         if framework == Framework.PYTORCH:
 
             # Load the data collator
-            data_collator = self._load_data_collator(tokenizer)
+            if not isinstance(processor, PreTrainedTokenizerBase):
+                data_collator = self._load_data_collator(tokenizer=processor)
+            else:
+                data_collator = self._load_data_collator(tokenizer=tokenizer)
 
             dataloader = DataLoader(
                 prepared_dataset,
@@ -483,8 +497,18 @@ class Task(ABC):
             all_predictions = list()
             for batch in itr:
 
+                # Define input modality, used for preparing the batch
+                # TODO: should probably be picked up from model somehow, or
+                # be part of the task config.
+                if self.task_config.name == "automatic-speech-recognition":
+                    input_modality = "audio"
+                else:
+                    input_modality = "text"
+
                 # Prepare the batch
-                batch = self._prepare_pytorch_batch(batch)
+                batch = self._prepare_pytorch_batch(
+                    batch, input_modality=input_modality
+                )
 
                 # If we are dealing with a Hugging Face model then we will use the
                 # entire batch dictionary
@@ -605,7 +629,6 @@ class Task(ABC):
                 preprocess_fn = partial(
                     self._pytorch_preprocess_fn,
                     tokenizer=kwargs["tokenizer"],
-                    processor=kwargs["processor"] if "processor" in kwargs else None,
                     model_config=kwargs["model_config"],
                     task_config=self.task_config,
                 )
@@ -717,7 +740,9 @@ class Task(ABC):
         pass
 
     @abstractmethod
-    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase) -> DataCollator:
+    def _load_data_collator(
+        self, tokenizer: Union[PreTrainedTokenizerBase, AutoProcessor]
+    ) -> DataCollator:
         """Load the data collator used to prepare samples during finetuning.
 
         Args:
