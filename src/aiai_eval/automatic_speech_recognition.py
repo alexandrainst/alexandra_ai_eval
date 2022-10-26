@@ -8,7 +8,7 @@ from unicodedata import normalize
 
 import torch
 from datasets.arrow_dataset import Dataset
-from transformers import Wav2Vec2Processor
+from transformers import AutoFeatureExtractor, Wav2Vec2Processor
 from transformers.configuration_utils import PretrainedConfig
 from transformers.models.auto.processing_auto import AutoProcessor
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
@@ -137,18 +137,62 @@ class AutomaticSpeechRecognition(Task):
 
             return doc
 
+        def clean_audio(
+            feature_extractor: AutoFeatureExtractor, examples: BatchEncoding
+        ) -> BatchEncoding:
+            """Cleans the audio of a document.
+            Args:
+                feature_extractor (AutoFeatureExtractor):
+                    The feature extractor used for extracting the features.
+                examples (BatchEncoding):
+                    The examples to be cleaned.
+            Returns:
+                BatchEncoding:
+                    The cleaned examples.
+            """
+            # If there is more than on feature column list raise an exception
+            if len(task_config.feature_column_names) != 1:
+                raise ValueError(
+                    "Only one feature column is supported, for the Automatic Speech Recognition task."
+                )
+
+            # Get the feature column name
+            feature_column_name = task_config.feature_column_names[0]
+
+            # Get the audio arrays
+            audio_arrays = [x["array"] for x in examples[feature_column_name]]
+
+            # Resample and pad the audio arrays
+            inputs = feature_extractor(
+                audio_arrays,
+                sampling_rate=feature_extractor.sampling_rate,
+                padding=True,
+                max_length=feature_extractor.sampling_rate
+                * 10,  # Allow for 10 seconds of audio
+                truncation=True,
+            )
+            for idx, input_feature in enumerate(inputs.data["input_features"]):
+                examples[feature_column_name][idx]["array"] = input_feature
+            return examples
+
         # Preprocess the transcriptions
         examples["sentence"] = [
             clean_transcription(example)
             for example in examples[task_config.label_column_name]
         ]
 
-        # Preprocess labels
+        # Create labels column
         examples["labels"] = tokenizer.encode(
             list(examples[task_config.label_column_name])
         )
 
-        return None
+        # Load feature extractor
+        feature_extractor = AutoFeatureExtractor.from_pretrained(model_config.model_id)
+
+        # Clean the audio
+        examples = clean_audio(feature_extractor, examples)
+
+        return examples
 
     def _spacy_preprocess_fn(self, examples: dict) -> dict:
         raise FrameworkCannotHandleTask(
@@ -173,8 +217,6 @@ class AutomaticSpeechRecognition(Task):
         prepared_dataset: Dataset,
         **kwargs,
     ) -> List[Tuple[list, list]]:
-
-        # Return the predictions and labels, both with and without MISC tags
         return [([], []), ([], [])]
 
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
