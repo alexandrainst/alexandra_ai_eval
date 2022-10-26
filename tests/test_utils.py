@@ -129,38 +129,47 @@ def test_clear_memory():
 
 
 @pytest.mark.parametrize(
-    argnames="architectures,supertask,raises_error",
+    argnames="architectures,supertask,allowed_architectures,raises_error",
     argvalues=[
         (
             ["TokenClassification", "SequenceClassification"],
+            "token-classification",
             "token-classification",
             False,
         ),
         (
             ["TokenClassification", "SequenceClassification"],
+            "sequence-classification",
             "sequence-classification",
             False,
         ),
         (
             ["TokenClassification", "SequenceClassification"],
             "not-a-supertask",
+            "not-a-supertask",
             True,
         ),
         (
             ["TokenClassification"],
+            "token-classification",
             "token-classification",
             False,
         ),
         (
             ["TokenClassification"],
             "sequence-classification",
+            "sequence-classification",
             True,
         ),
     ],
 )
-def test_check_supertask(architectures, supertask, raises_error):
+def test_check_supertask(architectures, supertask, allowed_architectures, raises_error):
     if raises_error:
         with pytest.raises(InvalidArchitectureForTask):
-            check_supertask(architectures, supertask)
+            check_supertask(architectures, supertask, allowed_architectures)
     else:
-        check_supertask(architectures=architectures, supertask=supertask)
+        check_supertask(
+            architectures=architectures,
+            supertask=supertask,
+            allowed_architectures=allowed_architectures,
+        )
