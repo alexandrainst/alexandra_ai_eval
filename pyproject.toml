@@ -29,6 +29,7 @@ jiwer = "^2.5.1"
 transformers = "^4.23.0"
 soundfile = "^0.11.0"
 torchaudio = "^0.12.1"
+evaluate = "^0.3.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"

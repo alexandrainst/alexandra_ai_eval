@@ -7,11 +7,12 @@ from abc import ABC, abstractmethod
 from functools import partial
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
+import evaluate as evaluate_hf
 import numpy as np
 import torch
 import torch.nn as nn
 from datasets.arrow_dataset import Dataset
-from datasets.load import load_dataset, load_metric
+from datasets.load import load_dataset
 from spacy.language import Language
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
@@ -62,7 +63,7 @@ class Task(ABC):
 
         # Load the metric functions from the `datasets` library
         self._metrics = {
-            metric_cfg.name: load_metric(metric_cfg.huggingface_id)
+            metric_cfg.name: evaluate_hf.load(metric_cfg.huggingface_id)
             for metric_cfg in task_config.metrics
         }
 
