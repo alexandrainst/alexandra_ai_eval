@@ -66,7 +66,9 @@ def load_model_from_hf_hub(
 
         # Check whether the supertask is a valid one
         supertask = task_config.supertask
-        allowed_architectures = task_config.architectures
+        allowed_architectures = (
+            task_config.architectures if task_config.architectures else []
+        )
         (
             supertask_which_is_architectures,
             allowed_and_checked_architectures,

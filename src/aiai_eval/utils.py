@@ -194,7 +194,9 @@ def get_available_devices() -> List[Device]:
 
 
 def check_supertask(
-    architectures: Sequence[str], supertask: str, allowed_architectures: Sequence[str]
+    architectures: Sequence[str],
+    supertask: str,
+    allowed_architectures: Optional[Sequence[str]],
 ) -> Tuple[Sequence[str], Sequence[str]]:
     """Checks if the supertask corresponds to the architectures and if the architectures are among the allowed architectures.
 
@@ -223,11 +225,14 @@ def check_supertask(
     ]
 
     # Check if architecture is among the fallback allowed architectures
-    allowed_and_checked_architectures = [
-        pascal_to_kebab(architecture)
-        for architecture in architectures
-        if pascal_to_kebab(architecture) in allowed_architectures
-    ]
+    if allowed_architectures is not None:
+        allowed_and_checked_architectures = [
+            pascal_to_kebab(architecture)
+            for architecture in architectures
+            if pascal_to_kebab(architecture) in allowed_architectures
+        ]
+    else:
+        allowed_and_checked_architectures = []
 
     # If the supertask is not an architecture or the model architecture is not allowed, raise an error
     if not supertask_which_is_architectures and not allowed_and_checked_architectures:

@@ -71,7 +71,7 @@ class TaskConfig:
             to None.
         supertask (str):
             The supertask of the task, describing the overall type of task.
-        architectures (list of str):
+        architectures (None or list of str):
             The architectures that can be used to solve the task.
         metrics (sequence of MetricConfig objects):
             The metrics used to evaluate the task.
@@ -98,7 +98,7 @@ class TaskConfig:
     huggingface_id: str
     huggingface_subset: Optional[str]
     supertask: str
-    architectures: List[str]
+    architectures: Optional[List[str]]
     metrics: List[MetricConfig]
     labels: List[LabelConfig]
     feature_column_names: List[str]
@@ -228,7 +228,7 @@ class ModelConfig:
             The ID of the model.
         tokenizer_id (str):
             The ID of the tokenizer.
-        processor_id (str):
+        processor_id (None or str):
             The ID of the processor.
         revision (str):
             The revision of the model.
@@ -247,7 +247,7 @@ class ModelConfig:
 
     model_id: str
     tokenizer_id: str
-    processor_id: str
+    processor_id: Optional[str]
     revision: str
     framework: Framework
     id2label: Optional[List[str]]

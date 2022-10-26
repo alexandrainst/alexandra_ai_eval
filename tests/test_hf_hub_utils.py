@@ -24,6 +24,7 @@ class TestLoadModelFromHfHub:
         model_config = ModelConfig(
             model_id="saattrupdan/wav2vec2-xls-r-300m-ftspeech",
             tokenizer_id="saattrupdan/wav2vec2-xls-r-300m-ftspeech",
+            processor_id=None,
             revision="main",
             framework=Framework.PYTORCH,
             id2label=None,
@@ -42,6 +43,7 @@ class TestLoadModelFromHfHub:
         model_config = ModelConfig(
             model_id="invalid-model-id",
             tokenizer_id="invalid-model-id",
+            processor_id=None,
             revision="main",
             framework=Framework.PYTORCH,
             id2label=None,

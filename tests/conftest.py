@@ -55,6 +55,7 @@ def model_configs(evaluation_config, task_config):
         ],
         "question-answering": ["deepset/minilm-uncased-squad2"],
         "offensive-text-classification": ["DaNLP/da-electra-hatespeech-detection"],
+        "automatic-speech-recognition": ["openai/whisper-small"],
     }
     yield [
         get_model_config(
