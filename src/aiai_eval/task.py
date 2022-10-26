@@ -600,12 +600,20 @@ class Task(ABC):
         """
         try:
             if framework == Framework.PYTORCH:
-                preprocess_fn = partial(
-                    self._pytorch_preprocess_fn,
-                    tokenizer=kwargs["tokenizer"],
-                    model_config=kwargs["model_config"],
-                    task_config=self.task_config,
-                )
+                if "processor" in kwargs:
+                    preprocess_fn = partial(
+                        self._pytorch_preprocess_fn,
+                        tokenizer=kwargs["processor"],
+                        model_config=kwargs["model_config"],
+                        task_config=self.task_config,
+                    )
+                else:
+                    preprocess_fn = partial(
+                        self._pytorch_preprocess_fn,
+                        tokenizer=kwargs["tokenizer"],
+                        model_config=kwargs["model_config"],
+                        task_config=self.task_config,
+                    )
                 preprocessed = dataset.map(
                     preprocess_fn,
                     batched=True,
