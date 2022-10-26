@@ -1,12 +1,13 @@
 """Class for question-answering tasks."""
 
 from collections import defaultdict
-from typing import List, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple
 
 import numpy as np
 import torch
 from datasets.arrow_dataset import Dataset
 from transformers.data.data_collator import DataCollator, default_data_collator
+from transformers.models.auto.processing_auto import AutoProcessor
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .config import ModelConfig, TaskConfig
@@ -34,6 +35,7 @@ class QuestionAnswering(Task):
         self,
         examples: BatchEncoding,
         tokenizer: PreTrainedTokenizerBase,
+        processor: Optional[AutoProcessor],
         model_config: ModelConfig,
         task_config: TaskConfig,
     ) -> BatchEncoding:

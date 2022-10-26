@@ -1,12 +1,16 @@
 """Class for automatic speech recognition tasks."""
 
+import re
+from concurrent.futures import process
 from dataclasses import dataclass
-from typing import Dict, List, Sequence, Tuple, Union
+from typing import Dict, List, Optional, Sequence, Tuple, Union
+from unicodedata import normalize
 
 import torch
 from datasets.arrow_dataset import Dataset
 from transformers import Wav2Vec2Processor
 from transformers.configuration_utils import PretrainedConfig
+from transformers.models.auto.processing_auto import AutoProcessor
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .config import TaskConfig
@@ -108,9 +112,41 @@ class AutomaticSpeechRecognition(Task):
         self,
         examples: BatchEncoding,
         tokenizer: PreTrainedTokenizerBase,
+        processor: Optional[AutoProcessor],
         model_config: PretrainedConfig,
         task_config: TaskConfig,
     ) -> BatchEncoding:
+        def clean_transcription(doc: str) -> str:
+            """Cleans the transcription of a document.
+            Args:
+                doc (str):
+                    A document to be cleaned.
+            Returns:
+                str:
+                    The cleaned document.
+            """
+            # NFKC normalize the transcriptions
+            doc = normalize("NFKC", doc)
+
+            # Remove punctuation
+            regex = r"[\[\]\{\}\(\)\,\?\.\!\-\—\–\;\:\"\“\'\’\%\”\�\•\n\r\⁄\’]"
+            doc = re.sub(regex, "", doc)
+
+            # Make the transcription lowercase and strip whitespace
+            doc = doc.lower().strip()
+
+            return doc
+
+        # Preprocess the transcriptions
+        examples["sentence"] = clean_transcription(
+            examples[task_config.label_column_name]
+        )
+
+        # Preprocess labels
+        examples["labels"] = tokenizer.encode(
+            list(examples[task_config.label_column_name])
+        )
+
         return None
 
     def _spacy_preprocess_fn(self, examples: dict) -> dict:
