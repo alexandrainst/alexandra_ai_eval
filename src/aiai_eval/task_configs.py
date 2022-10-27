@@ -239,7 +239,7 @@ ASR = TaskConfig(
     huggingface_subset="da",
     supertask="automatic-speech-recognition",
     architectures=[
-        "wav-2-vec-2-for-c-t-c",
+        "wav2-vec2-for-c-t-c",
         "whisper-for-conditional-generation",
     ],
     metrics=[WER],
