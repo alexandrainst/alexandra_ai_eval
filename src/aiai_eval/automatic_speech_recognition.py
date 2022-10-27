@@ -5,8 +5,10 @@ from dataclasses import dataclass
 from typing import Dict, List, Sequence, Tuple, Union
 from unicodedata import normalize
 
+import numpy as np
 import torch
 from datasets.arrow_dataset import Dataset
+from numpy.typing import NDArray
 from transformers import Wav2Vec2Processor
 from transformers.configuration_utils import PretrainedConfig
 from transformers.models.auto.processing_auto import AutoProcessor
@@ -144,9 +146,10 @@ class AutomaticSpeechRecognition(Task):
         ]
 
         # Create labels column
-        examples["labels"] = tokenizer.encode(
-            list(examples[task_config.label_column_name])
-        )
+        examples["labels"] = tokenizer(
+            list(examples[task_config.label_column_name]),
+            truncation=True,
+        )["input_ids"]
 
         # If there is more than on feature column list raise an exception
         if len(task_config.feature_column_names) != 1:
@@ -180,7 +183,27 @@ class AutomaticSpeechRecognition(Task):
         prepared_dataset: Dataset,
         **kwargs,
     ) -> List[Tuple[list, list]]:
-        return [([], []), ([], [])]
+        # Get processor
+        processor = kwargs["processor"]
+
+        # Make predictions into a numpy array
+        predictions_arr: NDArray[np.int_] = np.array(predictions)
+
+        # Get the padding token
+        pad_token = processor.tokenizer.pad_token_id
+
+        # Set the ground truth labels with label id -100 to be the padding token id
+        predictions_arr[predictions == -100] = pad_token
+
+        # Decode the predictions
+        predictions_str = processor.batch_decode(
+            predictions_arr, skip_special_tokens=True
+        )
+
+        # Decode the labels
+        label_str = processor.tokenizer.batch_decode(prepared_dataset["labels"])
+
+        return list(zip([predictions_str], [label_str]))
 
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
         return True
