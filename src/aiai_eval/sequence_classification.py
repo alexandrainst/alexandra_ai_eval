@@ -1,11 +1,12 @@
 """Class for sequence classification tasks."""
 
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
 from transformers.configuration_utils import PretrainedConfig
-from transformers.data.data_collator import DataCollator, DataCollatorWithPadding
+from transformers.data.data_collator import DataCollatorWithPadding
+from transformers.models.auto.processing_auto import AutoProcessor
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .config import TaskConfig
@@ -68,8 +69,10 @@ class SequenceClassification(Task):
         # Return the predictions and labels
         return [(list(predictions), list(labels))]
 
-    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase) -> DataCollator:
-        return DataCollatorWithPadding(tokenizer, padding="longest")
+    def _load_data_collator(
+        self, tokenizer_or_processor: Union[PreTrainedTokenizerBase, AutoProcessor]
+    ) -> DataCollatorWithPadding:
+        return DataCollatorWithPadding(tokenizer_or_processor, padding="longest")
 
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
         sample_preds = model_predictions[0]
