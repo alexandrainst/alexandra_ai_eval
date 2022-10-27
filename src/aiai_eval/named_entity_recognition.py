@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 from functools import partial
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
@@ -12,6 +12,7 @@ from transformers.data.data_collator import (
     DataCollator,
     DataCollatorForTokenClassification,
 )
+from transformers.models.auto.processing_auto import AutoProcessor
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .config import TaskConfig
@@ -80,8 +81,12 @@ class NamedEntityRecognition(Task):
 
         return aligned_spacy_predictions
 
-    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase) -> DataCollator:
-        return DataCollatorForTokenClassification(tokenizer, label_pad_token_id=-100)
+    def _load_data_collator(
+        self, tokenizer_or_processor: Union[PreTrainedTokenizerBase, AutoProcessor]
+    ) -> DataCollatorForTokenClassification:
+        return DataCollatorForTokenClassification(
+            tokenizer_or_processor, label_pad_token_id=-100
+        )
 
     def _prepare_predictions_and_labels(
         self,
