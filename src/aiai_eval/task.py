@@ -477,9 +477,13 @@ class Task(ABC):
 
             # Load the data collator
             if not isinstance(processor, PreTrainedTokenizerBase):
-                data_collator = self._load_data_collator(tokenizer=processor)
+                data_collator = self._load_data_collator(
+                    tokenizer_or_processor=processor
+                )
             else:
-                data_collator = self._load_data_collator(tokenizer=tokenizer)
+                data_collator = self._load_data_collator(
+                    tokenizer_or_processor=tokenizer
+                )
 
             dataloader = DataLoader(
                 prepared_dataset,
@@ -520,7 +524,12 @@ class Task(ABC):
                             warnings.filterwarnings(
                                 action="ignore", category=UserWarning
                             )
-                            model_predictions = model(**batch)
+                            if self.task_config.name == "automatic-speech-recognition":
+                                model_predictions = model.generate(
+                                    input_features=batch["input_features"]
+                                )
+                            else:
+                                model_predictions = model(**batch)
 
                     # If we are dealing with a classification model then we will take
                     # the logits
@@ -740,14 +749,13 @@ class Task(ABC):
 
     @abstractmethod
     def _load_data_collator(
-        self, tokenizer: Union[PreTrainedTokenizerBase, AutoProcessor]
+        self, tokenizer_or_processor: Union[PreTrainedTokenizerBase, AutoProcessor]
     ) -> DataCollator:
         """Load the data collator used to prepare samples during finetuning.
 
         Args:
-            tokenizer (Hugging Face tokenizer or None, optional):
-                A pretrained tokenizer. Can be None if the tokenizer is not used in the
-                initialisation of the data collator. Defaults to None.
+            tokenizer_or_processor (Hugging Face tokenizer or AutoProcessor):
+                A pretrained tokenizer or processor.
 
         Returns:
             Hugging Face DataCollator:
