@@ -12,7 +12,6 @@ from transformers.data.data_collator import (
     DataCollator,
     DataCollatorForTokenClassification,
 )
-from transformers.models.auto.processing_auto import AutoProcessor
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .config import TaskConfig
@@ -41,7 +40,6 @@ class NamedEntityRecognition(Task):
         self,
         examples: BatchEncoding,
         tokenizer: PreTrainedTokenizerBase,
-        processor: Optional[AutoProcessor],
         model_config: PretrainedConfig,
         task_config: TaskConfig,
     ) -> BatchEncoding:

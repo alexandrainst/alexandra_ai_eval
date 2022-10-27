@@ -6,7 +6,6 @@ import numpy as np
 from datasets.arrow_dataset import Dataset
 from transformers.configuration_utils import PretrainedConfig
 from transformers.data.data_collator import DataCollator, DataCollatorWithPadding
-from transformers.models.auto.processing_auto import AutoProcessor
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .config import TaskConfig
@@ -40,7 +39,6 @@ class SequenceClassification(Task):
         self,
         examples: BatchEncoding,
         tokenizer: PreTrainedTokenizerBase,
-        processor: Optional[AutoProcessor],
         model_config: PretrainedConfig,
         task_config: TaskConfig,
     ) -> BatchEncoding:
