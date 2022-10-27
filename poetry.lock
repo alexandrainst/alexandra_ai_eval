@@ -1272,6 +1272,14 @@ python-versions = ">=3.6.8"
 diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
+name = "pypi-kenlm"
+version = "0.1.20220713"
+description = ""
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "pytest"
 version = "6.2.5"
 description = "pytest: simple powerful testing with Python"
@@ -2006,7 +2014,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.11"
-content-hash = "ef3ef7cf452e858f995aba241d79bc4abacf15caca06ba8111e31ced066620b2"
+content-hash = "601e939843d9a493371bcb26b231e34e7dc5b0e1d73306db03c7c66e7ac53f07"
 
 [metadata.files]
 aiohttp = [
@@ -3442,6 +3450,9 @@ pynvml = [
 pyparsing = [
     {file = "pyparsing-3.0.9-py3-none-any.whl", hash = "sha256:5026bae9a10eeaefb61dab2f09052b9f4307d44aee4eda64b309723d8d206bbc"},
     {file = "pyparsing-3.0.9.tar.gz", hash = "sha256:2b020ecf7d21b687f219b71ecad3631f644a47f01403fa1d1036b0c6416d70fb"},
+]
+pypi-kenlm = [
+    {file = "pypi-kenlm-0.1.20220713.tar.gz", hash = "sha256:6bd960b1e6bf85cc5469d469bde1955dad7dc79b4fe06ade9b5d0609b3507992"},
 ]
 pytest = [
     {file = "pytest-6.2.5-py3-none-any.whl", hash = "sha256:7310f8d27bc79ced999e760ca304d69f6ba6c6649c0b60fb0e04a4a77cacc134"},

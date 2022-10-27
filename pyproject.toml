@@ -31,6 +31,7 @@ soundfile = "^0.11.0"
 torchaudio = "^0.12.1"
 evaluate = "^0.3.0"
 pyctcdecode = "^0.4.0"
+pypi-kenlm = "^0.1.20220713"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
