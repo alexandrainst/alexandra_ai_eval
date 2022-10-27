@@ -1,12 +1,13 @@
 """Class for question-answering tasks."""
 
 from collections import defaultdict
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Sequence, Tuple, Union
 
 import numpy as np
 import torch
 from datasets.arrow_dataset import Dataset
 from transformers.data.data_collator import DataCollator, default_data_collator
+from transformers.models.auto.processing_auto import AutoProcessor
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .config import ModelConfig, TaskConfig
@@ -42,7 +43,9 @@ class QuestionAnswering(Task):
             tokenizer=tokenizer,
         )
 
-    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase) -> DataCollator:
+    def _load_data_collator(
+        self, tokenizer_or_processor: Union[PreTrainedTokenizerBase, AutoProcessor]
+    ) -> DataCollator:
         return default_data_collator
 
     def _prepare_predictions_and_labels(
