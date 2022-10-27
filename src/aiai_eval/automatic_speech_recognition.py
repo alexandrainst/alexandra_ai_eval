@@ -170,9 +170,9 @@ class AutomaticSpeechRecognition(Task):
         )
 
     def _load_data_collator(
-        self, processor: PreTrainedTokenizerBase
+        self, tokenizer_or_processor: Union[PreTrainedTokenizerBase, AutoProcessor]
     ) -> DataCollatorCTCWithPadding:
-        return DataCollatorCTCWithPadding(processor=processor)
+        return DataCollatorCTCWithPadding(processor=tokenizer_or_processor)
 
     def _prepare_predictions_and_labels(
         self,
