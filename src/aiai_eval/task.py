@@ -293,6 +293,7 @@ class Task(ABC):
                 prepared_dataset=prepared_dataset,
                 model_id2label=model_id2label,
                 cls_token_index=cls_token_index,
+                processor=processor,
             )
 
             # If there are multiple metrics but only one pair in the
@@ -374,6 +375,10 @@ class Task(ABC):
                     references=labels,
                     **metric_cfg.compute_kwargs,
                 )
+                # Some metrics return a single value, others a dictionary. We
+                # standardise this by always returning a dictionary.
+                if isinstance(score_dict, float):
+                    score_dict = {metric_cfg.huggingface_id: score_dict}
 
             # Add scores to the `results` dictionary
             if score_dict is not None:
@@ -525,8 +530,16 @@ class Task(ABC):
                                 action="ignore", category=UserWarning
                             )
                             if self.task_config.name == "automatic-speech-recognition":
+                                forced_decoder_ids = None
+                                if processor is not None:
+                                    forced_decoder_ids = (
+                                        processor.get_decoder_prompt_ids(
+                                            language="da", task="transcribe"
+                                        )
+                                    )
                                 model_predictions = model.generate(
-                                    input_features=batch["input_features"]
+                                    input_features=batch["input_features"],
+                                    forced_decoder_ids=forced_decoder_ids,
                                 )
                             else:
                                 model_predictions = model(**batch)
@@ -551,9 +564,9 @@ class Task(ABC):
                             ],
                             dim=-1,
                         )
-
-                    # Otherwise, we raise an error
-                    else:
+                    # In case of ASR, we recieve a tensor, and we if we do not, then
+                    # we throw an error.
+                    elif not isinstance(model_predictions, torch.Tensor):
                         raise ValueError(
                             "The model predictions are not in the correct format. "
                             f"Received outputs with keys {model_predictions.keys()}"
