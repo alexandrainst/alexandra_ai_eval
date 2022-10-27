@@ -1,14 +1,13 @@
 """Class for automatic speech recognition tasks."""
 
 import re
-from concurrent.futures import process
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Dict, List, Sequence, Tuple, Union
 from unicodedata import normalize
 
 import torch
 from datasets.arrow_dataset import Dataset
-from transformers import AutoFeatureExtractor, Wav2Vec2Processor
+from transformers import Wav2Vec2Processor
 from transformers.configuration_utils import PretrainedConfig
 from transformers.models.auto.processing_auto import AutoProcessor
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
