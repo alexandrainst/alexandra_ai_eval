@@ -16,6 +16,7 @@ from datasets.load import load_dataset
 from spacy.language import Language
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
+from transformers import WhisperForConditionalGeneration
 from transformers.data.data_collator import DataCollator
 from transformers.modeling_utils import PreTrainedModel
 from transformers.models.auto.processing_auto import AutoProcessor
@@ -431,8 +432,9 @@ class Task(ABC):
                 "attention_mask",
                 "token_type_ids",
             ]
+        # Whisper takes "input_features", while Wav2Vec2 takes "input_values"
         elif input_modality == "audio":
-            accepted_transformer_features = ["input_features"]
+            accepted_transformer_features = ["input_features", "input_values"]
 
         batch = {
             key: value
@@ -529,7 +531,9 @@ class Task(ABC):
                             warnings.filterwarnings(
                                 action="ignore", category=UserWarning
                             )
-                            if self.task_config.name == "automatic-speech-recognition":
+                            # Whisper models have a different API compared to even other
+                            # ASR models so we handle it in a specific case here.
+                            if isinstance(model, WhisperForConditionalGeneration):
                                 forced_decoder_ids = None
                                 if processor is not None:
                                     forced_decoder_ids = (
@@ -588,7 +592,7 @@ class Task(ABC):
                     raise UnsupportedModelType(model_type=model_type)
 
                 # Move the predictions back to the CPU and convert it to a NumPy array
-                model_predictions = model_predictions.cpu().numpy().tolist()
+                model_predictions = model_predictions.cpu().numpy()
 
                 # Collect predictions
                 all_predictions.extend(model_predictions)
