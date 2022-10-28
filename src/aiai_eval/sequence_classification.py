@@ -76,7 +76,7 @@ class SequenceClassification(Task):
 
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
         sample_preds = model_predictions[0]
-        elements_are_floats = isinstance(sample_preds[0], float)
+        elements_are_floats = sample_preds[0].dtype.kind == "f"
         return elements_are_floats
 
     def _spacy_preprocess_fn(self, examples: dict) -> dict:
