@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from datasets.arrow_dataset import Dataset
 from numpy.typing import NDArray
-from transformers import Wav2Vec2Processor
+from transformers import Wav2Vec2Processor, Wav2Vec2ProcessorWithLM, WhisperProcessor
 from transformers.configuration_utils import PretrainedConfig
 from transformers.models.auto.processing_auto import AutoProcessor
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
@@ -57,18 +57,28 @@ class DataCollatorCTCWithPadding:
         # Get sampling rate
         sampling_rate = self.processor.feature_extractor.sampling_rate
 
-        # Split inputs and labels since they have to be of different lenghts
-        # and need different padding methods
-        input_features = [
-            {
-                "input_features": self.processor(
-                    feature["input_values"]["array"],
-                    sampling_rate=sampling_rate,
-                ).input_features[0]
-            }
-            for feature in features
-        ]
-        label_features = [{"input_ids": feature["labels"]} for feature in features]
+        # Also Whisper and Wav2Vec2 have different input APIs which we need to take into account.
+        if isinstance(self.processor, WhisperProcessor):
+            input_features = [
+                {
+                    "input_features": self.processor(
+                        feature["input_values"]["array"],
+                        sampling_rate=sampling_rate,
+                    ).input_features[0]
+                }
+                for feature in features
+            ]
+        elif isinstance(self.processor, Wav2Vec2ProcessorWithLM):
+            input_features = [
+                {
+                    "input_values": self.processor(
+                        feature["input_values"]["array"],
+                        sampling_rate=sampling_rate,
+                        padding=self.padding,
+                    ).input_values[0]
+                }
+                for feature in features
+            ]
 
         # Create batch from input_features
         batch = self.processor.feature_extractor.pad(
@@ -76,20 +86,6 @@ class DataCollatorCTCWithPadding:
             padding=self.padding,
             return_tensors="pt",
         )
-
-        # Process labels
-        labels_batch = self.processor.tokenizer.pad(
-            label_features,
-            padding=self.padding,
-            return_tensors="pt",
-        )
-
-        # Replace padding with -100 to ignore loss correctly
-        non_one_entries = labels_batch.attention_mask.ne(1)
-        labels = labels_batch["input_ids"].masked_fill(non_one_entries, -100)
-
-        # Update the batch labels
-        batch["labels"] = labels
 
         # Return the updated batch
         return batch
@@ -118,38 +114,9 @@ class AutomaticSpeechRecognition(Task):
         model_config: PretrainedConfig,
         task_config: TaskConfig,
     ) -> BatchEncoding:
-        def clean_transcription(doc: str) -> str:
-            """Cleans the transcription of a document.
-            Args:
-                doc (str):
-                    A document to be cleaned.
-            Returns:
-                str:
-                    The cleaned document.
-            """
-            # NFKC normalize the transcriptions
-            doc = normalize("NFKC", doc)
-
-            # Remove punctuation
-            regex = r"[\[\]\{\}\(\)\,\?\.\!\-\—\–\;\:\"\“\'\’\%\”\�\•\n\r\⁄\’]"
-            doc = re.sub(regex, "", doc)
-
-            # Make the transcription lowercase and strip whitespace
-            doc = doc.lower().strip()
-
-            return doc
-
-        # Preprocess the transcriptions
-        examples[task_config.label_column_name] = [
-            clean_transcription(example)
-            for example in examples[task_config.label_column_name]
-        ]
 
         # Create labels column
-        examples["labels"] = tokenizer(
-            list(examples[task_config.label_column_name]),
-            truncation=True,
-        )["input_ids"]
+        examples["labels"] = examples[task_config.label_column_name]
 
         # If there is more than on feature column list raise an exception
         if len(task_config.feature_column_names) != 1:
@@ -186,22 +153,21 @@ class AutomaticSpeechRecognition(Task):
         # Get processor
         processor = kwargs["processor"]
 
-        # Make predictions into a numpy array
-        predictions_arr: NDArray[np.int_] = np.array(predictions)
+        # Decode the predictions, Whisper has a different API
+        if isinstance(processor, Wav2Vec2ProcessorWithLM):
+            predictions_str = processor.batch_decode(np.array(predictions)).text
 
-        # Get the padding token
-        pad_token = processor.tokenizer.pad_token_id
+        elif isinstance(processor, Wav2Vec2Processor):
+            predictions_ids = np.argmax(predictions, axis=-1)
+            predictions_str = processor.batch_decode(predictions_ids)
 
-        # Set the ground truth labels with label id -100 to be the padding token id
-        predictions_arr[predictions == -100] = pad_token
+        elif isinstance(processor, WhisperProcessor):
+            predictions_str = processor.batch_decode(
+                predictions, skip_special_tokens=True
+            )
 
-        # Decode the predictions
-        predictions_str = processor.batch_decode(
-            predictions_arr, skip_special_tokens=True
-        )
-
-        # Decode the labels
-        label_str = processor.tokenizer.batch_decode(prepared_dataset["labels"])
+        # Get the labels
+        label_str = prepared_dataset["labels"]
 
         return list(zip([predictions_str], [label_str]))
 
