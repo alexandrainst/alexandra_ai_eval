@@ -128,7 +128,7 @@ class NamedEntityRecognition(Task):
 
         sample_preds = model_predictions[0]
         has_sequence_elements = len(sample_preds[0]) > 0
-        leaves_are_floats = isinstance(sample_preds[0][0], float)
+        leaves_are_floats = sample_preds[0][0].dtype.kind == "f"
         elements_are_strings = isinstance(sample_preds[0], str)
 
         return (has_sequence_elements and leaves_are_floats) or elements_are_strings
