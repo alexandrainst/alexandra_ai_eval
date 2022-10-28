@@ -71,7 +71,7 @@ class QuestionAnswering(Task):
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
         sample_preds = model_predictions[0]
         elements_are_pairs = len(sample_preds[0]) == 2
-        leaves_are_floats = isinstance(sample_preds[0][0], float)
+        leaves_are_floats = sample_preds[0][0].dtype.kind == "f"
         elements_are_strings = isinstance(sample_preds[0], str)
         return (elements_are_pairs and leaves_are_floats) or elements_are_strings
 
