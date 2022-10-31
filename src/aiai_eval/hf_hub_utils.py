@@ -70,7 +70,7 @@ def load_model_from_hf_hub(
             task_config.architectures if task_config.architectures else []
         )
         (
-            supertask_which_is_architectures,
+            supertask_which_is_valid_architecture,
             allowed_and_checked_architectures,
         ) = check_supertask(
             architectures=config.architectures,
@@ -79,9 +79,9 @@ def load_model_from_hf_hub(
         )
 
         # Get the model class associated with the supertask
-        if supertask_which_is_architectures:
+        if supertask_which_is_valid_architecture:
             model_cls = get_class_by_name(
-                class_name=f"auto-model-for-{supertask_which_is_architectures[0]}",
+                class_name=f"auto-model-for-{supertask_which_is_valid_architecture[0]}",
                 module_name="transformers",
             )
         # If the class name is not of the form "auto-model-for-<supertask>" then
@@ -90,6 +90,10 @@ def load_model_from_hf_hub(
             model_cls = get_class_by_name(
                 class_name=allowed_and_checked_architectures[0],
                 module_name="transformers",
+            )
+        else:
+            raise InvalidEvaluation(
+                f"Could not find a valid architecture for the model {model_config.model_id}."
             )
 
         # If the model class could not be found then raise an error
