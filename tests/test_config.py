@@ -52,6 +52,7 @@ class TestTaskConfig:
             huggingface_subset=None,
             supertask="supertask-name",
             architectures=["supertask-name"],
+            modality="text",
             metrics=[metric_config],
             labels=[label],
             feature_column_names=["column-name"],
