@@ -1,4 +1,4 @@
-"""Utility functions related to loading local models."""
+"""Utility functions related to loading local PyTorch models."""
 
 import inspect
 import json
@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 def load_local_pytorch_model(
     model_config: ModelConfig,
-    device: str,
     task_config: TaskConfig,
     evaluation_config: EvaluationConfig,
 ) -> Dict[str, Union[nn.Module, PreTrainedTokenizerBase]]:
@@ -31,14 +30,10 @@ def load_local_pytorch_model(
     Args:
         model_config (ModelConfig):
             The configuration of the model.
-        device (str):
-            Device to load the model onto.
         task_config (TaskConfig):
             The task configuration.
-        architecture_fname (str or Path or None, optional):
-            Name of the file containing the model architecture, which is located inside
-            the model folder. If None then the first Python script found in the model
-            folder will be used. Defaults to None.
+        evaluation_config (EvaluationConfig):
+            The evaluation configuration.
 
     Returns:
         dict:
@@ -173,7 +168,7 @@ def load_local_pytorch_model(
     model.eval()
 
     # Move the model to the specified device
-    model.to(device)
+    model.to(evaluation_config.device)
 
     # Adjust the model to the task
     adjust_model_to_task(
@@ -189,12 +184,12 @@ def load_local_pytorch_model(
     return dict(model=model, tokenizer=tokenizer)
 
 
-def model_exists_locally(
+def pytorch_model_exists_locally(
     model_id: Union[str, Path],
     architecture_fname: Optional[Union[str, Path]] = None,
     weight_fname: Optional[Union[str, Path]] = None,
 ) -> bool:
-    """Check if a model exists locally.
+    """Check if a PyTorch model exists locally.
 
     Args:
         model_id (str or Path):
@@ -237,11 +232,11 @@ def model_exists_locally(
     return architecture_path.exists() and weight_path.exists()
 
 
-def get_model_config_locally(
+def get_pytorch_model_config_locally(
     model_folder: Union[str, Path],
     dataset_id2label: List[str],
 ) -> ModelConfig:
-    """Get the model configuration from a local model.
+    """Get the model configuration from a local PyTorch model.
 
     Args:
         model_folder (str or Path):
