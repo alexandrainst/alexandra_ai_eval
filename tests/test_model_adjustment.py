@@ -44,7 +44,7 @@ def model(model_config, task_config, evaluation_config):
     # Get the model class associated with the supertask
     if supertask_which_is_architectures:
         model_cls = get_class_by_name(
-            class_name=f"auto-model-for-{supertask_which_is_architectures[0]}",
+            class_name=f"auto-model-for-{supertask}",
             module_name="transformers",
         )
     # If the class name is not of the form "auto-model-for-<supertask>" then
