@@ -208,9 +208,12 @@ def check_supertask(
             text-classification.
 
     Returns:
-        tuple of list of str:
-            The architectures that are valid for the supertask, and the provided model architectures that
-            which are allowed for the supertask.
+        tuple of bool and list of str:
+            The boolean value indicate if the supertask corresponds to one of the the supplied
+            model architecture names, i.e. if there exists a class AutoModelFor<pascal(supertask)>.
+            The list of string value, contains the architectures from the supplied allowed
+            architectures, i.e. the contents of  `allowed_architectures`, which correspond to a
+            supplied model architecture names.
 
     Raises:
         InvalidArchitectureForTask:
