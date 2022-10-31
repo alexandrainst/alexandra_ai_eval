@@ -33,7 +33,7 @@ def dataset(qa):
 @pytest.fixture(scope="module")
 def model_dict(evaluation_config):
     model_config = get_model_config(
-        model_id="saattrupdan/xlmr-base-texas-squad-da",
+        model_id="saattrupdan/electra-small-qa-da",
         task_config=QA,
         evaluation_config=evaluation_config,
     )
