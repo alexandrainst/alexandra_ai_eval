@@ -71,8 +71,6 @@ class TaskConfig:
             to None.
         supertask (str):
             The supertask of the task, describing the overall type of task.
-        architectures (None or list of str):
-            The architectures that can be used to solve the task.
         modality str:
             The modality of the input data.
         metrics (sequence of MetricConfig objects):
@@ -94,19 +92,21 @@ class TaskConfig:
             The number of labels in the dataset.
         label_synonyms (list of list of str):
             The synonyms of all the labels, including the main label.
+        architectures (None or list of str):
+            The architectures that can be used to solve the task. Defaults to None.
     """
 
     name: str
     huggingface_id: str
     huggingface_subset: Optional[str]
     supertask: str
-    architectures: Optional[List[str]]
     modality: str
     metrics: List[MetricConfig]
     labels: List[LabelConfig]
     feature_column_names: List[str]
     label_column_name: str
     test_name: Optional[str]
+    architectures: Optional[List[str]] = None
 
     @property
     def pretty_name(self) -> str:
