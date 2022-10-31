@@ -488,10 +488,13 @@ class Task(ABC):
         if framework == Framework.PYTORCH:
 
             # Load the data collator
+            # If the processor is not a tokenizer we assume its a processor
+            # if it is a tokenizer we assume we simply pass that to the data collator
             if not isinstance(processor, PreTrainedTokenizerBase):
                 data_collator = self._load_data_collator(
                     tokenizer_or_processor=processor
                 )
+
             else:
                 data_collator = self._load_data_collator(
                     tokenizer_or_processor=tokenizer
