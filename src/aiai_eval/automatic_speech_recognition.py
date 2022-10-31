@@ -69,7 +69,9 @@ class DataCollatorCTCWithPadding:
                 }
                 for feature in features
             ]
-        elif isinstance(self.processor, Wav2Vec2ProcessorWithLM):
+        elif isinstance(self.processor, Wav2Vec2ProcessorWithLM) or isinstance(
+            self.processor, Wav2Vec2Processor
+        ):
             input_features = [
                 {
                     "input_values": self.processor(
