@@ -47,9 +47,11 @@ class DataCollatorCTCWithPadding:
 
     def __call__(self, features: List[dict]) -> Dict[str, torch.Tensor]:
         """Collate the features.
+        
         Args:
             features (list of dict):
                 A list of feature dicts.
+                
         Returns:
             dict:
                 A dictionary of the collated features.
