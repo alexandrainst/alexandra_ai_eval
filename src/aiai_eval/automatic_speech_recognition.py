@@ -21,8 +21,8 @@ from .task import Task
 
 @dataclass
 class DataCollatorCTCWithPadding:
-    """
-    Data collator that will dynamically pad the inputs received.
+    """Data collator that will dynamically pad the inputs received.
+    
     Args:
         processor (Wav2Vec2Processor)
             The processor used for proccessing the data.
@@ -47,9 +47,11 @@ class DataCollatorCTCWithPadding:
 
     def __call__(self, features: List[dict]) -> Dict[str, torch.Tensor]:
         """Collate the features.
+        
         Args:
             features (list of dict):
                 A list of feature dicts.
+                
         Returns:
             dict:
                 A dictionary of the collated features.
@@ -57,7 +59,7 @@ class DataCollatorCTCWithPadding:
         # Get sampling rate
         sampling_rate = self.processor.feature_extractor.sampling_rate
 
-        # Also Whisper and Wav2Vec2 have different input APIs which we need to take into account.
+        # Whisper and Wav2Vec2 have different input APIs which we need to take into account
         if isinstance(self.processor, WhisperProcessor):
             input_features = [
                 {

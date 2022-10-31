@@ -78,7 +78,7 @@ POWER = MetricConfig(
 
 WER = MetricConfig(
     name="word_error_rate",
-    pretty_name="Rate of errors in words",
+    pretty_name="Word error rate",
     huggingface_id="wer",
     results_key="wer",
     postprocessing_fn=lambda raw_score: str(raw_score),
