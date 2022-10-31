@@ -6,7 +6,6 @@ import numpy as np
 from datasets.arrow_dataset import Dataset
 from transformers.configuration_utils import PretrainedConfig
 from transformers.data.data_collator import DataCollatorWithPadding
-from transformers.models.auto.processing_auto import AutoProcessor
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .config import TaskConfig
@@ -70,7 +69,7 @@ class SequenceClassification(Task):
         return [(list(predictions), list(labels))]
 
     def _load_data_collator(
-        self, tokenizer_or_processor: Union[PreTrainedTokenizerBase, AutoProcessor]
+        self, tokenizer_or_processor: PreTrainedTokenizerBase
     ) -> DataCollatorWithPadding:
         return DataCollatorWithPadding(tokenizer_or_processor, padding="longest")
 
