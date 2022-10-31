@@ -73,6 +73,8 @@ class TaskConfig:
             The supertask of the task, describing the overall type of task.
         architectures (None or list of str):
             The architectures that can be used to solve the task.
+        modality str:
+            The modality of the input data.
         metrics (sequence of MetricConfig objects):
             The metrics used to evaluate the task.
         labels (sequence of LabelConfig objects):
@@ -99,6 +101,7 @@ class TaskConfig:
     huggingface_subset: Optional[str]
     supertask: str
     architectures: Optional[List[str]]
+    modality: str
     metrics: List[MetricConfig]
     labels: List[LabelConfig]
     feature_column_names: List[str]

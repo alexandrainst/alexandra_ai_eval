@@ -516,17 +516,9 @@ class Task(ABC):
             all_predictions = list()
             for batch in itr:
 
-                # Define input modality, used for preparing the batch
-                # TODO: should probably be picked up from model somehow, or
-                # be part of the task config.
-                if self.task_config.name == "automatic-speech-recognition":
-                    input_modality = "audio"
-                else:
-                    input_modality = "text"
-
                 # Prepare the batch
                 batch = self._prepare_pytorch_batch(
-                    batch, input_modality=input_modality
+                    batch, input_modality=self.task_config.modality
                 )
 
                 # If we are dealing with a Hugging Face model then we will use the

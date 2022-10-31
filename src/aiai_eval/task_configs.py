@@ -30,6 +30,7 @@ SENT = TaskConfig(
     huggingface_subset=None,
     supertask="sequence-classification",
     architectures=["sequence-classification"],
+    modality="text",
     metrics=[MCC, MACRO_F1],
     labels=[
         LabelConfig(
@@ -57,6 +58,7 @@ NER = TaskConfig(
     huggingface_subset=None,
     supertask="token-classification",
     architectures=["token-classification"],
+    modality="text",
     metrics=[SEQEVAL_MICRO_F1, SEQEVAL_MICRO_F1_NO_MISC],
     labels=[
         LabelConfig(
@@ -194,6 +196,7 @@ QA = TaskConfig(
     huggingface_subset="da",
     supertask="question-answering",
     architectures=["question-answering"],
+    modality="text",
     metrics=[EXACT_MATCH, QA_F1],
     labels=[
         LabelConfig(
@@ -217,6 +220,7 @@ OFFENSIVE = TaskConfig(
     huggingface_subset=None,
     supertask="sequence-classification",
     architectures=["sequence-classification"],
+    modality="text",
     metrics=[MCC, MACRO_F1],
     labels=[
         LabelConfig(
@@ -242,6 +246,7 @@ ASR = TaskConfig(
         "wav2-vec2-for-c-t-c",
         "whisper-for-conditional-generation",
     ],
+    modality="audio",
     metrics=[WER],
     labels=[
         LabelConfig(
