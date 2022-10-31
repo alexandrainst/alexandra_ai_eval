@@ -261,7 +261,13 @@ class Task(ABC):
             torch.cuda.manual_seed_all(703 + idx)
 
             # Define batch size, which depends on whether we are testing or not
-            batch_size = 2 if self.evaluation_config.testing else 32
+            batch_size = (
+                2
+                if self.evaluation_config.testing
+                else 4
+                if self.task_config.name == "automatic-speech-recognition"
+                else 32
+            )
 
             # Start carbon emissions tracking
             if self.evaluation_config.track_carbon_emissions:
