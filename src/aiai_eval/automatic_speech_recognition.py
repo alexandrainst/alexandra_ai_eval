@@ -22,7 +22,7 @@ from .task import Task
 @dataclass
 class DataCollatorCTCWithPadding:
     """Data collator that will dynamically pad the inputs received.
-    
+
     Args:
         processor (Wav2Vec2Processor)
             The processor used for proccessing the data.
@@ -47,11 +47,11 @@ class DataCollatorCTCWithPadding:
 
     def __call__(self, features: List[dict]) -> Dict[str, torch.Tensor]:
         """Collate the features.
-        
+
         Args:
             features (list of dict):
                 A list of feature dicts.
-                
+
         Returns:
             dict:
                 A dictionary of the collated features.
@@ -66,7 +66,6 @@ class DataCollatorCTCWithPadding:
                     "input_features": self.processor(
                         feature["input_values"]["array"],
                         sampling_rate=sampling_rate,
-                        padding=self.padding,
                     ).input_features[0]
                 }
                 for feature in features
@@ -79,13 +78,12 @@ class DataCollatorCTCWithPadding:
                     "input_values": self.processor(
                         feature["input_values"]["array"],
                         sampling_rate=sampling_rate,
-                        padding=self.padding,
                     ).input_values[0]
                 }
                 for feature in features
             ]
 
-        # Create batch from input_features
+        # Create batch from input_features, and pad while doing so
         batch = self.processor.feature_extractor.pad(
             input_features,
             padding=self.padding,
