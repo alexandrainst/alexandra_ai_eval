@@ -16,10 +16,9 @@ from datasets.load import load_dataset
 from spacy.language import Language
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
-from transformers import WhisperForConditionalGeneration
+from transformers import DataProcessor, WhisperForConditionalGeneration
 from transformers.data.data_collator import DataCollator
 from transformers.modeling_utils import PreTrainedModel
-from transformers.models.auto.processing_auto import AutoProcessor
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .co2 import get_carbon_tracker
@@ -218,7 +217,7 @@ class Task(ABC):
         model: Union[nn.Module, Language],
         model_config: ModelConfig,
         tokenizer: Optional[PreTrainedTokenizerBase],
-        processor: Optional[AutoProcessor],
+        processor: Optional[DataProcessor],
         dataset: Dataset,
         prepared_dataset: Dataset,
         framework: Framework,
@@ -455,7 +454,7 @@ class Task(ABC):
         self,
         model: Union[nn.Module, Language],
         tokenizer: Optional[PreTrainedTokenizerBase],
-        processor: Optional[AutoProcessor],
+        processor: Optional[DataProcessor],
         prepared_dataset: Dataset,
         batch_size: int,
         framework: Framework,
@@ -772,12 +771,12 @@ class Task(ABC):
 
     @abstractmethod
     def _load_data_collator(
-        self, tokenizer_or_processor: Union[PreTrainedTokenizerBase, AutoProcessor]
+        self, tokenizer_or_processor: Union[PreTrainedTokenizerBase, DataProcessor]
     ) -> DataCollator:
         """Load the data collator used to prepare samples during finetuning.
 
         Args:
-            tokenizer_or_processor (Hugging Face tokenizer or AutoProcessor):
+            tokenizer_or_processor (Hugging Face tokenizer or DataProcessor):
                 A pretrained tokenizer or processor.
 
         Returns:
