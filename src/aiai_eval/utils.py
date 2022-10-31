@@ -197,7 +197,7 @@ def check_supertask(
     architectures: Sequence[str],
     supertask: str,
     allowed_architectures: Optional[Sequence[str]],
-) -> Tuple[Sequence[str], Sequence[str]]:
+) -> Tuple[bool, Sequence[str]]:
     """Checks if the supertask corresponds to the architectures and if the architectures are among the allowed architectures.
 
     Args:
@@ -218,11 +218,9 @@ def check_supertask(
             architectures.
     """
     # Create list which contains the supertask if it exists among the available architectures
-    supertask_which_is_architectures = [
-        supertask
-        for architecture in architectures
-        if kebab_to_pascal(supertask) in architecture
-    ]
+    supertask_which_is_architectures = any(
+        kebab_to_pascal(supertask) in architecture for architecture in architectures
+    )
 
     # Check if architecture is among the fallback allowed architectures
     if allowed_architectures is not None:

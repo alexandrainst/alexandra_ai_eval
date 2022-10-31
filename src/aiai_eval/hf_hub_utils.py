@@ -81,7 +81,7 @@ def load_model_from_hf_hub(
         # Get the model class associated with the supertask
         if supertask_which_is_valid_architecture:
             model_cls = get_class_by_name(
-                class_name=f"auto-model-for-{supertask_which_is_valid_architecture[0]}",
+                class_name=f"auto-model-for-{supertask}",
                 module_name="transformers",
             )
         # If the class name is not of the form "auto-model-for-<supertask>" then
