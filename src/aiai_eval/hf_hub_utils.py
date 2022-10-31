@@ -151,13 +151,17 @@ def load_model_from_hf_hub(
         **params,
     )
 
-    # try to load a processor from the model id, if it exists
-    processor_id = model_config.processor_id
-    processor = AutoProcessor.from_pretrained(
-        processor_id,
-        revision=model_config.revision,
-        use_auth_token=evaluation_config.use_auth_token,
-    )
+    # try to load a processor from the model id, if it does not exist, then set
+    # processor to None
+    try:
+        processor_id = model_config.processor_id
+        processor = AutoProcessor.from_pretrained(
+            processor_id,
+            revision=model_config.revision,
+            use_auth_token=evaluation_config.use_auth_token,
+        )
+    except OSError:
+        processor = None
 
     # Set the maximal length of the tokenizer to the model's maximal length. This is
     # required for proper truncation
