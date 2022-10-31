@@ -55,7 +55,7 @@ def model_configs(evaluation_config, task_config):
         ],
         "question-answering": ["deepset/minilm-uncased-squad2"],
         "offensive-text-classification": ["DaNLP/da-electra-hatespeech-detection"],
-        "automatic-speech-recognition": ["openai/whisper-small"],
+        "automatic-speech-recognition": ["openai/whisper-tiny"],
     }
     yield [
         get_model_config(
@@ -99,6 +99,9 @@ def model_total_scores(model_configs):
             macro_f1_se=0.0,
             mcc=0.0,
             mcc_se=0.0,
+        ),
+        "openai/whisper-tiny": dict(
+            word_error_rate=6.044166666666667, word_error_rate_se=10.121766666666666
         ),
     }
     yield [score_mapping[model_cfg.model_id] for model_cfg in model_configs]
