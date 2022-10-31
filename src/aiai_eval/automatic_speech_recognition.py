@@ -59,7 +59,7 @@ class DataCollatorCTCWithPadding:
         # Get sampling rate
         sampling_rate = self.processor.feature_extractor.sampling_rate
 
-        # Also Whisper and Wav2Vec2 have different input APIs which we need to take into account.
+        # Whisper and Wav2Vec2 have different input APIs which we need to take into account
         if isinstance(self.processor, WhisperProcessor):
             input_features = [
                 {
