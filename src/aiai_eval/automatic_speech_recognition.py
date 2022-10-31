@@ -64,6 +64,7 @@ class DataCollatorCTCWithPadding:
                     "input_features": self.processor(
                         feature["input_values"]["array"],
                         sampling_rate=sampling_rate,
+                        padding=True,
                     ).input_features[0]
                 }
                 for feature in features
