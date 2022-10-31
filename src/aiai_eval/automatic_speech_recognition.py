@@ -21,8 +21,8 @@ from .task import Task
 
 @dataclass
 class DataCollatorCTCWithPadding:
-    """
-    Data collator that will dynamically pad the inputs received.
+    """Data collator that will dynamically pad the inputs received.
+    
     Args:
         processor (Wav2Vec2Processor)
             The processor used for proccessing the data.
