@@ -8,11 +8,7 @@ import numpy as np
 from datasets.arrow_dataset import Dataset
 from spacy.tokens import Token
 from transformers.configuration_utils import PretrainedConfig
-from transformers.data.data_collator import (
-    DataCollator,
-    DataCollatorForTokenClassification,
-)
-from transformers.models.auto.processing_auto import AutoProcessor
+from transformers.data.data_collator import DataCollatorForTokenClassification
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .config import TaskConfig
@@ -82,7 +78,7 @@ class NamedEntityRecognition(Task):
         return aligned_spacy_predictions
 
     def _load_data_collator(
-        self, tokenizer_or_processor: Union[PreTrainedTokenizerBase, AutoProcessor]
+        self, tokenizer_or_processor: PreTrainedTokenizerBase
     ) -> DataCollatorForTokenClassification:
         return DataCollatorForTokenClassification(
             tokenizer_or_processor, label_pad_token_id=-100
