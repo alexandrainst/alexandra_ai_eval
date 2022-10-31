@@ -235,7 +235,7 @@ OFFENSIVE = TaskConfig(
 
 ASR = TaskConfig(
     name="automatic-speech-recognition",
-    huggingface_id="mozilla-foundation/common_voice_8_0",
+    huggingface_id="mozilla-foundation/common_voice_11_0",
     huggingface_subset="da",
     supertask="automatic-speech-recognition",
     architectures=[
