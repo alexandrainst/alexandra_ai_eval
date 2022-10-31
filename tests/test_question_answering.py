@@ -33,7 +33,7 @@ def dataset(qa):
 @pytest.fixture(scope="module")
 def model_dict(evaluation_config):
     model_config = get_model_config(
-        model_id="saattrupdan/electra-small-qa-da",
+        model_id="saattrupdan/xlmr-base-texas-squad-da",
         task_config=QA,
         evaluation_config=evaluation_config,
     )
@@ -75,6 +75,7 @@ def predictions(qa, model_dict, request, prepared_dataset):
     list_predictions = qa._get_model_predictions(
         model=model_dict["model"],
         tokenizer=model_dict["tokenizer"],
+        processor=model_dict["processor"],
         prepared_dataset=prepared_dataset,
         batch_size=2,
         framework=Framework.PYTORCH,
