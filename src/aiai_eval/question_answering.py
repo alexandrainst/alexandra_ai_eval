@@ -212,7 +212,7 @@ def postprocess_predictions(
         # Create the final prediction dictionary, to be added to the list of
         # predictions
         prediction = dict(
-            id=example["id"],
+            id=str(example["id"]),
             prediction_text=best_answer,
             no_answer_probability=0.0,
         )
@@ -395,7 +395,7 @@ def postprocess_labels(dataset: Dataset) -> List[dict]:
         # Create the associated reference dictionary, to be added to the list of
         # references
         label = dict(
-            id=example["id"],
+            id=str(example["id"]),
             answers=dict(
                 text=example["answers"]["text"],
                 answer_start=example["answers"]["answer_start"],
