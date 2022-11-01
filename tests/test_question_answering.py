@@ -344,6 +344,6 @@ def test_postprocess_labels(dataset):
     assert postprocessed_labels == [
         {
             "answers": {"answer_start": [9700], "text": ["2013"]},
-            "id": 7960403399608384663,
+            "id": "7960403399608384663",
         },
     ]
