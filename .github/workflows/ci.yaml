@@ -16,12 +16,14 @@ jobs:
   pytest:
     strategy:
         matrix:
-            os: [ubuntu-latest]
+            os: [macos-latest]
             python-version: ["3.8", "3.9", "3.10"]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install libsndfile
-        run: sudo apt-get install libsndfile1-dev
+        run: |
+        NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" 
+        brew install libsndfile
 
       - uses: actions/checkout@v3
 
