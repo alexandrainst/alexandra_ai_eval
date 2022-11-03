@@ -333,7 +333,8 @@ class TestFindValidAnswers:
             min_null_score=min_null_score,
         )
         valid_answers = [
-            dict(score=round(a["score"], 1), text=a["text"]) for a in valid_answers
+            dict(score=round(float(a["score"]), 1), text=a["text"])
+            for a in valid_answers
         ]
         assert valid_answers == expected_answers
 
