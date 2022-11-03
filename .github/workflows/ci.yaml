@@ -22,8 +22,8 @@ jobs:
     steps:
       - name: Install libsndfile
         run: |
-        NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" 
-        brew install libsndfile
+          NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" 
+          brew install libsndfile
 
       - uses: actions/checkout@v3
 
