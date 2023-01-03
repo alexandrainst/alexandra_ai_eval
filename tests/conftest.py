@@ -100,9 +100,7 @@ def model_total_scores(model_configs):
             mcc=0.0,
             mcc_se=0.0,
         ),
-        "openai/whisper-tiny": dict(
-            word_error_rate=6.044166666666667, word_error_rate_se=10.121766666666666
-        ),
+        "openai/whisper-tiny": dict(word_error_rate=3.5, word_error_rate_se=0.0),
     }
     yield [score_mapping[model_cfg.model_id] for model_cfg in model_configs]
 
