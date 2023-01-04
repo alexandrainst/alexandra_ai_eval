@@ -25,11 +25,35 @@ jobs:
           if [ "$RUNNER_OS" == "macOS" ]; then
             NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" 
             brew install libsndfile
+            brew install ffmpeg
           elif [ "$RUNNER_OS" == "Linux" ]; then
             sudo apt-get install libsndfile1-dev
             sudo apt install ffmpeg
           fi
         shell: bash
+
+      - name: Install ffmpeg on windows
+        run: |
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            New-Item -Type Directory -Path C:\ffmpeg ; Set-Location C:\ffmpeg
+            curl.exe -L 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip' -o 'ffmpeg.zip'
+            Expand-Archive .\ffmpeg.zip -Force -Verbose
+            Get-ChildItem -Recurse `
+                -Path .\ffmpeg\ -Filter *.exe |
+                ForEach-Object {
+                    Move-Item $_ -Destination .\ -Verbose
+                }
+            Remove-Item .\ffmpeg\ -Recurse
+            Remove-Item .\ffmpeg.zip
+            Get-ChildItem
+            [System.Environment]::SetEnvironmentVariable(
+                "PATH",
+                "C:\ffmpeg\;$([System.Environment]::GetEnvironmentVariable('PATH','MACHINE'))",
+                "Machine"
+            )
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
+          fi
+        shell: pwsh
 
       - uses: actions/checkout@v3
 
