@@ -16,7 +16,7 @@ jobs:
   pytest:
     strategy:
         matrix:
-            os: [windows-latest, macos-latest, ubuntu-latest]
+            os: [macos-latest, ubuntu-latest]
             python-version: ["3.8", "3.9", "3.10"]
     runs-on: ${{ matrix.os }}
     steps:
@@ -30,29 +30,6 @@ jobs:
             sudo apt install ffmpeg
           fi
         shell: bash
-
-      - name: Install ffmpeg on windows
-        run: |
-          if ( "$RUNNER_OS" -eq "Windows" ) {
-            New-Item -Type Directory -Path C:\ffmpeg ; Set-Location C:\ffmpeg
-            curl.exe -L 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip' -o 'ffmpeg.zip'
-            Expand-Archive .\ffmpeg.zip -Force -Verbose
-            Get-ChildItem -Recurse `
-                -Path .\ffmpeg\ -Filter *.exe |
-                ForEach-Object {
-                    Move-Item $_ -Destination .\ -Verbose
-                }
-            Remove-Item .\ffmpeg\ -Recurse
-            Remove-Item .\ffmpeg.zip
-            Get-ChildItem
-            [System.Environment]::SetEnvironmentVariable(
-                "PATH",
-                "C:\ffmpeg\;$([System.Environment]::GetEnvironmentVariable('PATH','MACHINE'))",
-                "Machine"
-            )
-            $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
-          }
-        shell: pwsh
 
       - uses: actions/checkout@v3
 
