@@ -25,7 +25,6 @@ jobs:
           if [ "$RUNNER_OS" == "macOS" ]; then
             NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" 
             brew install libsndfile
-            brew install ffmpeg
           elif [ "$RUNNER_OS" == "Linux" ]; then
             sudo apt-get install libsndfile1-dev
             sudo apt install ffmpeg
