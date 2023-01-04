@@ -34,7 +34,7 @@ jobs:
 
       - name: Install ffmpeg on windows
         run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
+          if ( "$RUNNER_OS" == "Windows" ) {
             New-Item -Type Directory -Path C:\ffmpeg ; Set-Location C:\ffmpeg
             curl.exe -L 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip' -o 'ffmpeg.zip'
             Expand-Archive .\ffmpeg.zip -Force -Verbose
@@ -52,7 +52,7 @@ jobs:
                 "Machine"
             )
             $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine")
-          fi
+          }
         shell: pwsh
 
       - uses: actions/checkout@v3
