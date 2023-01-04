@@ -34,7 +34,7 @@ jobs:
 
       - name: Install ffmpeg on windows
         run: |
-          if ( "$RUNNER_OS" == "Windows" ) {
+          if ( "$RUNNER_OS" -eq "Windows" ) {
             New-Item -Type Directory -Path C:\ffmpeg ; Set-Location C:\ffmpeg
             curl.exe -L 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip' -o 'ffmpeg.zip'
             Expand-Archive .\ffmpeg.zip -Force -Verbose
