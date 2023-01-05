@@ -94,7 +94,7 @@ class TaskConfig:
             The synonyms of all the labels, including the main label.
         architectures (None or list of str):
             The architectures that can be used to solve the task. If None then
-            it defaults to the list containing only the name of the supertaks. Defaults 
+            it defaults to the list containing only the name of the supertaks. Defaults
             to None.
     """
 
