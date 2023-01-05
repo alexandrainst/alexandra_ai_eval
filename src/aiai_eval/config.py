@@ -71,7 +71,7 @@ class TaskConfig:
             to None.
         supertask (str):
             The supertask of the task, describing the overall type of task.
-        modality str:
+        modality (str):
             The modality of the input data.
         metrics (sequence of MetricConfig objects):
             The metrics used to evaluate the task.
