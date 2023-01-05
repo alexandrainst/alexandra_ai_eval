@@ -81,5 +81,5 @@ WER = MetricConfig(
     pretty_name="Word error rate",
     huggingface_id="wer",
     results_key="wer",
-    postprocessing_fn=lambda raw_score: str(raw_score),
+    postprocessing_fn=lambda raw_score: f"{raw_score:.4f}",
 )
