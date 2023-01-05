@@ -151,7 +151,7 @@ def load_model_from_hf_hub(
         **params,
     )
 
-    # try to load a processor from the model id, if it does not exist, then set
+    # Try to load a processor from the model id, if it does not exist, then set
     # processor to None
     try:
         processor_id = model_config.processor_id
