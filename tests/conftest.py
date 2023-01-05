@@ -96,7 +96,7 @@ def model_total_scores(model_configs):
             qa_f1=75.0,
             qa_f1_se=49.0,
         ),
-        "alexandrainst/da-electra-hatespeech-detection": dict(
+        "alexandrainst/da-hatespeech-detection-small": dict(
             macro_f1=1.0,
             macro_f1_se=0.0,
             mcc=0.0,
