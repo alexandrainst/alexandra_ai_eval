@@ -11,7 +11,7 @@ from aiai_eval.config import (
     ModelConfig,
     TaskConfig,
 )
-from aiai_eval.enums import CountryCode, Device, Framework
+from aiai_eval.enums import CountryCode, Device, Framework, Modality
 
 
 @pytest.fixture(scope="module")
@@ -52,7 +52,7 @@ class TestTaskConfig:
             huggingface_subset=None,
             supertask="supertask-name",
             architectures=["supertask-name"],
-            modality="text",
+            modality=Modality("text"),
             metrics=[metric_config],
             labels=[label],
             feature_column_names=["column-name"],

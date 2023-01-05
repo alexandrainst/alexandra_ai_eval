@@ -3,6 +3,7 @@
 from typing import Dict
 
 from .config import LabelConfig, TaskConfig
+from .enums import Modality
 from .metric_configs import (
     EXACT_MATCH,
     MACRO_F1,
@@ -29,7 +30,7 @@ SENT = TaskConfig(
     huggingface_id="DDSC/angry-tweets",
     huggingface_subset=None,
     supertask="sequence-classification",
-    modality="text",
+    modality=Modality("text"),
     metrics=[MCC, MACRO_F1],
     labels=[
         LabelConfig(
@@ -56,7 +57,7 @@ NER = TaskConfig(
     huggingface_id="dane",
     huggingface_subset=None,
     supertask="token-classification",
-    modality="text",
+    modality=Modality("text"),
     metrics=[SEQEVAL_MICRO_F1, SEQEVAL_MICRO_F1_NO_MISC],
     labels=[
         LabelConfig(
@@ -193,7 +194,7 @@ QA = TaskConfig(
     huggingface_id="alexandrainst/scandiqa",
     huggingface_subset="da",
     supertask="question-answering",
-    modality="text",
+    modality=Modality("text"),
     metrics=[EXACT_MATCH, QA_F1],
     labels=[
         LabelConfig(
@@ -216,7 +217,7 @@ OFFENSIVE = TaskConfig(
     huggingface_id="DDSC/dkhate",
     huggingface_subset=None,
     supertask="sequence-classification",
-    modality="text",
+    modality=Modality("text"),
     metrics=[MCC, MACRO_F1],
     labels=[
         LabelConfig(
@@ -242,7 +243,7 @@ ASR = TaskConfig(
         "wav2-vec2-for-c-t-c",
         "whisper-for-conditional-generation",
     ],
-    modality="audio",
+    modality=Modality("audio"),
     metrics=[WER],
     labels=[
         LabelConfig(

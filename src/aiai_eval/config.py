@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from .enums import CountryCode, Device, Framework
+from .enums import CountryCode, Device, Framework, Modality
 from .utils import get_available_devices
 
 
@@ -71,7 +71,7 @@ class TaskConfig:
             to None.
         supertask (str):
             The supertask of the task, describing the overall type of task.
-        modality (str):
+        modality (Modality):
             The modality of the input data.
         metrics (sequence of MetricConfig objects):
             The metrics used to evaluate the task.
@@ -102,7 +102,7 @@ class TaskConfig:
     huggingface_id: str
     huggingface_subset: Optional[str]
     supertask: str
-    modality: str
+    modality: Modality
     metrics: List[MetricConfig]
     labels: List[LabelConfig]
     feature_column_names: List[str]

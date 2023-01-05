@@ -23,7 +23,7 @@ from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokeni
 
 from .co2 import get_carbon_tracker
 from .config import EvaluationConfig, ModelConfig, TaskConfig
-from .enums import Framework
+from .enums import Framework, Modality
 from .exceptions import (
     InvalidEvaluation,
     InvalidFramework,
@@ -412,13 +412,13 @@ class Task(ABC):
             split=self.task_config.test_name,
         )
 
-    def _prepare_pytorch_batch(self, batch: dict, input_modality: str) -> dict:
+    def _prepare_pytorch_batch(self, batch: dict, input_modality: Modality) -> dict:
         """Prepare a batch for the PyTorch model.
 
         Args:
             batch (dict):
                 The batch.
-            input_modality (str):
+            input_modality (Framework):
                 The input modality, can be 'audio' or 'text'.
 
         Returns:
@@ -431,14 +431,14 @@ class Task(ABC):
         }
 
         # Create a view of the batch with only desired features
-        if input_modality == "text":
+        if input_modality == Modality.TEXT:
             accepted_transformer_features = [
                 "input_ids",
                 "attention_mask",
                 "token_type_ids",
             ]
         # Whisper takes "input_features", while Wav2Vec2 takes "input_values"
-        elif input_modality == "audio":
+        elif input_modality == Modality.AUDIO:
             accepted_transformer_features = ["input_features", "input_values"]
 
         batch = {
