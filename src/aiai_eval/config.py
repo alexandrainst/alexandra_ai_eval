@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Union
 
-from .enums import CountryCode, Device, Framework
+from .enums import CountryCode, Device, Framework, Modality
 from .utils import get_available_devices
 
 
@@ -71,6 +71,8 @@ class TaskConfig:
             to None.
         supertask (str):
             The supertask of the task, describing the overall type of task.
+        modality (Modality):
+            The modality of the input data.
         metrics (sequence of MetricConfig objects):
             The metrics used to evaluate the task.
         labels (sequence of LabelConfig objects):
@@ -90,17 +92,23 @@ class TaskConfig:
             The number of labels in the dataset.
         label_synonyms (list of list of str):
             The synonyms of all the labels, including the main label.
+        architectures (None or list of str):
+            The architectures that can be used to solve the task. If None then
+            it defaults to the list containing only the name of the supertaks. Defaults
+            to None.
     """
 
     name: str
     huggingface_id: str
     huggingface_subset: Optional[str]
     supertask: str
+    modality: Modality
     metrics: List[MetricConfig]
     labels: List[LabelConfig]
     feature_column_names: List[str]
     label_column_name: str
     test_name: Optional[str]
+    architectures: Optional[List[str]] = None
 
     @property
     def pretty_name(self) -> str:
@@ -225,6 +233,8 @@ class ModelConfig:
             The ID of the model.
         tokenizer_id (str):
             The ID of the tokenizer.
+        processor_id (None or str):
+            The ID of the processor.
         revision (str):
             The revision of the model.
         framework (Framework):
@@ -242,6 +252,7 @@ class ModelConfig:
 
     model_id: str
     tokenizer_id: str
+    processor_id: Optional[str]
     revision: str
     framework: Framework
     id2label: Optional[List[str]]

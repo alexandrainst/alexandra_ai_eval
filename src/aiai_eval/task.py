@@ -7,21 +7,23 @@ from abc import ABC, abstractmethod
 from functools import partial
 from typing import Dict, List, Optional, Sequence, Tuple, Union
 
+import evaluate as evaluate_hf
 import numpy as np
 import torch
 import torch.nn as nn
 from datasets.arrow_dataset import Dataset
-from datasets.load import load_dataset, load_metric
+from datasets.load import load_dataset
 from spacy.language import Language
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
+from transformers import DataProcessor, WhisperForConditionalGeneration
 from transformers.data.data_collator import DataCollator
 from transformers.modeling_utils import PreTrainedModel
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .co2 import get_carbon_tracker
 from .config import EvaluationConfig, ModelConfig, TaskConfig
-from .enums import Framework
+from .enums import Framework, Modality
 from .exceptions import (
     InvalidEvaluation,
     InvalidFramework,
@@ -62,7 +64,7 @@ class Task(ABC):
 
         # Load the metric functions from the `datasets` library
         self._metrics = {
-            metric_cfg.name: load_metric(metric_cfg.huggingface_id)
+            metric_cfg.name: evaluate_hf.load(metric_cfg.huggingface_id)
             for metric_cfg in task_config.metrics
         }
 
@@ -129,6 +131,7 @@ class Task(ABC):
         # Extract the model and tokenizer
         model = model_dict["model"]
         tokenizer = model_dict.get("tokenizer")
+        processor = model_dict.get("processor")
 
         # Log the number of parameters in the model
         if model_config.framework == Framework.PYTORCH:
@@ -170,6 +173,7 @@ class Task(ABC):
                     model=model,
                     model_config=model_config,
                     tokenizer=tokenizer,
+                    processor=processor,
                     framework=model_config.framework,
                     dataset=bootstrapped_datasets[idx],
                     prepared_dataset=prepared_datasets[idx],
@@ -213,6 +217,7 @@ class Task(ABC):
         model: Union[nn.Module, Language],
         model_config: ModelConfig,
         tokenizer: Optional[PreTrainedTokenizerBase],
+        processor: Optional[DataProcessor],
         dataset: Dataset,
         prepared_dataset: Dataset,
         framework: Framework,
@@ -255,7 +260,13 @@ class Task(ABC):
             torch.cuda.manual_seed_all(703 + idx)
 
             # Define batch size, which depends on whether we are testing or not
-            batch_size = 2 if self.evaluation_config.testing else 32
+            batch_size = (
+                2
+                if self.evaluation_config.testing
+                else 4
+                if self.task_config.name == "automatic-speech-recognition"
+                else 32
+            )
 
             # Start carbon emissions tracking
             if self.evaluation_config.track_carbon_emissions:
@@ -265,6 +276,7 @@ class Task(ABC):
             model_predictions = self._get_model_predictions(
                 model=model,
                 tokenizer=tokenizer,
+                processor=processor,
                 prepared_dataset=prepared_dataset,
                 batch_size=batch_size,
                 framework=framework,
@@ -287,6 +299,7 @@ class Task(ABC):
                 prepared_dataset=prepared_dataset,
                 model_id2label=model_id2label,
                 cls_token_index=cls_token_index,
+                processor=processor,
             )
 
             # If there are multiple metrics but only one pair in the
@@ -368,6 +381,10 @@ class Task(ABC):
                     references=labels,
                     **metric_cfg.compute_kwargs,
                 )
+                # Some metrics return a single value, others a dictionary. We
+                # standardise this by always returning a dictionary.
+                if isinstance(score_dict, float):
+                    score_dict = {metric_cfg.huggingface_id: score_dict}
 
             # Add scores to the `results` dictionary
             if score_dict is not None:
@@ -395,12 +412,14 @@ class Task(ABC):
             split=self.task_config.test_name,
         )
 
-    def _prepare_pytorch_batch(self, batch: dict) -> dict:
+    def _prepare_pytorch_batch(self, batch: dict, input_modality: Modality) -> dict:
         """Prepare a batch for the PyTorch model.
 
         Args:
             batch (dict):
                 The batch.
+            input_modality (Framework):
+                The input modality, can be 'audio' or 'text'.
 
         Returns:
             dict:
@@ -412,11 +431,16 @@ class Task(ABC):
         }
 
         # Create a view of the batch with only desired features
-        accepted_transformer_features = [
-            "input_ids",
-            "attention_mask",
-            "token_type_ids",
-        ]
+        if input_modality == Modality.TEXT:
+            accepted_transformer_features = [
+                "input_ids",
+                "attention_mask",
+                "token_type_ids",
+            ]
+        # Whisper takes "input_features", while Wav2Vec2 takes "input_values"
+        elif input_modality == Modality.AUDIO:
+            accepted_transformer_features = ["input_features", "input_values"]
+
         batch = {
             key: value
             for key, value in batch.items()
@@ -430,6 +454,7 @@ class Task(ABC):
         self,
         model: Union[nn.Module, Language],
         tokenizer: Optional[PreTrainedTokenizerBase],
+        processor: Optional[DataProcessor],
         prepared_dataset: Dataset,
         batch_size: int,
         framework: Framework,
@@ -463,7 +488,17 @@ class Task(ABC):
         if framework == Framework.PYTORCH:
 
             # Load the data collator
-            data_collator = self._load_data_collator(tokenizer)
+            # If the processor is not a tokenizer we assume it's a processor, and
+            # if it is a tokenizer we assume we simply pass that to the data collator
+            if not isinstance(processor, PreTrainedTokenizerBase):
+                data_collator = self._load_data_collator(
+                    tokenizer_or_processor=processor
+                )
+
+            else:
+                data_collator = self._load_data_collator(
+                    tokenizer_or_processor=tokenizer
+                )
 
             dataloader = DataLoader(
                 prepared_dataset,
@@ -482,7 +517,9 @@ class Task(ABC):
             for batch in itr:
 
                 # Prepare the batch
-                batch = self._prepare_pytorch_batch(batch)
+                batch = self._prepare_pytorch_batch(
+                    batch, input_modality=self.task_config.modality
+                )
 
                 # If we are dealing with a Hugging Face model then we will use the
                 # entire batch dictionary
@@ -494,7 +531,22 @@ class Task(ABC):
                             warnings.filterwarnings(
                                 action="ignore", category=UserWarning
                             )
-                            model_predictions = model(**batch)
+                            # Whisper models have a different API compared to even other
+                            # ASR models so we handle it in a specific case here.
+                            if isinstance(model, WhisperForConditionalGeneration):
+                                forced_decoder_ids = None
+                                if processor is not None:
+                                    forced_decoder_ids = (
+                                        processor.get_decoder_prompt_ids(
+                                            language="da", task="transcribe"
+                                        )
+                                    )
+                                model_predictions = model.generate(
+                                    input_features=batch["input_features"],
+                                    forced_decoder_ids=forced_decoder_ids,
+                                )
+                            else:
+                                model_predictions = model(**batch)
 
                     # If we are dealing with a classification model then we will take
                     # the logits
@@ -516,9 +568,9 @@ class Task(ABC):
                             ],
                             dim=-1,
                         )
-
-                    # Otherwise, we raise an error
-                    else:
+                    # In case of ASR, we recieve a tensor, and we if we do not, then
+                    # we throw an error.
+                    elif not isinstance(model_predictions, torch.Tensor):
                         raise ValueError(
                             "The model predictions are not in the correct format. "
                             f"Received outputs with keys {model_predictions.keys()}"
@@ -540,7 +592,7 @@ class Task(ABC):
                     raise UnsupportedModelType(model_type=model_type)
 
                 # Move the predictions back to the CPU and convert it to a NumPy array
-                model_predictions = model_predictions.cpu().numpy().tolist()
+                model_predictions = model_predictions.cpu().numpy()
 
                 # Collect predictions
                 all_predictions.extend(model_predictions)
@@ -599,6 +651,7 @@ class Task(ABC):
         """
         try:
             if framework == Framework.PYTORCH:
+
                 preprocess_fn = partial(
                     self._pytorch_preprocess_fn,
                     tokenizer=kwargs["tokenizer"],
@@ -712,13 +765,14 @@ class Task(ABC):
         pass
 
     @abstractmethod
-    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase) -> DataCollator:
+    def _load_data_collator(
+        self, tokenizer_or_processor: Union[PreTrainedTokenizerBase, DataProcessor]
+    ) -> DataCollator:
         """Load the data collator used to prepare samples during finetuning.
 
         Args:
-            tokenizer (Hugging Face tokenizer or None, optional):
-                A pretrained tokenizer. Can be None if the tokenizer is not used in the
-                initialisation of the data collator. Defaults to None.
+            tokenizer_or_processor (Hugging Face tokenizer or DataProcessor):
+                A pretrained tokenizer or processor.
 
         Returns:
             Hugging Face DataCollator:

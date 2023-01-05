@@ -256,6 +256,12 @@ def get_pytorch_model_config_locally(
             model_folder=model_folder,
             user_prompt="Please specify the Hugging Face ID of the tokenizer to use: ",
         ),
+        processor_id=get_from_config(
+            key="processor_id",
+            expected_type=str,
+            model_folder=model_folder,
+            user_prompt="Please specify the Hugging Face ID of the processor to use: ",
+        ),
         revision="",
         framework=Framework.PYTORCH,
         id2label=get_from_config(

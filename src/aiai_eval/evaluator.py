@@ -241,6 +241,11 @@ class Evaluator:
         else:
             task_configs = [task_mapping[task] for task in task_name]
 
+        # Set task config architecture field to supertask if it is not already set
+        for task_config in task_configs:
+            if task_config.architectures is None:
+                task_config.architectures = [task_config.supertask]
+
         return task_configs
 
     def _evaluate_single(

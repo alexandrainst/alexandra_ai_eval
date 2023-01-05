@@ -8,6 +8,7 @@ from huggingface_hub.utils import RepositoryNotFoundError
 from requests.exceptions import RequestException
 from transformers.modeling_utils import PreTrainedModel
 from transformers.models.auto.configuration_auto import AutoConfig
+from transformers.models.auto.processing_auto import AutoProcessor
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
 from .config import EvaluationConfig, ModelConfig, TaskConfig
@@ -45,7 +46,7 @@ def load_model_from_hf_hub(
         dict:
             A dictionary containing at least the key 'model', with the value being the
             model. Can contain other objects related to the model, such as its
-            tokenizer.
+            tokenizer or processor.
 
     Raises:
         InvalidEvaluation:
@@ -65,13 +66,35 @@ def load_model_from_hf_hub(
 
         # Check whether the supertask is a valid one
         supertask = task_config.supertask
-        check_supertask(architectures=config.architectures, supertask=supertask)
+        allowed_architectures = (
+            task_config.architectures if task_config.architectures else []
+        )
+        (
+            supertask_which_is_valid_architecture,
+            allowed_and_checked_architectures,
+        ) = check_supertask(
+            architectures=config.architectures,
+            supertask=supertask,
+            allowed_architectures=allowed_architectures,
+        )
 
         # Get the model class associated with the supertask
-        model_cls = get_class_by_name(
-            class_name=f"auto-model-for-{supertask}",
-            module_name="transformers",
-        )
+        if supertask_which_is_valid_architecture:
+            model_cls = get_class_by_name(
+                class_name=f"auto-model-for-{supertask}",
+                module_name="transformers",
+            )
+        # If the class name is not of the form "auto-model-for-<supertask>" then
+        # use fallback "architectures" from config to get the model class
+        elif allowed_and_checked_architectures:
+            model_cls = get_class_by_name(
+                class_name=allowed_and_checked_architectures[0],
+                module_name="transformers",
+            )
+        else:
+            raise InvalidEvaluation(
+                f"Could not find a valid architecture for the model {model_config.model_id}."
+            )
 
         # If the model class could not be found then raise an error
         if not model_cls:
@@ -128,6 +151,18 @@ def load_model_from_hf_hub(
         **params,
     )
 
+    # Try to load a processor from the model id, if it does not exist, then set
+    # processor to None
+    try:
+        processor_id = model_config.processor_id
+        processor = AutoProcessor.from_pretrained(
+            processor_id,
+            revision=model_config.revision,
+            use_auth_token=evaluation_config.use_auth_token,
+        )
+    except OSError:
+        processor = None
+
     # Set the maximal length of the tokenizer to the model's maximal length. This is
     # required for proper truncation
     if not hasattr(tokenizer, "model_max_length") or tokenizer.model_max_length > 1_000:
@@ -148,7 +183,7 @@ def load_model_from_hf_hub(
     # Move the model to the specified device
     model.to(evaluation_config.device)
 
-    return dict(model=model, tokenizer=tokenizer)
+    return dict(model=model, tokenizer=tokenizer, processor=processor)
 
 
 def get_hf_hub_model_info(
@@ -350,6 +385,7 @@ def get_model_config_from_hf_hub(
     return ModelConfig(
         model_id=model_id,
         tokenizer_id=model_id,
+        processor_id=model_id,
         framework=framework,
         revision=revision,
         id2label=id2label,

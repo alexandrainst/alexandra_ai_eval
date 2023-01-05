@@ -81,7 +81,7 @@ class TestTokenizeAndAlignLabels:
 class TestLoadDataCollator:
     @pytest.fixture(scope="class")
     def data_collator(self, ner, tokenizer):
-        yield ner._load_data_collator(tokenizer=tokenizer)
+        yield ner._load_data_collator(tokenizer_or_processor=tokenizer)
 
     def test_data_collator_dtype(self, data_collator):
         assert isinstance(data_collator, DataCollatorForTokenClassification)

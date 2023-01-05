@@ -2,16 +2,13 @@
 
 from copy import deepcopy
 from functools import partial
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
 from spacy.tokens import Token
 from transformers.configuration_utils import PretrainedConfig
-from transformers.data.data_collator import (
-    DataCollator,
-    DataCollatorForTokenClassification,
-)
+from transformers.data.data_collator import DataCollatorForTokenClassification
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .config import TaskConfig
@@ -80,8 +77,12 @@ class NamedEntityRecognition(Task):
 
         return aligned_spacy_predictions
 
-    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase) -> DataCollator:
-        return DataCollatorForTokenClassification(tokenizer, label_pad_token_id=-100)
+    def _load_data_collator(
+        self, tokenizer_or_processor: PreTrainedTokenizerBase
+    ) -> DataCollatorForTokenClassification:
+        return DataCollatorForTokenClassification(
+            tokenizer_or_processor, label_pad_token_id=-100
+        )
 
     def _prepare_predictions_and_labels(
         self,
@@ -123,8 +124,10 @@ class NamedEntityRecognition(Task):
 
         sample_preds = model_predictions[0]
         has_sequence_elements = len(sample_preds[0]) > 0
-        leaves_are_floats = isinstance(sample_preds[0][0], float)
         elements_are_strings = isinstance(sample_preds[0], str)
+        leaves_are_floats = (
+            not elements_are_strings and sample_preds[0][0].dtype.kind == "f"
+        )
 
         return (has_sequence_elements and leaves_are_floats) or elements_are_strings
 

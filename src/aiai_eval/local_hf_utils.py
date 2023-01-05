@@ -171,6 +171,7 @@ def get_hf_model_config_locally(model_folder: Union[str, Path]) -> ModelConfig:
     return ModelConfig(
         model_id=str(model_folder),
         tokenizer_id=str(model_folder),
+        processor_id=str(model_folder),
         revision="main",
         framework=framework,
         id2label=id2label,

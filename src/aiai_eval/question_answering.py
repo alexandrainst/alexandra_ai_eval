@@ -1,12 +1,13 @@
 """Class for question-answering tasks."""
 
 from collections import defaultdict
-from typing import List, Sequence, Tuple
+from typing import List, Sequence, Tuple, Union
 
 import numpy as np
 import torch
 from datasets.arrow_dataset import Dataset
 from transformers.data.data_collator import DataCollator, default_data_collator
+from transformers.models.auto.processing_auto import AutoProcessor
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from .config import ModelConfig, TaskConfig
@@ -42,7 +43,9 @@ class QuestionAnswering(Task):
             tokenizer=tokenizer,
         )
 
-    def _load_data_collator(self, tokenizer: PreTrainedTokenizerBase) -> DataCollator:
+    def _load_data_collator(
+        self, tokenizer_or_processor: Union[PreTrainedTokenizerBase, AutoProcessor]
+    ) -> DataCollator:
         return default_data_collator
 
     def _prepare_predictions_and_labels(
@@ -68,7 +71,7 @@ class QuestionAnswering(Task):
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
         sample_preds = model_predictions[0]
         elements_are_pairs = len(sample_preds[0]) == 2
-        leaves_are_floats = isinstance(sample_preds[0][0], float)
+        leaves_are_floats = sample_preds[0][0].dtype.kind == "f"
         elements_are_strings = isinstance(sample_preds[0], str)
         return (elements_are_pairs and leaves_are_floats) or elements_are_strings
 
@@ -209,7 +212,7 @@ def postprocess_predictions(
         # Create the final prediction dictionary, to be added to the list of
         # predictions
         prediction = dict(
-            id=example["id"],
+            id=str(example["id"]),
             prediction_text=best_answer,
             no_answer_probability=0.0,
         )
@@ -392,7 +395,7 @@ def postprocess_labels(dataset: Dataset) -> List[dict]:
         # Create the associated reference dictionary, to be added to the list of
         # references
         label = dict(
-            id=example["id"],
+            id=str(example["id"]),
             answers=dict(
                 text=example["answers"]["text"],
                 answer_start=example["answers"]["answer_start"],

@@ -16,10 +16,21 @@ jobs:
   pytest:
     strategy:
         matrix:
-            os: [windows-latest, macos-latest, ubuntu-latest]
+            os: [macos-latest, ubuntu-latest]
             python-version: ["3.8", "3.9", "3.10"]
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Install libsndfile
+        run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" 
+            brew install libsndfile
+          elif [ "$RUNNER_OS" == "Linux" ]; then
+            sudo apt-get install libsndfile1-dev
+            sudo apt install ffmpeg
+          fi
+        shell: bash
+
       - uses: actions/checkout@v3
 
       - name: Install Poetry

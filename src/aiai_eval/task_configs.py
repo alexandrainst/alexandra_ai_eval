@@ -3,6 +3,7 @@
 from typing import Dict
 
 from .config import LabelConfig, TaskConfig
+from .enums import Modality
 from .metric_configs import (
     EXACT_MATCH,
     MACRO_F1,
@@ -10,6 +11,7 @@ from .metric_configs import (
     QA_F1,
     SEQEVAL_MICRO_F1,
     SEQEVAL_MICRO_F1_NO_MISC,
+    WER,
 )
 
 
@@ -28,6 +30,7 @@ SENT = TaskConfig(
     huggingface_id="DDSC/angry-tweets",
     huggingface_subset=None,
     supertask="sequence-classification",
+    modality=Modality("text"),
     metrics=[MCC, MACRO_F1],
     labels=[
         LabelConfig(
@@ -54,6 +57,7 @@ NER = TaskConfig(
     huggingface_id="dane",
     huggingface_subset=None,
     supertask="token-classification",
+    modality=Modality("text"),
     metrics=[SEQEVAL_MICRO_F1, SEQEVAL_MICRO_F1_NO_MISC],
     labels=[
         LabelConfig(
@@ -190,6 +194,7 @@ QA = TaskConfig(
     huggingface_id="alexandrainst/scandiqa",
     huggingface_subset="da",
     supertask="question-answering",
+    modality=Modality("text"),
     metrics=[EXACT_MATCH, QA_F1],
     labels=[
         LabelConfig(
@@ -212,6 +217,7 @@ OFFENSIVE = TaskConfig(
     huggingface_id="DDSC/dkhate",
     huggingface_subset=None,
     supertask="sequence-classification",
+    modality=Modality("text"),
     metrics=[MCC, MACRO_F1],
     labels=[
         LabelConfig(
@@ -225,5 +231,31 @@ OFFENSIVE = TaskConfig(
     ],
     feature_column_names=["text"],
     label_column_name="label",
+    test_name="test",
+)
+
+ASR = TaskConfig(
+    name="automatic-speech-recognition",
+    huggingface_id="mozilla-foundation/common_voice_11_0",
+    huggingface_subset="da",
+    supertask="automatic-speech-recognition",
+    architectures=[
+        "wav2-vec2-for-c-t-c",
+        "whisper-for-conditional-generation",
+    ],
+    modality=Modality("audio"),
+    metrics=[WER],
+    labels=[
+        LabelConfig(
+            name="LABEL_0",
+            synonyms=[],
+        ),
+        LabelConfig(
+            name="LABEL_1",
+            synonyms=[],
+        ),
+    ],
+    feature_column_names=["audio"],
+    label_column_name="sentence",
     test_name="test",
 )

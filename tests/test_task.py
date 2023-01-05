@@ -4,7 +4,7 @@ from typing import List, Sequence, Tuple
 
 import pytest
 from datasets.arrow_dataset import Dataset
-from datasets.metric import Metric
+from evaluate import EvaluationModule
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
 from aiai_eval.config import TaskConfig
@@ -64,9 +64,9 @@ class TestTaskAttributes:
     def test_metric_keys_are_metric_names(self, metrics, task_config):
         assert set(metrics.keys()) == {cfg.name for cfg in task_config.metrics}
 
-    def test_metric_values_are_metrics(self, metrics):
+    def test_metric_values_are_evaluator_modules(self, metrics):
         for metric in metrics.values():
-            assert isinstance(metric, Metric)
+            assert isinstance(metric, EvaluationModule)
 
 
 class TestLoadData:

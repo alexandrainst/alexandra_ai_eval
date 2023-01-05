@@ -34,7 +34,7 @@ def model_config():
 class TestLoadDataCollator:
     @pytest.fixture(scope="class")
     def data_collator(self, seq_clf, tokenizer):
-        yield seq_clf._load_data_collator(tokenizer=tokenizer)
+        yield seq_clf._load_data_collator(tokenizer_or_processor=tokenizer)
 
     def test_data_collator_dtype(self, data_collator):
         assert isinstance(data_collator, DataCollatorWithPadding)

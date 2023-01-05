@@ -54,7 +54,10 @@ def model_configs(evaluation_config, task_config):
             "spacy/da_core_news_sm",
         ],
         "question-answering": ["deepset/minilm-uncased-squad2"],
-        "offensive-text-classification": ["DaNLP/da-electra-hatespeech-detection"],
+        "offensive-text-classification": [
+            "alexandrainst/da-hatespeech-detection-small"
+        ],
+        "automatic-speech-recognition": ["openai/whisper-tiny"],
     }
     yield [
         get_model_config(
@@ -93,12 +96,13 @@ def model_total_scores(model_configs):
             qa_f1=75.0,
             qa_f1_se=49.0,
         ),
-        "DaNLP/da-electra-hatespeech-detection": dict(
+        "alexandrainst/da-hatespeech-detection-small": dict(
             macro_f1=1.0,
             macro_f1_se=0.0,
             mcc=0.0,
             mcc_se=0.0,
         ),
+        "openai/whisper-tiny": dict(word_error_rate=3.5, word_error_rate_se=0.0),
     }
     yield [score_mapping[model_cfg.model_id] for model_cfg in model_configs]
 

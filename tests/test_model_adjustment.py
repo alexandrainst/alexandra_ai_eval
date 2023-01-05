@@ -3,11 +3,12 @@
 from copy import deepcopy
 
 import pytest
+from transformers.models.auto.configuration_auto import AutoConfig
 
 from aiai_eval.enums import Framework
 from aiai_eval.exceptions import InvalidEvaluation
 from aiai_eval.model_adjustment import adjust_model_to_task, alter_classification_layer
-from aiai_eval.utils import get_class_by_name
+from aiai_eval.utils import check_supertask, get_class_by_name
 
 
 @pytest.fixture(scope="module")
@@ -19,10 +20,40 @@ def model_config(model_configs):
 
 @pytest.fixture(scope="module")
 def model(model_config, task_config, evaluation_config):
-    model_cls = get_class_by_name(
-        class_name=f"auto-model-for-{task_config.supertask}",
-        module_name="transformers",
+    # Load the configuration of the pretrained model
+    config = AutoConfig.from_pretrained(
+        model_config.model_id,
+        revision=model_config.revision,
+        use_auth_token=evaluation_config.use_auth_token,
     )
+
+    # Check whether the supertask is a valid one
+    supertask = task_config.supertask
+    allowed_architectures = (
+        task_config.architectures if task_config.architectures else []
+    )
+    (
+        supertask_which_is_architectures,
+        allowed_and_checked_architectures,
+    ) = check_supertask(
+        architectures=config.architectures,
+        supertask=supertask,
+        allowed_architectures=allowed_architectures,
+    )
+
+    # Get the model class associated with the supertask
+    if supertask_which_is_architectures:
+        model_cls = get_class_by_name(
+            class_name=f"auto-model-for-{supertask}",
+            module_name="transformers",
+        )
+    # If the class name is not of the form "auto-model-for-<supertask>" then
+    # use fallback "architectures" from config to get the model class
+    elif allowed_and_checked_architectures:
+        model_cls = get_class_by_name(
+            class_name=allowed_and_checked_architectures[0],
+            module_name="transformers",
+        )
     yield model_cls.from_pretrained(  # type: ignore[attr-defined]
         model_config.model_id,
         cache_dir=evaluation_config.cache_dir,

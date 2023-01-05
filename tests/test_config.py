@@ -11,7 +11,7 @@ from aiai_eval.config import (
     ModelConfig,
     TaskConfig,
 )
-from aiai_eval.enums import CountryCode, Device, Framework
+from aiai_eval.enums import CountryCode, Device, Framework, Modality
 
 
 @pytest.fixture(scope="module")
@@ -51,6 +51,8 @@ class TestTaskConfig:
             huggingface_id="dataset-id",
             huggingface_subset=None,
             supertask="supertask-name",
+            architectures=["supertask-name"],
+            modality=Modality("text"),
             metrics=[metric_config],
             labels=[label],
             feature_column_names=["column-name"],
@@ -128,6 +130,7 @@ class TestModelConfig:
         yield ModelConfig(
             model_id="model-id",
             tokenizer_id="tokenizer-id",
+            processor_id="processor-id",
             revision="revision",
             framework=Framework.JAX,
             id2label=["label1", "label2"],

@@ -22,6 +22,20 @@ class Device(enum.Enum):
     CUDA = "cuda"
 
 
+class Modality(enum.Enum):
+    """The modality of the input data.
+
+    Attributes:
+        AUDIO:
+            Input data is audio.
+        TEXT:
+            Input data is text.
+    """
+
+    AUDIO = "audio"
+    TEXT = "text"
+
+
 class Framework(enum.Enum):
     """The framework of a model.
 

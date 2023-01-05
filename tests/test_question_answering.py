@@ -75,6 +75,7 @@ def predictions(qa, model_dict, request, prepared_dataset):
     list_predictions = qa._get_model_predictions(
         model=model_dict["model"],
         tokenizer=model_dict["tokenizer"],
+        processor=model_dict["processor"],
         prepared_dataset=prepared_dataset,
         batch_size=2,
         framework=Framework.PYTORCH,
@@ -332,7 +333,8 @@ class TestFindValidAnswers:
             min_null_score=min_null_score,
         )
         valid_answers = [
-            dict(score=round(a["score"], 1), text=a["text"]) for a in valid_answers
+            dict(score=round(float(a["score"]), 1), text=a["text"])
+            for a in valid_answers
         ]
         assert valid_answers == expected_answers
 
@@ -343,6 +345,6 @@ def test_postprocess_labels(dataset):
     assert postprocessed_labels == [
         {
             "answers": {"answer_start": [9700], "text": ["2013"]},
-            "id": 7960403399608384663,
+            "id": "7960403399608384663",
         },
     ]
