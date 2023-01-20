@@ -26,15 +26,13 @@ jobs:
             NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" 
             brew install libsndfile
           elif [ "$RUNNER_OS" == "Linux" ]; then
+          sudo apt -y update
             sudo apt-get install libsndfile1-dev
             sudo apt install ffmpeg
           fi
         shell: bash
 
       - uses: actions/checkout@v3
-
-      - name: apt-get update
-        run: sudo apt-get -y update
 
       - name: Install Poetry
         run: pipx install poetry
