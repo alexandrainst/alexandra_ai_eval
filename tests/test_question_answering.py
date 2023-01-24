@@ -344,7 +344,7 @@ def test_postprocess_labels(dataset):
     postprocessed_labels = postprocess_labels(truncated_dataset)
     assert postprocessed_labels == [
         {
-            "answers": {"answer_start": [9700], "text": ["2013"]},
+            "answer": {"answer_start": [9700], "text": ["2013"]},
             "id": "7960403399608384663",
         },
     ]
