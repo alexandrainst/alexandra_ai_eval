@@ -398,7 +398,7 @@ def postprocess_labels(dataset: Dataset) -> List[dict]:
             id=str(example["id"]),
             answers=dict(
                 text=example["answer"]["text"],
-                answer_start=example["answer"]["answer_start"],
+                answer_start=example["answers"]["answer_start"],
             ),
         )
 
