@@ -431,14 +431,14 @@ class Task(ABC):
         }
 
         # Create a view of the batch with only desired features
-        if input_modality == Modality.TEXT:
+        if input_modality.name == Modality.TEXT.name:
             accepted_transformer_features = [
                 "input_ids",
                 "attention_mask",
                 "token_type_ids",
             ]
         # Whisper takes "input_features", while Wav2Vec2 takes "input_values"
-        elif input_modality == Modality.AUDIO:
+        elif input_modality.name == Modality.AUDIO.name:
             accepted_transformer_features = ["input_features", "input_values"]
 
         batch = {
