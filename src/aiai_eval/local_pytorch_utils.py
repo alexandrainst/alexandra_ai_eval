@@ -181,7 +181,7 @@ def load_local_pytorch_model(
     tokenizer = AutoTokenizer.from_pretrained(model_config.tokenizer_id)
 
     # Return the model with the loaded weights
-    return dict(model=model, tokenizer=tokenizer)
+    return dict(model=model, tokenizer=tokenizer, model_type="other")
 
 
 def pytorch_model_exists_locally(

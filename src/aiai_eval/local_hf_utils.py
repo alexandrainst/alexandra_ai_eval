@@ -82,7 +82,7 @@ def load_local_hf_model(
     )
 
     # Return the model and tokenizer as a dict
-    return dict(model=model, tokenizer=tokenizer)
+    return dict(model=model, tokenizer=tokenizer, model_type="other")
 
 
 def hf_model_exists_locally(model_id: Union[str, Path]) -> bool:

@@ -208,6 +208,7 @@ class Task(ABC):
             scores=scores,
             model_id=model_config.model_id,
             only_return_log=self.evaluation_config.only_return_log,
+            model_type=model_dict["model_type"],
         )
         return all_scores
 

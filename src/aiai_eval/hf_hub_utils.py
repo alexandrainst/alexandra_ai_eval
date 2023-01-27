@@ -183,7 +183,9 @@ def load_model_from_hf_hub(
     # Move the model to the specified device
     model.to(evaluation_config.device)
 
-    return dict(model=model, tokenizer=tokenizer, processor=processor)
+    return dict(
+        model=model, tokenizer=tokenizer, processor=processor, model_type="huggingface"
+    )
 
 
 def get_hf_hub_model_info(
