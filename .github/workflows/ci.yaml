@@ -26,6 +26,7 @@ jobs:
             NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" 
             brew install libsndfile
           elif [ "$RUNNER_OS" == "Linux" ]; then
+          sudo apt -y update
             sudo apt-get install libsndfile1-dev
             sudo apt install ffmpeg
           fi
