@@ -46,7 +46,16 @@ class Session(requests.Session):
             endpoint = f"{self.base_url}/{task_config.name}"
 
         # Get task from Leaderboard
-        task = self.get(endpoint).json()
+        response = self.get(endpoint)
+
+        # Check if we got a valid response and raise error if not
+        if response.status_code == 204 or not response.headers[
+            "content-type"
+        ].strip().startswith("application/json"):
+            raise ValueError(response.text)
+
+        # Return the leaderboard
+        task = response.json()
 
         # Check if we got a valid response
         if task == {"error": "Table not found"}:
@@ -82,7 +91,15 @@ class Session(requests.Session):
             endpoint = f"{self.base_url}/{task_config.name}/{model_id}"
 
         # Get the model from leaderboard
-        task = self.get(endpoint).json()
+        response = self.get(endpoint)
+
+        # Check if we got a valid response and raise error if not
+        if response.status_code == 204 or not response.headers[
+            "content-type"
+        ].strip().startswith("application/json"):
+            raise ValueError(response.text)
+
+        task = response.json()
 
         # Check if we got a valid response
         if task == {"error": "Table not found"}:
