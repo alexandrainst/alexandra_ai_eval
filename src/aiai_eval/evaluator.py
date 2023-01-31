@@ -213,7 +213,10 @@ class Evaluator:
 
             # Send the evaluation results to the leaderboard
             if self.send_results_to_leaderboard:
-                self._send_results_to_leaderboard()
+                if all(self._send_results_to_leaderboard()):
+                    logger.info("Successfully sent results to leaderboard.")
+                else:
+                    logger.info("Failed to send result(s) to leaderboard.")
 
             # Return the evaluation results
             return self.evaluation_results
@@ -310,13 +313,20 @@ class Evaluator:
             )
             logger.debug(f'The error message was "{e}".')
 
-    def _send_results_to_leaderboard(self) -> None:
+    def _send_results_to_leaderboard(self) -> list:
         """Send the evaluation results to the leaderboard.
 
         Args:
             results (dict):
                 The evaluation results to send.
+
+        Returns:
+            list of bool: A list of booleans indicating whether the results were
+                successfully sent to the leaderboard.
         """
+        # Initialize a list of status bools
+        status = []
+
         # Loop through the evaluation results and send each one to the leaderboard
         for task_name in self.evaluation_results.keys():
             for model_id in self.evaluation_results[task_name].keys():
@@ -343,6 +353,9 @@ class Evaluator:
                         f"{task_name}-leaderboard. Skipping."
                     )
                     logger.debug(f'The error message was "{e}".')
+
+                    # Append the status of the leaderboard post to the status list
+                    status.append(False)
                     continue
 
                 # Make dataframe from leaderboard json
@@ -386,6 +399,10 @@ class Evaluator:
                         logger.info(
                             f"{model_id} is ranked {model_rank} on the {task_name}-leaderboard."
                         )
+
+                        # The post was a success
+                        status.append(True)
+        return status
 
     def __call__(
         self,
