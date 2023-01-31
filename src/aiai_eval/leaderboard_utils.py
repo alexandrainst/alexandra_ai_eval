@@ -1,7 +1,5 @@
 """Utility functions related to the Leaderboard and associated REST API."""
 
-from typing import Any, Dict, Union
-
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
