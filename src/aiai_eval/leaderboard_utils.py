@@ -93,7 +93,7 @@ class Session(requests.Session):
         return task
 
     def post_model_to_task(
-        self, model_type: str, task_name: str, model_id: str, metrics: dict
+        self, model_type: str, task_name: str, model_id: str, metrics: dict, test: bool
     ) -> dict:
         """Post a model to the leaderboard for the task corresponding to task_name.
 
@@ -125,6 +125,7 @@ class Session(requests.Session):
             "task_name": task_name,
             "model_id": model_id,
             "metrics": metrics,
+            "test": test,
         }
 
         # Post the model to leaderboard

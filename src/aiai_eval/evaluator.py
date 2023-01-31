@@ -2,11 +2,13 @@
 
 import json
 import logging
+import warnings
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Union
 
 import pandas as pd
+from tabulate import tabulate
 
 from .config import EvaluationConfig, TaskConfig
 from .enums import CountryCode, Device
@@ -330,6 +332,7 @@ class Evaluator:
                         task_name=task_name,
                         model_id=model_id,
                         metrics=self.evaluation_results[task_name][model_id]["total"],
+                        test=self.evaluation_config.testing,
                     )
                     logger.info(
                         f"Results successfully sent to the {task_name}-leaderboard."
@@ -346,7 +349,9 @@ class Evaluator:
                 task_leaderboard = pd.DataFrame.from_dict(task_leaderboard_json)
 
                 # Log the leaderboard
-                logger.info(f"Leaderboard:\n{task_leaderboard}")
+                logger.info(
+                    f"Leaderboard:\n{tabulate(task_leaderboard, headers='keys', tablefmt='fancy_grid')}"
+                )
 
                 # Get metric columns, i.e. all columns except "id", "model_type" and "model_id"
                 metric_columns = task_leaderboard.columns.difference(
@@ -361,20 +366,26 @@ class Evaluator:
                     "average_score", axis=1
                 )
 
-                # Get the rank of the model
-                model_rank = (
-                    int(
-                        task_leaderboard[
-                            task_leaderboard["model_id"] == model_id
-                        ].index[0]
-                    )
-                    + 1
-                )
+                # Get the rank of the model, first check it is in the leaderboard
+                # and then get the rank. If it is not in the leaderboard, we are running tests.
+                with warnings.catch_warnings():
+                    warnings.simplefilter(
+                        action="ignore", category=FutureWarning
+                    )  # ignore pandas warning
+                    if model_id in task_leaderboard["model_id"].values:
+                        model_rank = (
+                            int(
+                                task_leaderboard[
+                                    task_leaderboard["model_id"] == model_id
+                                ].index[0]
+                            )
+                            + 1
+                        )
 
-                # Log the rank of the model
-                logger.info(
-                    f"{model_id} is ranked {model_rank} on the {task_name}-leaderboard."
-                )
+                        # Log the rank of the model
+                        logger.info(
+                            f"{model_id} is ranked {model_rank} on the {task_name}-leaderboard."
+                        )
 
     def __call__(
         self,
