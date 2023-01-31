@@ -315,23 +315,35 @@ class Evaluator:
             results (dict):
                 The evaluation results to send.
         """
-        logger.info("Sending the evaluation results to the leaderboard.")
-
         # Loop through the evaluation results and send each one to the leaderboard
         for task_name in self.evaluation_results.keys():
             for model_id in self.evaluation_results[task_name].keys():
                 logger.info(
                     f"Sending results for {model_id} to the {task_name}-leaderboard."
                 )
-                task_leaderboard_json = self.leaderboard_client.post_model_to_task(
-                    model_type=self.evaluation_results[task_name][model_id][
-                        "model_type"
-                    ],
-                    task_name=task_name,
-                    model_id=model_id,
-                    metrics=self.evaluation_results[task_name][model_id]["total"],
-                )
-                task_leaderboard = pd.read_json(task_leaderboard_json)
+                # Post the results to the leaderboard and log the response
+                try:
+                    task_leaderboard_json = self.leaderboard_client.post_model_to_task(
+                        model_type=self.evaluation_results[task_name][model_id][
+                            "model_type"
+                        ],
+                        task_name=task_name,
+                        model_id=model_id,
+                        metrics=self.evaluation_results[task_name][model_id]["total"],
+                    )
+                    logger.info(
+                        f"Results successfully sent to the {task_name}-leaderboard."
+                    )
+                except ValueError as e:
+                    logger.info(
+                        f"Could not send results for {model_id} to the "
+                        f"{task_name}-leaderboard. Skipping."
+                    )
+                    logger.debug(f'The error message was "{e}".')
+                    continue
+
+                # Make dataframe from leaderboard json
+                task_leaderboard = pd.DataFrame.from_dict(task_leaderboard_json)
 
                 # Log the leaderboard
                 logger.info(f"Leaderboard:\n{task_leaderboard}")
@@ -342,14 +354,20 @@ class Evaluator:
                 )
 
                 # Sort the leaderboard by the average of the metric columns
-                task_leaderboard["average_score"] = task_leaderboard[
-                    metric_columns
-                ].mean()
-                task_leaderboard.sort_values("average_score").drop("average_score", 1)
+                task_leaderboard["average_score"] = (
+                    task_leaderboard[metric_columns].dropna(axis=1).mean(axis=1)
+                )
+                task_leaderboard.sort_values("average_score").drop(
+                    "average_score", axis=1
+                )
 
                 # Get the rank of the model
                 model_rank = (
-                    task_leaderboard[task_leaderboard["model_id"] == model_id].index[0]
+                    int(
+                        task_leaderboard[
+                            task_leaderboard["model_id"] == model_id
+                        ].index[0]
+                    )
                     + 1
                 )
 
