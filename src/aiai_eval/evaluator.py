@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Union
 
 import pandas as pd
+from requests.exceptions import ConnectionError, HTTPError
 from tabulate import tabulate
 
 from .config import EvaluationConfig, TaskConfig
@@ -216,7 +217,7 @@ class Evaluator:
                 if all(self._send_results_to_leaderboard()):
                     logger.info("Successfully sent results to leaderboard.")
                 else:
-                    logger.info("Failed to send result(s) to leaderboard.")
+                    raise HTTPError("Failed to send result(s) to leaderboard.")
 
             # Return the evaluation results
             return self.evaluation_results
@@ -347,7 +348,7 @@ class Evaluator:
                     logger.info(
                         f"Results successfully sent to the {task_name}-leaderboard."
                     )
-                except ValueError as e:
+                except (ValueError, ConnectionError) as e:
                     logger.info(
                         f"Could not send results for {model_id} to the "
                         f"{task_name}-leaderboard. Skipping."
@@ -401,7 +402,7 @@ class Evaluator:
                         )
 
                         # The post was a success
-                        status.append(True)
+                status.append(True)
         return status
 
     def __call__(
