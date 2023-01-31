@@ -1,5 +1,7 @@
 """Utility functions related to the Leaderboard and associated REST API."""
 
+from typing import Any, Dict, Union
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -103,6 +105,9 @@ class Session(requests.Session):
 
         Returns:
             dict: A dictionary with the possibly updated leaderboard.
+
+        Raises:
+            ValueError: If the task is not found, or if a non 200 response is returned from the API.
         """
 
         # Check if task is valid
@@ -123,6 +128,13 @@ class Session(requests.Session):
         }
 
         # Post the model to leaderboard
-        task = self.post(endpoint, json=payload).json()
+        response = self.post(endpoint, json=payload)
 
-        return task
+        # Check if we got a valid response and raise error if not
+        if response.status_code == 204 or not response.headers[
+            "content-type"
+        ].strip().startswith("application/json"):
+            raise ValueError(response.text)
+
+        # Return the leaderboard
+        return response.json()
