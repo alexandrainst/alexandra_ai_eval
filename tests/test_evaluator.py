@@ -3,8 +3,10 @@
 from collections import defaultdict
 
 import pytest
+from requests.exceptions import HTTPError
 
 from aiai_eval.evaluator import Evaluator
+from aiai_eval.leaderboard_utils import Session
 from aiai_eval.task_factory import TaskFactory
 
 
@@ -104,3 +106,31 @@ def test_evaluate_single(evaluator, model_configs, task_config, model_total_scor
         evaluator._evaluate_single(task_config=task_config, model_id=model_id)
         results = evaluator.evaluation_results[task_config.name][model_id]
         assert results["total"] == model_total_scores[idx]
+
+
+def test_send_results_to_leaderboard(evaluator, model_configs, task_config):
+    # Set up evaluator to not send results to leaderboard, so we can test this
+    # function
+    evaluator.send_results_to_leaderboard = False
+    if len(model_configs) > 1:
+        model_id = [model_config.model_id for model_config in model_configs][0]
+
+        # Get results from evaluate
+        evaluator.evaluate(model_id=model_id, task=task_config.name)
+
+        # Check that the results are sent to leaderboard
+        assert all(evaluator._send_results_to_leaderboard())
+
+
+def test_send_results_to_leaderboard_raises_exception(
+    evaluator, model_configs, task_config
+):
+    if len(model_configs) > 1:
+        model_ids = [model_config.model_id for model_config in model_configs]
+
+        # Set base url to something invalid
+        evaluator.leaderboard_client = Session("http://invalid")
+
+        # Get results from evaluate
+        with pytest.raises(HTTPError):
+            evaluator.evaluate(model_id=model_ids, task=task_config.name)
