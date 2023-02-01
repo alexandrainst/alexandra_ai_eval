@@ -126,11 +126,11 @@ def test_send_results_to_leaderboard_raises_exception(
     evaluator, model_configs, task_config
 ):
     if len(model_configs) > 1:
-        model_ids = [model_config.model_id for model_config in model_configs]
+        model_id = [model_config.model_id for model_config in model_configs][0]
 
         # Set base url to something invalid
         evaluator.leaderboard_client = Session("http://invalid")
 
         # Get results from evaluate
         with pytest.raises(HTTPError):
-            evaluator.evaluate(model_id=model_ids, task=task_config.name)
+            evaluator.evaluate(model_id=model_id, task=task_config.name)
