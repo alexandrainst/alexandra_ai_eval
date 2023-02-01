@@ -85,10 +85,10 @@ def model_total_scores(model_configs):
             micro_f1_no_misc_se=0.6533333333333333,
         ),
         "spacy/da_core_news_sm": dict(
-            micro_f1=0.8615384615384616,
-            micro_f1_no_misc=1.0,
-            micro_f1_no_misc_se=0.0,
-            micro_f1_se=0.12061538461538451,
+            micro_f1=0.6857142857142857,
+            micro_f1_no_misc=0.75,
+            micro_f1_no_misc_se=0.49,
+            micro_f1_se=0.22400000000000003,
         ),
         "deepset/minilm-uncased-squad2": dict(
             exact_match=75.0,
