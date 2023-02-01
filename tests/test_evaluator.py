@@ -28,6 +28,25 @@ def evaluator(evaluation_config):
     yield evaluator
 
 
+@pytest.fixture(scope="module")
+def evaluator_invalid_url(evaluation_config):
+    evaluator = Evaluator(
+        progress_bar=evaluation_config.progress_bar,
+        save_results=evaluation_config.save_results,
+        leaderboard_url="http://invalid",
+        raise_error_on_invalid_model=evaluation_config.raise_error_on_invalid_model,
+        cache_dir=evaluation_config.cache_dir,
+        use_auth_token=evaluation_config.use_auth_token,
+        track_carbon_emissions=evaluation_config.track_carbon_emissions,
+        country_code=evaluation_config.country_code,
+        prefer_device=evaluation_config.prefer_device,
+        only_return_log=evaluation_config.only_return_log,
+        verbose=evaluation_config.verbose,
+    )
+    evaluator.evaluation_config.testing = True
+    yield evaluator
+
+
 class TestEvaluator:
     def test_evaluation_config(self, evaluator, evaluation_config):
         assert evaluator.evaluation_config == evaluation_config
@@ -123,14 +142,11 @@ def test_send_results_to_leaderboard(evaluator, model_configs, task_config):
 
 
 def test_send_results_to_leaderboard_raises_exception(
-    evaluator, model_configs, task_config
+    evaluator_invalid_url, model_configs, task_config
 ):
     if len(model_configs) > 1:
         model_id = [model_config.model_id for model_config in model_configs][0]
 
-        # Set base url to something invalid
-        evaluator.leaderboard_client = Session("http://invalid")
-
         # Get results from evaluate
         with pytest.raises(HTTPError):
-            evaluator.evaluate(model_id=model_id, task=task_config.name)
+            evaluator_invalid_url.evaluate(model_id=model_id, task=task_config.name)
