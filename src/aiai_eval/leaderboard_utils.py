@@ -49,9 +49,7 @@ class Session(requests.Session):
         response = self.get(endpoint)
 
         # Check if we got a valid response and raise error if not
-        if response.status_code == 204 or not response.headers[
-            "content-type"
-        ].strip().startswith("application/json"):
+        if response.status_code != 200:
             raise ValueError(response.text)
 
         # Return the leaderboard
@@ -97,9 +95,7 @@ class Session(requests.Session):
         response = self.get(endpoint)
 
         # Check if we got a valid response and raise error if not
-        if response.status_code == 204 or not response.headers[
-            "content-type"
-        ].strip().startswith("application/json"):
+        if response.status_code != 200:
             raise ValueError(response.text)
 
         try:
@@ -158,9 +154,7 @@ class Session(requests.Session):
         response = self.post(endpoint, json=payload)
 
         # Check if we got a valid response and raise error if not
-        if response.status_code == 204 or not response.headers[
-            "content-type"
-        ].strip().startswith("application/json"):
+        if response.status_code != 200:
             raise ValueError(response.text)
 
         # Return the leaderboard
