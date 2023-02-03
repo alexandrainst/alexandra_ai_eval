@@ -314,7 +314,7 @@ class Evaluator:
             )
             logger.debug(f'The error message was "{e}".')
 
-    def _send_results_to_leaderboard(self) -> list:
+    def _send_results_to_leaderboard(self) -> List[bool]:
         """Send the evaluation results to the leaderboard.
 
         Args:
