@@ -117,7 +117,7 @@ class Session(requests.Session):
             task_name (str): The name of the task.
             model_id (str): The model id.
             metrics (dict): A dictionary with the metrics for the model.
-            test (bool): 
+            test (bool):
                 Whether we are in test mode or not. If we are in test mode, we will not
                 actually post the model to the leaderboard, but we will still return the response.
 
@@ -156,4 +156,9 @@ class Session(requests.Session):
             raise ValueError(response.text)
 
         # Return the leaderboard
-        return response.json()
+        response_json = response.json()
+
+        # Close the connection
+        response.close()
+
+        return response_json
