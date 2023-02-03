@@ -68,7 +68,6 @@ def test_evaluate_is_identical_to_evaluate_single(
     evaluator, task_config, model_configs
 ):
     if len(model_configs) > 1:
-
         model_ids = [model_config.model_id for model_config in model_configs]
 
         # Get results from evaluate

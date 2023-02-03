@@ -57,7 +57,6 @@ class SequenceClassification(Task):
         prepared_dataset: Dataset,
         **kwargs,
     ) -> List[Tuple[list, list]]:
-
         # Collapse the logits into single predictions for every sample
         if has_floats(predictions):
             predictions = np.argmax(predictions, axis=-1)

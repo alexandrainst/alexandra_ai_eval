@@ -117,7 +117,6 @@ class AutomaticSpeechRecognition(Task):
         model_config: PretrainedConfig,
         task_config: TaskConfig,
     ) -> BatchEncoding:
-
         # Create labels column
         examples["labels"] = examples[task_config.label_column_name]
 

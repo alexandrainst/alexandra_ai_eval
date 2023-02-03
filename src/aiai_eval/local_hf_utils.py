@@ -57,7 +57,6 @@ def load_local_hf_model(
     # Set the maximal length of the tokenizer to the model's maximal length. This is
     # required for proper truncation
     if not hasattr(tokenizer, "model_max_length") or tokenizer.model_max_length > 1_000:
-
         if hasattr(tokenizer, "max_model_input_sizes"):
             all_max_lengths = tokenizer.max_model_input_sizes.values()
             if len(list(all_max_lengths)) > 0:

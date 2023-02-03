@@ -171,7 +171,6 @@ class Evaluator:
             # initial message containing all the upcoming evaluations. The individual
             # (model, task) pairs will also be logged individually later
             if len(model_ids) > 1 or len(task_configs) > 1:
-
                 # Prepare model string for logging
                 if len(model_ids) == 1:
                     model_str = f"{model_ids[0]} model"

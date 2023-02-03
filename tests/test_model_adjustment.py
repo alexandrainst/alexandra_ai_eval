@@ -108,7 +108,6 @@ class TestAlterClassificationLayer:
 
     def test_increase_dimension_if_new_labels(self, model, task_config):
         if task_config.supertask in {"sequence-classification", "token-classification"}:
-
             if isinstance(model.config.id2label, dict):
                 model_id2label = list(model.config.id2label.values()) + ["new_label"]
             else:

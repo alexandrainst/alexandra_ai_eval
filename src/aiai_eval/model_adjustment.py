@@ -51,7 +51,6 @@ def adjust_model_to_task(
     # labels that the model have not been trained on (it will just always get those
     # labels wrong)
     else:
-
         model_id2label = deepcopy(model_config.id2label)
 
         # Collect the dataset labels and model labels in the `model_id2label`

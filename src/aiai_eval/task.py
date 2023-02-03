@@ -369,7 +369,6 @@ class Task(ABC):
         for metric_cfg, (predictions, labels) in zip(
             self.task_config.metrics, predictions_and_labels
         ):
-
             # Load the metric
             metric = self._metrics[metric_cfg.name]
 
@@ -487,7 +486,6 @@ class Task(ABC):
                 If the model type is not supported.
         """
         if framework == Framework.PYTORCH:
-
             # Load the data collator
             # If the processor is not a tokenizer we assume it's a processor, and
             # if it is a tokenizer we assume we simply pass that to the data collator
@@ -516,7 +514,6 @@ class Task(ABC):
 
             all_predictions = list()
             for batch in itr:
-
                 # Prepare the batch
                 batch = self._prepare_pytorch_batch(
                     batch, input_modality=self.task_config.modality
@@ -525,7 +522,6 @@ class Task(ABC):
                 # If we are dealing with a Hugging Face model then we will use the
                 # entire batch dictionary
                 if isinstance(model, PreTrainedModel):
-
                     # Get the model predictions
                     with torch.no_grad():
                         with warnings.catch_warnings():
@@ -601,7 +597,6 @@ class Task(ABC):
             return all_predictions
 
         elif framework == Framework.SPACY:
-
             # Create progress bar
             if self.evaluation_config.progress_bar:
                 itr = tqdm(
@@ -652,7 +647,6 @@ class Task(ABC):
         """
         try:
             if framework == Framework.PYTORCH:
-
                 preprocess_fn = partial(
                     self._pytorch_preprocess_fn,
                     tokenizer=kwargs["tokenizer"],

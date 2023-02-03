@@ -91,7 +91,6 @@ class TestLoadDataCollator:
 
 
 def test_compute_metrics(ner):
-
     # Define predictions and labels
     predictions = [
         ["O", "O", "B-MISC", "I-MISC", "I-MISC", "I-MISC", "O"],

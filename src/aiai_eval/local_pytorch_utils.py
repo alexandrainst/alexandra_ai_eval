@@ -331,7 +331,6 @@ def get_from_config(
     # If the key is not in the config then we either use the default value or prompt
     # the user to enter it
     if key not in config:
-
         # If the default value is set and is of the correct type, then we use it
         if default_value is not None and isinstance(default_value, expected_type):
             config[key] = default_value
@@ -339,7 +338,6 @@ def get_from_config(
         # Otherwise, we prompt the user to enter the value
         else:
             if user_prompt is None:
-
                 # Define the base user prompt
                 base_prompt = (
                     f"The configuration did not contain the {key!r} entry. Please "
@@ -408,7 +406,6 @@ def get_missing_key_value_from_user(
 
     # Otherwise, we parse the user input, depending on the expected type
     else:
-
         # We try to parse the input, and if it fails then we prompt the user to enter
         # it again
         while True:
