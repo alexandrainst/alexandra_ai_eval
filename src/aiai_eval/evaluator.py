@@ -322,7 +322,7 @@ class Evaluator:
                 The evaluation results to send.
 
         Returns:
-            list of bool: 
+            list of bool:
                 A list of booleans indicating whether the results were
                 successfully sent to the leaderboard.
         """
@@ -363,11 +363,6 @@ class Evaluator:
                 # Make dataframe from leaderboard json
                 task_leaderboard = pd.DataFrame.from_dict(task_leaderboard_json)
 
-                # Log the leaderboard
-                logger.info(
-                    f"Leaderboard:\n{tabulate(task_leaderboard, headers='keys', tablefmt='fancy_grid')}"
-                )
-
                 # Get metric columns, i.e. all columns except "id", "model_type" and "model_id"
                 metric_columns = task_leaderboard.columns.difference(
                     ["id", "model_type", "model_id"]
@@ -377,8 +372,11 @@ class Evaluator:
                 task_leaderboard["average_score"] = (
                     task_leaderboard[metric_columns].dropna(axis=1).mean(axis=1)
                 )
-                task_leaderboard.sort_values("average_score").drop(
-                    "average_score", axis=1
+                task_leaderboard.sort_values("average_score")
+
+                # Log the leaderboard
+                logger.info(
+                    f"Leaderboard:\n{tabulate(task_leaderboard, headers='keys', tablefmt='fancy_grid')}"
                 )
 
                 # Get the rank of the model, first check it is in the leaderboard
