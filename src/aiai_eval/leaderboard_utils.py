@@ -1,5 +1,7 @@
 """Utility functions related to the Leaderboard and associated REST API."""
 
+from json import JSONDecodeError
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -53,7 +55,10 @@ class Session(requests.Session):
             raise ValueError(response.text)
 
         # Return the leaderboard
-        task = response.json()
+        try:
+            task = response.json()
+        except JSONDecodeError:
+            raise ValueError(response.text)
 
         # Check if we got a valid response
         if task == {"error": "Table not found"}:
@@ -97,7 +102,10 @@ class Session(requests.Session):
         ].strip().startswith("application/json"):
             raise ValueError(response.text)
 
-        task = response.json()
+        try:
+            task = response.json()
+        except JSONDecodeError:
+            raise ValueError(response.text)
 
         # Check if we got a valid response
         if task == {"error": "Table not found"}:
@@ -156,7 +164,10 @@ class Session(requests.Session):
             raise ValueError(response.text)
 
         # Return the leaderboard
-        response_json = response.json()
+        try:
+            response_json = response.json()
+        except JSONDecodeError:
+            raise ValueError(response.text)
 
         # Close the connection
         response.close()
