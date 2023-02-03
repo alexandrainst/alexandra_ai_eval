@@ -322,7 +322,8 @@ class Evaluator:
                 The evaluation results to send.
 
         Returns:
-            list of bool: A list of booleans indicating whether the results were
+            list of bool: 
+                A list of booleans indicating whether the results were
                 successfully sent to the leaderboard.
         """
         # Initialize a list of status bools
