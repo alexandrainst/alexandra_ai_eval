@@ -327,7 +327,7 @@ class Evaluator:
                 successfully sent to the leaderboard.
         """
         # Initialize a list of status bools
-        status = []
+        status: List[bool] = []
 
         # Loop through the evaluation results and send each one to the leaderboard
         for task_name in self.evaluation_results.keys():
