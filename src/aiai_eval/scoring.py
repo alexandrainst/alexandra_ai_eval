@@ -33,7 +33,7 @@ def log_scores(
         only_return_log (bool, optional):
             If only the logging string should be returned. Defaults to False.
         model_type (str, optional):
-            The type of model. Defaults to "other".
+            The type of model, either "huggingface" or "other". Defaults to "other".
 
     Returns:
         dict or str:
