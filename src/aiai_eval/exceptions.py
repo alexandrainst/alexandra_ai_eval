@@ -144,7 +144,6 @@ class InvalidArchitectureForTask(Exception):
 
 class WrongFeatureColumnName(Exception):
     def __init__(self, feature_column_names: Union[str, Sequence[str]]):
-
         # Ensure that feature_column_names is a sequence
         if isinstance(feature_column_names, str):
             feature_column_names = [feature_column_names]

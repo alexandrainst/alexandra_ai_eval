@@ -43,7 +43,6 @@ def get_carbon_tracker(
     # Use the offline emissions tracker if there is either no internet connection
     # or the user wants to use the offline emissions tracker
     if not internet_connection_available() or prefer_offline:
-
         # If the country code is not specified then raise an error
         if country_code == CountryCode.EMPTY:  # type: ignore[attr-defined]
             raise MissingCountryISOCode

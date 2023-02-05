@@ -29,7 +29,7 @@ class TestLogScores:
         assert isinstance(logged_scores, dict)
 
     def test_has_correct_keys(self, logged_scores):
-        assert sorted(logged_scores.keys()) == ["raw", "total"]
+        assert sorted(logged_scores.keys()) == ["model_type", "raw", "total"]
 
     def test_raw_scores_are_identical_to_input(self, logged_scores, scores):
         assert logged_scores["raw"] == scores

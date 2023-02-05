@@ -3,8 +3,10 @@
 from collections import defaultdict
 
 import pytest
+from requests.exceptions import HTTPError
 
 from aiai_eval.evaluator import Evaluator
+from aiai_eval.leaderboard_utils import Session
 from aiai_eval.task_factory import TaskFactory
 
 
@@ -13,6 +15,25 @@ def evaluator(evaluation_config):
     evaluator = Evaluator(
         progress_bar=evaluation_config.progress_bar,
         save_results=evaluation_config.save_results,
+        raise_error_on_invalid_model=evaluation_config.raise_error_on_invalid_model,
+        cache_dir=evaluation_config.cache_dir,
+        use_auth_token=evaluation_config.use_auth_token,
+        track_carbon_emissions=evaluation_config.track_carbon_emissions,
+        country_code=evaluation_config.country_code,
+        prefer_device=evaluation_config.prefer_device,
+        only_return_log=evaluation_config.only_return_log,
+        verbose=evaluation_config.verbose,
+    )
+    evaluator.evaluation_config.testing = True
+    yield evaluator
+
+
+@pytest.fixture(scope="module")
+def evaluator_invalid_url(evaluation_config):
+    evaluator = Evaluator(
+        progress_bar=evaluation_config.progress_bar,
+        save_results=evaluation_config.save_results,
+        leaderboard_url="http://invalid",
         raise_error_on_invalid_model=evaluation_config.raise_error_on_invalid_model,
         cache_dir=evaluation_config.cache_dir,
         use_auth_token=evaluation_config.use_auth_token,
@@ -47,7 +68,6 @@ def test_evaluate_is_identical_to_evaluate_single(
     evaluator, task_config, model_configs
 ):
     if len(model_configs) > 1:
-
         model_ids = [model_config.model_id for model_config in model_configs]
 
         # Get results from evaluate
@@ -104,3 +124,28 @@ def test_evaluate_single(evaluator, model_configs, task_config, model_total_scor
         evaluator._evaluate_single(task_config=task_config, model_id=model_id)
         results = evaluator.evaluation_results[task_config.name][model_id]
         assert results["total"] == model_total_scores[idx]
+
+
+def test_send_results_to_leaderboard(evaluator, model_configs, task_config):
+    # Set up evaluator to not send results to leaderboard, so we can test this
+    # function
+    evaluator.send_results_to_leaderboard = False
+    if len(model_configs) > 1:
+        model_id = [model_config.model_id for model_config in model_configs][0]
+
+        # Get results from evaluate
+        evaluator.evaluate(model_id=model_id, task=task_config.name)
+
+        # Check that the results are sent to leaderboard
+        assert all(evaluator._send_results_to_leaderboard())
+
+
+def test_send_results_to_leaderboard_raises_exception(
+    evaluator_invalid_url, model_configs, task_config
+):
+    if len(model_configs) > 1:
+        model_id = [model_config.model_id for model_config in model_configs][0]
+
+        # Get results from evaluate
+        with pytest.raises(HTTPError):
+            evaluator_invalid_url.evaluate(model_id=model_id, task=task_config.name)

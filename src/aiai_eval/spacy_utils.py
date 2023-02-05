@@ -62,7 +62,7 @@ def load_spacy_model(model_id: str) -> Dict[str, Language]:
                 f"{str(e)}."
             ),
         )
-    return dict(model=model)
+    return dict(model=model, model_type="other")
 
 
 def model_exists_on_spacy(model_id: str) -> bool:

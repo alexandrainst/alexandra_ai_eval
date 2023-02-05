@@ -115,7 +115,6 @@ def load_model_from_hf_hub(
 
     # If an error occured then throw an informative exception
     except (OSError, ValueError):
-
         # If the model is private then raise an informative error
         private_model = model_is_private_on_hf_hub(
             model_id=model_config.model_id,
@@ -166,7 +165,6 @@ def load_model_from_hf_hub(
     # Set the maximal length of the tokenizer to the model's maximal length. This is
     # required for proper truncation
     if not hasattr(tokenizer, "model_max_length") or tokenizer.model_max_length > 1_000:
-
         if hasattr(tokenizer, "max_model_input_sizes"):
             all_max_lengths = tokenizer.max_model_input_sizes.values()
             if len(list(all_max_lengths)) > 0:
@@ -183,7 +181,9 @@ def load_model_from_hf_hub(
     # Move the model to the specified device
     model.to(evaluation_config.device)
 
-    return dict(model=model, tokenizer=tokenizer, processor=processor)
+    return dict(
+        model=model, tokenizer=tokenizer, processor=processor, model_type="huggingface"
+    )
 
 
 def get_hf_hub_model_info(
@@ -415,7 +415,6 @@ def get_label_conversions(
     """
     # Attempt to fetch the model config from the Hugging Face Hub, if it exists
     try:
-
         # Download the model config from the Hugging Face Hub
         config = AutoConfig.from_pretrained(
             model_id,

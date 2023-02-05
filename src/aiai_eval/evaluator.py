@@ -2,13 +2,19 @@
 
 import json
 import logging
+import warnings
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Union
 
+import pandas as pd
+from requests.exceptions import ConnectionError, HTTPError
+from tabulate import tabulate
+
 from .config import EvaluationConfig, TaskConfig
 from .enums import CountryCode, Device
 from .exceptions import InvalidArchitectureForTask, InvalidEvaluation
+from .leaderboard_utils import Session
 from .task_configs import get_all_task_configs
 from .task_factory import TaskFactory
 
@@ -24,6 +30,12 @@ class Evaluator:
         save_results (bool, optional):
             Whether to save the benchmark results to
             'aiai_evaluation_results.json'. Defaults to False.
+        send_results_to_leaderboard (bool, optional):
+            Whether to send the benchmark results to the leaderboard. Defaults to
+            True.
+        leaderboard_url (str, optional):
+            The URL of the leaderboard. Defaults to
+            'https://api.aiai.alexandrainst.dk'.
         raise_error_on_invalid_model (bool, optional):
             Whether to raise an error if a model is invalid. Defaults to False.
         cache_dir (str, optional):
@@ -71,6 +83,8 @@ class Evaluator:
         self,
         progress_bar: bool = True,
         save_results: bool = False,
+        send_results_to_leaderboard: bool = True,
+        leaderboard_url: str = "https://api.aiai.alexandrainst.dk",
         raise_error_on_invalid_model: bool = False,
         cache_dir: str = ".aiai_cache",
         use_auth_token: Union[bool, str] = False,
@@ -118,6 +132,17 @@ class Evaluator:
         # Initialise a task factory
         self.task_factory = TaskFactory(evaluation_config=self.evaluation_config)
 
+        # Initialise the send results to leaderboard flag
+        self.send_results_to_leaderboard = send_results_to_leaderboard
+        self.leaderboard_url = leaderboard_url
+
+        # Initialise the leaderboard client if we want to send results to the
+        # leaderboard
+        if self.send_results_to_leaderboard:
+            self.leaderboard_client = Session(
+                base_url=self.leaderboard_url,
+            )
+
     def evaluate(
         self,
         model_id: Union[Sequence[str], str],
@@ -146,7 +171,6 @@ class Evaluator:
             # initial message containing all the upcoming evaluations. The individual
             # (model, task) pairs will also be logged individually later
             if len(model_ids) > 1 or len(task_configs) > 1:
-
                 # Prepare model string for logging
                 if len(model_ids) == 1:
                     model_str = f"{model_ids[0]} model"
@@ -187,6 +211,14 @@ class Evaluator:
                 with output_path.open("w") as f:
                     json.dump(self.evaluation_results, f)
 
+            # Send the evaluation results to the leaderboard
+            if self.send_results_to_leaderboard:
+                if all(self._send_results_to_leaderboard()):
+                    logger.info("Successfully sent results to leaderboard.")
+                else:
+                    raise HTTPError("Failed to send result(s) to leaderboard.")
+
+            # Return the evaluation results
             return self.evaluation_results
 
         except Exception as e:
@@ -280,6 +312,96 @@ class Evaluator:
                 "Skipping."
             )
             logger.debug(f'The error message was "{e}".')
+
+    def _send_results_to_leaderboard(self) -> List[bool]:
+        """Send the evaluation results to the leaderboard.
+
+        Args:
+            results (dict):
+                The evaluation results to send.
+
+        Returns:
+            list of bool:
+                A list of booleans indicating whether the results were
+                successfully sent to the leaderboard.
+        """
+        # Initialize a list of status bools
+        status: List[bool] = []
+
+        # Loop through the evaluation results and send each one to the leaderboard
+        for task_name in self.evaluation_results.keys():
+            for model_id in self.evaluation_results[task_name].keys():
+                logger.info(
+                    f"Sending results for {model_id} to the {task_name}-leaderboard."
+                )
+                # Post the results to the leaderboard and log the response
+                try:
+                    task_leaderboard_json = self.leaderboard_client.post_model_to_task(
+                        model_type=self.evaluation_results[task_name][model_id][
+                            "model_type"
+                        ],
+                        task_name=task_name,
+                        model_id=model_id,
+                        metrics=self.evaluation_results[task_name][model_id]["total"],
+                        test=self.evaluation_config.testing,
+                    )
+                    logger.info(
+                        f"Results successfully sent to the {task_name}-leaderboard."
+                    )
+                except (ValueError, ConnectionError) as e:
+                    logger.info(
+                        f"Could not send results for {model_id} to the "
+                        f"{task_name}-leaderboard. Skipping."
+                    )
+                    logger.debug(f'The error message was "{e}".')
+
+                    # Append the status of the leaderboard post to the status list
+                    status.append(False)
+                    continue
+
+                # Make dataframe from leaderboard json
+                task_leaderboard = pd.DataFrame.from_dict(task_leaderboard_json)
+
+                # Get metric columns, i.e. all columns except "id", "model_type" and "model_id"
+                metric_columns = task_leaderboard.columns.difference(
+                    ["id", "model_type", "model_id"]
+                )
+
+                # Sort the leaderboard by the average of the metric columns
+                task_leaderboard["average_score"] = (
+                    task_leaderboard[metric_columns].dropna(axis=1).mean(axis=1)
+                )
+                task_leaderboard.sort_values("average_score")
+
+                # Log the leaderboard
+                logger.info(
+                    f"Leaderboard:\n{tabulate(task_leaderboard, headers='keys', tablefmt='fancy_grid')}"
+                )
+
+                # Get the rank of the model, first check it is in the leaderboard
+                # and then get the rank. If it is not in the leaderboard, we are running tests.
+                with warnings.catch_warnings():
+                    warnings.simplefilter(
+                        action="ignore", category=FutureWarning
+                    )  # ignore pandas warning
+                    if model_id in task_leaderboard["model_id"].values:
+                        model_rank = (
+                            int(
+                                task_leaderboard[
+                                    task_leaderboard["model_id"] == model_id
+                                ].index[0]
+                            )
+                            + 1
+                        )
+
+                        # Log the rank of the model
+                        logger.info(
+                            f"{model_id} is ranked {model_rank} on the {task_name}-leaderboard."
+                        )
+
+                        # The post was a success
+                status.append(True)
+        return status
 
     def __call__(
         self,

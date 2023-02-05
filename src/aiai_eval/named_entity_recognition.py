@@ -56,7 +56,6 @@ class NamedEntityRecognition(Task):
         return examples
 
     def _extract_spacy_predictions(self, tokens_processed: tuple) -> list:
-
         tokens, processed = tokens_processed
 
         # Get the aligned predictions
@@ -91,7 +90,6 @@ class NamedEntityRecognition(Task):
         prepared_dataset: Dataset,
         **kwargs,
     ) -> List[Tuple[list, list]]:
-
         # Extract the labels from the dataset
         labels = prepared_dataset["labels"]
 
@@ -121,7 +119,6 @@ class NamedEntityRecognition(Task):
         return [(predictions, labels), (predictions_no_misc, labels_no_misc)]
 
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
-
         sample_preds = model_predictions[0]
         has_sequence_elements = len(sample_preds[0]) > 0
         elements_are_strings = isinstance(sample_preds[0], str)
@@ -189,7 +186,6 @@ def tokenize_and_align_labels(
         # slower, but it works, and it should only occur rarely, when the Hugging Face
         # team has not implemented a fast variant of the tokenizer yet.
         except ValueError:
-
             # Get the list of words in the document
             words = examples["tokens"][i]
 
@@ -252,7 +248,6 @@ def tokenize_and_align_labels(
         previous_word_idx = None
         label_ids: List[int] = list()
         for word_idx in word_ids:
-
             # Special tokens have a word id that is None. We set the label to -100 so
             # they are automatically ignored in the loss function
             if word_idx is None:

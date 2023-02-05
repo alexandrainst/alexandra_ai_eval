@@ -17,6 +17,7 @@ def log_scores(
     scores: Sequence[Dict[str, float]],
     model_id: str,
     only_return_log: bool = False,
+    model_type: str = "other",
 ) -> Union[dict, str]:
     """Log the scores.
 
@@ -31,6 +32,8 @@ def log_scores(
             The full Hugging Face Hub path to the pretrained transformer model.
         only_return_log (bool, optional):
             If only the logging string should be returned. Defaults to False.
+        model_type (str, optional):
+            The type of model, either "huggingface" or "other". Defaults to "other".
 
     Returns:
         dict or str:
@@ -63,7 +66,7 @@ def log_scores(
         logger.info(msg)
 
     # Define a dict with both the raw scores and the aggregated scores
-    all_scores = dict(raw=scores, total=total_dict)
+    all_scores = dict(raw=scores, total=total_dict, model_type=model_type)
 
     # Return the extended scores
     if only_return_log:

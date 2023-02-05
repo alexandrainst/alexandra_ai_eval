@@ -1,5 +1,7 @@
 """Utility functions related to the Leaderboard and associated REST API."""
 
+from json import JSONDecodeError
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -44,7 +46,17 @@ class Session(requests.Session):
             endpoint = f"{self.base_url}/{task_config.name}"
 
         # Get task from Leaderboard
-        task = self.get(endpoint).json()
+        response = self.get(endpoint)
+
+        # Check if we got a valid response and raise error if not
+        if response.status_code != 200:
+            raise ValueError(response.text)
+
+        # Return the leaderboard
+        try:
+            task = response.json()
+        except JSONDecodeError:
+            raise ValueError(response.text)
 
         # Check if we got a valid response
         if task == {"error": "Table not found"}:
@@ -80,7 +92,16 @@ class Session(requests.Session):
             endpoint = f"{self.base_url}/{task_config.name}/{model_id}"
 
         # Get the model from leaderboard
-        task = self.get(endpoint).json()
+        response = self.get(endpoint)
+
+        # Check if we got a valid response and raise error if not
+        if response.status_code != 200:
+            raise ValueError(response.text)
+
+        try:
+            task = response.json()
+        except JSONDecodeError:
+            raise ValueError(response.text)
 
         # Check if we got a valid response
         if task == {"error": "Table not found"}:
@@ -91,7 +112,7 @@ class Session(requests.Session):
         return task
 
     def post_model_to_task(
-        self, model_type: str, task_name: str, model_id: str, metrics: dict
+        self, model_type: str, task_name: str, model_id: str, metrics: dict, test: bool
     ) -> dict:
         """Post a model to the leaderboard for the task corresponding to task_name.
 
@@ -100,9 +121,15 @@ class Session(requests.Session):
             task_name (str): The name of the task.
             model_id (str): The model id.
             metrics (dict): A dictionary with the metrics for the model.
+            test (bool):
+                Whether we are in test mode or not. If we are in test mode, we will not
+                actually post the model to the leaderboard, but we will still return the response.
 
         Returns:
             dict: A dictionary with the possibly updated leaderboard.
+
+        Raises:
+            ValueError: If the task is not found, or if a non 200 response is returned from the API.
         """
 
         # Check if task is valid
@@ -120,9 +147,23 @@ class Session(requests.Session):
             "task_name": task_name,
             "model_id": model_id,
             "metrics": metrics,
+            "test": test,
         }
 
         # Post the model to leaderboard
-        task = self.post(endpoint, json=payload).json()
+        response = self.post(endpoint, json=payload)
 
-        return task
+        # Check if we got a valid response and raise error if not
+        if response.status_code != 200:
+            raise ValueError(response.text)
+
+        # Return the leaderboard
+        try:
+            response_json = response.json()
+        except JSONDecodeError:
+            raise ValueError(response.text)
+
+        # Close the connection
+        response.close()
+
+        return response_json

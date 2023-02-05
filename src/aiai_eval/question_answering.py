@@ -55,7 +55,6 @@ class QuestionAnswering(Task):
         prepared_dataset: Dataset,
         **kwargs,
     ) -> List[Tuple[list, list]]:
-
         # Extract the predictions and labels
         predictions = postprocess_predictions(
             predictions=predictions,
@@ -135,7 +134,6 @@ def prepare_test_examples(
     tokenized_examples["id"] = list()
 
     for i in range(len(tokenized_examples["input_ids"])):
-
         # Grab the sequence corresponding to that example (to know what is the context
         # and what is the question).
         sequence_ids = tokenized_examples.sequence_ids(i)
@@ -195,7 +193,6 @@ def postprocess_predictions(
     # Loop over all the examples
     predictions = list()
     for example_index, example in enumerate(dataset):
-
         # Extract the best valid answer associated with the current example
         best_answer = find_best_answer(
             all_start_logits=all_start_logits,
@@ -263,7 +260,6 @@ def find_best_answer(
     # Loop through all the features associated to the current example
     valid_answers = list()
     for feature_index in feature_indices:
-
         # Get the features associated with the current example
         features = prepared_dataset[feature_index]
 
@@ -340,7 +336,6 @@ def find_valid_answers(
     valid_answers = list()
     for start_index in start_indexes:
         for end_index in end_indexes:
-
             # If the starting or ending index is out-of-scope, meaning that they are
             # either out of bounds or correspond to part of the input_ids that are not
             # in the context, then we skip this index
@@ -391,7 +386,6 @@ def postprocess_labels(dataset: Dataset) -> List[dict]:
     """
     labels = list()
     for example in dataset:
-
         # Create the associated reference dictionary, to be added to the list of
         # references
         label = dict(

@@ -44,7 +44,6 @@ class TestLoadDataCollator:
 
 
 def test_compute_metrics(seq_clf):
-
     # Define predictions and labels
     predictions_and_labels = [
         (np.array([1, 1, 0]), np.array([1, 2, 2])),
