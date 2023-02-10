@@ -154,5 +154,11 @@ def tokenize_and_numericalize(
         ][0]
         raise MissingLabel(label=missing_label, label2id=model_label2id)
 
+    # The numericalization fails if the label is not a string, in which case we
+    # check if it is an integer and if so, we assume it is already numericalized
+    except AttributeError:
+        if not isinstance(examples["labels"][0], int):
+            raise MissingLabel(label=examples["labels"][0], label2id=model_label2id)
+
     # Return the examples, now with numerical labels
     return examples
