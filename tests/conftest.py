@@ -49,6 +49,7 @@ def task_config(request):
 def model_configs(evaluation_config, task_config):
     model_id_mapping = {
         "sentiment-classification": ["pin/senda"],
+        "discourse-coherence-classification": ["ajders/ddisco_classifier"],
         "named-entity-recognition": [
             "Maltehb/aelaectra-danish-electra-small-cased-ner-dane",
             "spacy/da_core_news_sm",
@@ -99,6 +100,12 @@ def model_total_scores(model_configs):
         "alexandrainst/da-hatespeech-detection-small": dict(
             macro_f1=1.0,
             macro_f1_se=0.0,
+            mcc=0.0,
+            mcc_se=0.0,
+        ),
+        "ajders/ddisco_classifier": dict(
+            macro_f1=0.06666666666666667,
+            macro_f1_se=0.13066666666666665,
             mcc=0.0,
             mcc_se=0.0,
         ),
