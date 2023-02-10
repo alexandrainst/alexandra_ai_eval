@@ -345,6 +345,19 @@ class Evaluator:
                         metrics=self.evaluation_results[task_name][model_id]["total"],
                         test=self.evaluation_config.testing,
                     )
+                    # Check if response contains an error message
+                    if "error" in task_leaderboard_json:
+                        error_msg = task_leaderboard_json["error"]
+                        logger.info(
+                            f"Could not send results for {model_id} to the "
+                            f"{task_name}-leaderboard. Skipping."
+                        )
+                        logger.debug(f'The error message was "{error_msg}".')
+
+                        # Append the status of the leaderboard post to the status list
+                        status.append(False)
+                        continue
+
                     logger.info(
                         f"Results successfully sent to the {task_name}-leaderboard."
                     )
