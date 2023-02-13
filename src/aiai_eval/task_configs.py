@@ -234,6 +234,32 @@ OFFENSIVE = TaskConfig(
     test_name="test",
 )
 
+DISCOURSE = TaskConfig(
+    name="discourse-coherence-classification",
+    huggingface_id="alexandrainst/ddisco",
+    huggingface_subset=None,
+    supertask="sequence-classification",
+    modality=Modality("text"),
+    metrics=[MCC, MACRO_F1],
+    labels=[
+        LabelConfig(
+            name="LOW_COHERENCE",
+            synonyms=["LABEL_0"],
+        ),
+        LabelConfig(
+            name="MEDIUM_COHERENCE",
+            synonyms=["LABEL_1"],
+        ),
+        LabelConfig(
+            name="HIGH_COHERENCE",
+            synonyms=["LABEL_2"],
+        ),
+    ],
+    feature_column_names=["text"],
+    label_column_name="rating",
+    test_name="test",
+)
+
 ASR = TaskConfig(
     name="automatic-speech-recognition",
     huggingface_id="mozilla-foundation/common_voice_11_0",
