@@ -49,7 +49,7 @@ def task_config(request):
 def model_configs(evaluation_config, task_config):
     model_id_mapping = {
         "sentiment-classification": ["pin/senda"],
-        "discourse-coherence-classification": ["ajders/ddisco_classifier"],
+        "discourse-coherence-classification": ["alexandrainst/da-discourse-coherence-base"],
         "named-entity-recognition": [
             "Maltehb/aelaectra-danish-electra-small-cased-ner-dane",
             "spacy/da_core_news_sm",
