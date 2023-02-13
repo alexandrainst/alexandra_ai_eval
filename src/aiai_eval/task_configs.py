@@ -236,7 +236,7 @@ OFFENSIVE = TaskConfig(
 
 DISCOURSE = TaskConfig(
     name="discourse-coherence-classification",
-    huggingface_id="ajders/ddisco",
+    huggingface_id="alexandrainst/ddisco",
     huggingface_subset=None,
     supertask="sequence-classification",
     modality=Modality("text"),
