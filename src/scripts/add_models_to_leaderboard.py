@@ -126,7 +126,6 @@ def main():
     for search in searches:
         for task, search_input in search.items():
             for search in search_input:
-
                 # Search for models
                 models = hf_api.list_models(
                     search=search_input["search"],
