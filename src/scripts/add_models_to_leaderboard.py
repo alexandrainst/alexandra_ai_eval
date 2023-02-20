@@ -96,7 +96,7 @@ def main():
                     ),
                 },
                 {
-                    "search": "offensive",
+                    "search": "offensiv",
                     "filter": ModelFilter(task="text-classification", language="da"),
                 },
             ]
