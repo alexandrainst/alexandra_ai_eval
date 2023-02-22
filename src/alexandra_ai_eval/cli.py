@@ -84,7 +84,7 @@ from .task_configs import get_all_task_configs
 )
 @click.option(
     "--cache-dir",
-    default=".aiai_cache",
+    default=".alexanadra_ai_cache",
     show_default=True,
     help="The directory where models are datasets are cached.",
 )

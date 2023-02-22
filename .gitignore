@@ -90,14 +90,15 @@ target/
 .pytest_cache/
 
 # Documentation
-docs/aiai_eval/
-docs/aiai_eval.html
+docs/alexandra_ai_eval/
+docs/alexandra_ai_eval.html
 docs/index.html
 docs/search.json
 
-# AIAI
-.aiai_cache/
-aiai_evaluation_results.json
+# Alexandra AI 
+.alexandra_ai_cache/
+.alexandra_ai_eval/
+alexandra_ai_evaluation_results.json
 
 # Gradio logs
 flagged/

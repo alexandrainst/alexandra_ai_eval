@@ -1,67 +1,75 @@
-<div align='center'>
-<img src="https://raw.githubusercontent.com/alexandrainst/AIAI-eval/main/gfx/aiai-eval-logo.png" width="auto" height="224">
-</div>
+# AlexandraAI-eval
 
-### Evaluation of finetuned models.
+### Evaluation of finetuned models
+
 ##### _(pronounced as in "Aye aye captain")_
 
 ______________________________________________________________________
-[![PyPI Status](https://badge.fury.io/py/aiai_eval.svg)](https://pypi.org/project/aiai_eval/)
-[![Documentation](https://img.shields.io/badge/docs-passing-green)](https://alexandrainst.github.io/AIAI-eval/aiai_eval.html)
-[![License](https://img.shields.io/github/license/alexandrainst/AIAI-eval)](https://github.com/alexandrainst/AIAI-eval/blob/main/LICENSE)
-[![LastCommit](https://img.shields.io/github/last-commit/alexandrainst/AIAI-eval)](https://github.com/alexandrainst/AIAI-eval/commits/main)
-[![Code Coverage](https://img.shields.io/badge/Coverage-78%25-yellowgreen.svg)](https://github.com/alexandrainst/AIAI-eval/tree/main/tests)
-
+[![PyPI Status](https://badge.fury.io/py/alexandra_ai_eval.svg)](https://pypi.org/project/alexandra_ai_eval/)
+[![Documentation](https://img.shields.io/badge/docs-passing-green)](https://alexandrainst.github.io/AlexandraAI-eval/alexandra_ai_eval.html)
+[![License](https://img.shields.io/github/license/alexandrainst/AlexandraAI-eval)](https://github.com/alexandrainst/AlexandraAI-eval/blob/main/LICENSE)
+[![LastCommit](https://img.shields.io/github/last-commit/alexandrainst/AlexandraAI-eval)](https://github.com/alexandrainst/AlexandraAI-eval/commits/main)
+[![Code Coverage](https://img.shields.io/badge/Coverage-78%25-yellowgreen.svg)](https://github.com/alexandrainst/AlexandraAI-eval/tree/main/tests)
 
 ## Installation
+
 To install the package simply write the following command in your favorite terminal:
+
 ```
-$ pip install aiai-eval
+pip install alexandra-ai-eval
 ```
 
 ## Quickstart
+
 ### Benchmarking from the Command Line
+
 The easiest way to benchmark pretrained models is via the command line interface. After
 having installed the package, you can benchmark your favorite model like so:
+
 ```
-$ evaluate --model-id <model_id> --task <task>
+evaluate --model-id <model_id> --task <task>
 ```
 
 Here `model_id` is the HuggingFace model ID, which can be found on the [HuggingFace
 Hub](https://huggingface.co/models), and `task` is the task you want to benchmark the
 model on, such as "ner" for named entity recognition. See all options by typing
+
 ```
-$ evaluate --help
+evaluate --help
 ```
 
 The specific model version to use can also be added after the suffix '@':
+
 ```
-$ evaluate --model_id <model_id>@<commit>
+evaluate --model_id <model_id>@<commit>
 ```
 
 It can be a branch name, a tag name, or a commit id. It defaults to 'main' for latest.
 
 Multiple models and tasks can be specified by just attaching multiple arguments. Here
 is an example with two models:
+
 ```
-$ evaluate --model_id <model_id1> --model_id <model_id2> --task ner
+evaluate --model_id <model_id1> --model_id <model_id2> --task ner
 ```
 
 See all the arguments and options available for the `evaluate` command by typing
+
 ```
-$ evaluate --help
+evaluate --help
 ```
 
 ### Benchmarking from a Script
+
 In a script, the syntax is similar to the command line interface. You simply initialise
 an object of the `Evaluator` class, and call this evaluate object with your favorite
 models and/or datasets:
+
 ```
->>> from aiai_eval import Evaluator
+>>> from alexandra_ai_eval import Evaluator
 >>> evaluator = Evaluator()
 >>> evaluator('<model_id>', '<task>')
 ```
-
 
 ## Contributors
 
@@ -72,16 +80,15 @@ check out all the ways you can contribute to this package. :sparkles:
 
 - _Your name here?_ :tada:
 
-
 ## Maintainers
 
-The following are the core maintainers of the `aiai_eval` package:
+The following are the core maintainers of the `alexandra_ai_eval` package:
 
 - [@saattrupdan](https://github.com/saattrupdan) (Dan Saattrup Nielsen; saattrupdan@alexandra.dk)
 - [@AJDERS](https://github.com/AJDERS) (Anders Jess Pedersen; anders.j.pedersen@alexandra.dk)
 
-
 ## Project structure
+
 ```
 .
 ├── .flake8
@@ -94,14 +101,14 @@ The following are the core maintainers of the `aiai_eval` package:
 ├── LICENSE
 ├── README.md
 ├── gfx
-│   └── aiai-eval-logo.png
+│   └── alexandra-ai-eval-logo.png
 ├── makefile
 ├── models
 ├── notebooks
 ├── poetry.toml
 ├── pyproject.toml
 ├── src
-│   ├── aiai_eval
+│   ├── alexandra_ai_eval
 │   │   ├── __init__.py
 │   │   ├── automatic_speech_recognition.py
 │   │   ├── cli.py
