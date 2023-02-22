@@ -2,8 +2,6 @@
 
 ### Evaluation of finetuned models
 
-##### _(pronounced as in "Aye aye captain")_
-
 ______________________________________________________________________
 [![PyPI Status](https://badge.fury.io/py/alexandra_ai_eval.svg)](https://pypi.org/project/alexandra_ai_eval/)
 [![Documentation](https://img.shields.io/badge/docs-passing-green)](https://alexandrainst.github.io/AlexandraAI-eval/alexandra_ai_eval.html)
