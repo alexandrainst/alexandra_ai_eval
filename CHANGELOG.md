@@ -10,29 +10,11 @@ project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 ### Added
 
 - Support for evaluation of local Hugging Face models.
-
-### Added
-
 - Tests for the `question_answering`-task.
-
-### Added
-
 - The `automatic_speech_recognition`-task.
-
-### Added
-
 - Util functions, `leaderboard_utils`, for interacting with the associated REST-api which interacts with the leaderboard holding the evaluation results.
-
-### Added
-
 - A new function in the `evaluator` module, called `_send_results_to_leaderboard` which sends evaluation results to the leaderboard using the util functions from `leaderboard_utils`, and tests for this function and `leaderboard_utils`.
-
-### Added
-
 - The `discourse-coherence`-task.
-
-### Added
-
 - Support for integer labels.
 
 ## [v0.0.1] - 2022-08-29
