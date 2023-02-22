@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "aiai_eval"
+name = "alexandra_ai_eval"
 version = "0.0.1"
 description = "Evaluation of finetuned models."
 authors = [
@@ -46,8 +46,8 @@ isort = "^5.10.1"
 readme-coverage-badger = ">=0.1.2,<1.0.0"
 
 [tool.poetry.scripts]
-evaluate = "aiai_eval.cli:evaluate"
-evaluate-gui = "aiai_eval.gui:main"
+evaluate = "alexandra_ai_eval.cli:evaluate"
+evaluate-gui = "alexandra_ai_eval.gui:main"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
@@ -58,13 +58,13 @@ addopts = [
     '-s',
     '-vv',
     '--doctest-modules',
-    '--cov=src/aiai_eval',
+    '--cov=src/alexandra_ai_eval',
     '-n 8',
 ]
 xfail_strict = true
 filterwarnings = ["ignore"]
 log_cli_level = "info"
-testpaths = ["tests", "src/aiai_eval"]
+testpaths = ["tests", "src/alexandra_ai_eval"]
 
 [tool.black]
 line-length = 88

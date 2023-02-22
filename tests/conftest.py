@@ -4,10 +4,10 @@ import os
 
 import pytest
 
-from aiai_eval.config import EvaluationConfig, MetricConfig
-from aiai_eval.enums import CountryCode, Device
-from aiai_eval.model_loading import get_model_config, load_spacy_model
-from aiai_eval.task_configs import get_all_task_configs
+from alexandra_ai_eval.config import EvaluationConfig, MetricConfig
+from alexandra_ai_eval.enums import CountryCode, Device
+from alexandra_ai_eval.model_loading import get_model_config, load_spacy_model
+from alexandra_ai_eval.task_configs import get_all_task_configs
 
 
 @pytest.fixture(scope="session")

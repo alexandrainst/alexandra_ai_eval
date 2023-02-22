@@ -2,9 +2,9 @@
 
 import pytest
 
-from aiai_eval.enums import Framework
-from aiai_eval.exceptions import ModelFetchFailed
-from aiai_eval.spacy_utils import load_spacy_model, model_exists_on_spacy
+from alexandra_ai_eval.enums import Framework
+from alexandra_ai_eval.exceptions import ModelFetchFailed
+from alexandra_ai_eval.spacy_utils import load_spacy_model, model_exists_on_spacy
 
 
 class TestModelExistsOnSpacy:

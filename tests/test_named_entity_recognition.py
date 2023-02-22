@@ -8,11 +8,11 @@ from datasets.load import load_dataset
 from transformers.data.data_collator import DataCollatorForTokenClassification
 from transformers.models.auto.tokenization_auto import AutoTokenizer
 
-from aiai_eval.named_entity_recognition import (
+from alexandra_ai_eval.named_entity_recognition import (
     NamedEntityRecognition,
     tokenize_and_align_labels,
 )
-from aiai_eval.task_configs import NER
+from alexandra_ai_eval.task_configs import NER
 
 
 @pytest.fixture(scope="module")

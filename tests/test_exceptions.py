@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from aiai_eval.enums import Framework
-from aiai_eval.exceptions import (
+from alexandra_ai_eval.enums import Framework
+from alexandra_ai_eval.exceptions import (
     FrameworkCannotHandleTask,
     HuggingFaceHubDown,
     InvalidArchitectureForTask,

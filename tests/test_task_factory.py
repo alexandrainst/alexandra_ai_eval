@@ -4,10 +4,10 @@ from copy import deepcopy
 
 import pytest
 
-from aiai_eval.config import LabelConfig
-from aiai_eval.exceptions import InvalidTask
-from aiai_eval.task_factory import TaskFactory
-from aiai_eval.utils import kebab_to_pascal
+from alexandra_ai_eval.config import LabelConfig
+from alexandra_ai_eval.exceptions import InvalidTask
+from alexandra_ai_eval.task_factory import TaskFactory
+from alexandra_ai_eval.utils import kebab_to_pascal
 
 
 @pytest.fixture(scope="module")

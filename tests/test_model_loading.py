@@ -4,10 +4,10 @@ from copy import deepcopy
 
 import pytest
 
-from aiai_eval.exceptions import InvalidFramework, ModelDoesNotExist
-from aiai_eval.hf_hub_utils import get_model_config_from_hf_hub
-from aiai_eval.model_loading import get_model_config, load_model
-from aiai_eval.spacy_utils import get_model_config_from_spacy
+from alexandra_ai_eval.exceptions import InvalidFramework, ModelDoesNotExist
+from alexandra_ai_eval.hf_hub_utils import get_model_config_from_hf_hub
+from alexandra_ai_eval.model_loading import get_model_config, load_model
+from alexandra_ai_eval.spacy_utils import get_model_config_from_spacy
 
 
 class TestLoadModel:

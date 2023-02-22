@@ -4,14 +4,14 @@ import os
 
 import pytest
 
-from aiai_eval.config import (
+from alexandra_ai_eval.config import (
     EvaluationConfig,
     LabelConfig,
     MetricConfig,
     ModelConfig,
     TaskConfig,
 )
-from aiai_eval.enums import CountryCode, Device, Framework, Modality
+from alexandra_ai_eval.enums import CountryCode, Device, Framework, Modality
 
 
 @pytest.fixture(scope="module")

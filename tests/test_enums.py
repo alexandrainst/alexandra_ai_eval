@@ -2,8 +2,8 @@
 
 import enum
 
-from aiai_eval.country_codes import ALL_COUNTRY_CODES
-from aiai_eval.enums import CountryCode, Device, Framework
+from alexandra_ai_eval.country_codes import ALL_COUNTRY_CODES
+from alexandra_ai_eval.enums import CountryCode, Device, Framework
 
 
 class TestDevice:
