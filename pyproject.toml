@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "alexandra_ai_eval"
-version = "0.0.1"
+version = "0.1.0"
 description = "Evaluation of finetuned models."
 authors = [
     "Dan Saattrup Nielsen <dan.nielsen@alexandra.dk>",
