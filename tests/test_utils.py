@@ -8,9 +8,9 @@ import pytest
 import torch
 from transformers import AutoModelForSequenceClassification
 
-from aiai_eval.enums import Framework
-from aiai_eval.exceptions import InvalidArchitectureForTask
-from aiai_eval.utils import (
+from alexandra_ai_eval.enums import Framework
+from alexandra_ai_eval.exceptions import InvalidArchitectureForTask
+from alexandra_ai_eval.utils import (
     check_supertask,
     clear_memory,
     enforce_reproducibility,

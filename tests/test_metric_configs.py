@@ -2,8 +2,8 @@
 
 import pytest
 
-from aiai_eval import metric_configs
-from aiai_eval.config import MetricConfig
+from alexandra_ai_eval import metric_configs
+from alexandra_ai_eval.config import MetricConfig
 
 
 @pytest.fixture(scope="module")

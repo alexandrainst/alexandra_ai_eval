@@ -5,9 +5,9 @@ from collections import defaultdict
 import pytest
 from requests.exceptions import HTTPError
 
-from aiai_eval.evaluator import Evaluator
-from aiai_eval.leaderboard_utils import Session
-from aiai_eval.task_factory import TaskFactory
+from alexandra_ai_eval.evaluator import Evaluator
+from alexandra_ai_eval.leaderboard_utils import Session
+from alexandra_ai_eval.task_factory import TaskFactory
 
 
 @pytest.fixture(scope="module")

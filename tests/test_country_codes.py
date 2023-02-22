@@ -1,6 +1,6 @@
 """Unit tests for the `country_codes` module."""
 
-from aiai_eval.country_codes import ALL_COUNTRY_CODES
+from alexandra_ai_eval.country_codes import ALL_COUNTRY_CODES
 
 
 def test_country_codes_list_is_a_list():

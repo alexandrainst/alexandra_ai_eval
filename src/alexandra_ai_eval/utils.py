@@ -277,7 +277,7 @@ def get_class_by_name(
         # Import the module
         try:
             if not module_name:
-                module_name = f"aiai_eval.{name_snake}"
+                module_name = f"alexandra_ai_eval.{name_snake}"
             module = importlib.import_module(module_name)
         except ModuleNotFoundError:
             module_name = None

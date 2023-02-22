@@ -4,17 +4,17 @@ import os
 
 import pytest
 
-from aiai_eval.config import EvaluationConfig, MetricConfig
-from aiai_eval.enums import CountryCode, Device
-from aiai_eval.model_loading import get_model_config, load_spacy_model
-from aiai_eval.task_configs import get_all_task_configs
+from alexandra_ai_eval.config import EvaluationConfig, MetricConfig
+from alexandra_ai_eval.enums import CountryCode, Device
+from alexandra_ai_eval.model_loading import get_model_config, load_spacy_model
+from alexandra_ai_eval.task_configs import get_all_task_configs
 
 
 @pytest.fixture(scope="session")
 def evaluation_config():
     yield EvaluationConfig(
         raise_error_on_invalid_model=True,
-        cache_dir=".aiai_cache",
+        cache_dir=".alexandra_ai_cache",
         use_auth_token=os.environ.get("HUGGINGFACE_HUB_TOKEN", True),
         progress_bar=False,
         save_results=False,

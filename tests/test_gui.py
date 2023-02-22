@@ -4,7 +4,7 @@ import gradio as gr
 import pytest
 from click.types import BOOL
 
-from aiai_eval.gui import evaluate, main
+from alexandra_ai_eval.gui import evaluate, main
 
 
 class TestEvaluate:

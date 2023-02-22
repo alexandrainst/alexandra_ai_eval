@@ -2,8 +2,8 @@
 
 import pytest
 
-from aiai_eval.config import TaskConfig
-from aiai_eval.task_configs import get_all_task_configs
+from alexandra_ai_eval.config import TaskConfig
+from alexandra_ai_eval.task_configs import get_all_task_configs
 
 
 class TestGetAllTaskConfigs:

@@ -67,7 +67,7 @@ def main(cache_examples: bool) -> None:
             Whether to cache examples.
     """
     demo = gr.Interface(
-        title="AIAI-Eval: Helping You Choose the Right Model",
+        title="AlexandraAI-Eval: Helping You Choose the Right Model",
         description=(
             "This app lets you choose the right model for your task, by evaluating a "
             "given finetuned machine learning model from the Hugging Face Hub on a "

@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 from requests.exceptions import ConnectionError
 
-from aiai_eval.leaderboard_utils import Session
+from alexandra_ai_eval.leaderboard_utils import Session
 
 
 class TestSession:

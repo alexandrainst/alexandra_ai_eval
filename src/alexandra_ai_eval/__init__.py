@@ -13,7 +13,7 @@ from .evaluator import Evaluator  # noqa
 from .utils import block_terminal_output
 
 # Fetches the version of the package as defined in pyproject.toml
-__version__ = pkg_resources.get_distribution("aiai_eval").version
+__version__ = pkg_resources.get_distribution("alexandra_ai_eval").version
 
 
 # Block unwanted terminal outputs

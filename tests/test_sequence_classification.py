@@ -5,8 +5,8 @@ import pytest
 from datasets import load_dataset
 from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding
 
-from aiai_eval.sequence_classification import SequenceClassification
-from aiai_eval.task_configs import SENT
+from alexandra_ai_eval.sequence_classification import SequenceClassification
+from alexandra_ai_eval.task_configs import SENT
 
 
 @pytest.fixture(scope="module")

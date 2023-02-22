@@ -3,8 +3,8 @@
 import pytest
 from codecarbon import EmissionsTracker, OfflineEmissionsTracker
 
-from aiai_eval.co2 import get_carbon_tracker
-from aiai_eval.enums import CountryCode
+from alexandra_ai_eval.co2 import get_carbon_tracker
+from alexandra_ai_eval.enums import CountryCode
 
 
 class TestGetCarbonTracker:
