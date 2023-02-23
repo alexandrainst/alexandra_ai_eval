@@ -7,8 +7,8 @@ from datasets.arrow_dataset import Dataset
 from evaluate import EvaluationModule
 from transformers.tokenization_utils_base import BatchEncoding, PreTrainedTokenizerBase
 
-from aiai_eval.config import TaskConfig
-from aiai_eval.task import Task
+from alexandra_ai_eval.config import TaskConfig
+from alexandra_ai_eval.task import Task
 
 
 class TaskDummy(Task):
@@ -29,7 +29,7 @@ class TaskDummy(Task):
     def _spacy_preprocess_fn(self, examples: BatchEncoding) -> BatchEncoding:
         return examples
 
-    def _pytorch_preprocess_fn(
+    def _pytorch_preprocess_fn(  # type: ignore[override]
         self,
         examples: BatchEncoding,
         tokenizer: PreTrainedTokenizerBase,

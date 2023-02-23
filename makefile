@@ -53,7 +53,7 @@ setup-git:
 	@poetry run pre-commit install
 
 docs:
-	@poetry run pdoc --docformat google src/aiai_eval -o docs
+	@poetry run pdoc --docformat google src/alexandra_ai_eval -o docs
 	@echo "Saved documentation."
 
 view-docs:
@@ -65,7 +65,7 @@ view-docs:
 			(*CYGWIN*) openCmd='cygstart'; ;; \
 			(*) echo 'Error: Unsupported platform: $${uname}'; exit 2; ;; \
 		esac; \
-		"$${openCmd}" docs/aiai_eval.html
+		"$${openCmd}" docs/alexandra_ai_eval.html
 
 bump-major:
 	@poetry run python -m src.scripts.versioning --major
@@ -117,7 +117,7 @@ tree:
 		-I *.txt \
 		-I checkpoint-* \
 		-I .coverage* \
-		-I .aiai_cache \
-		-I aiai_evaluation_results.json \
+		-I .alexandra_ai_eval \
+		-I alexandra_ai_evaluation_results.json \
 		-I __pycache__ \
 		-I flagged

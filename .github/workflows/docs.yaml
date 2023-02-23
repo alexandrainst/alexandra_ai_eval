@@ -32,7 +32,7 @@ jobs:
       - name: Build documentation
         run: |
           poetry env use "3.10"
-          poetry run pdoc --docformat google src/aiai_eval -o docs
+          poetry run pdoc --docformat google src/alexandra_ai_eval -o docs
 
       - name: Compress documentation
         run: tar --directory docs/ -hcf artifact.tar .

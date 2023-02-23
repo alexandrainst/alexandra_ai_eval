@@ -6,9 +6,9 @@ from functools import partial
 import numpy as np
 import pytest
 
-from aiai_eval.enums import Framework
-from aiai_eval.model_loading import get_model_config, load_model
-from aiai_eval.question_answering import (
+from alexandra_ai_eval.enums import Framework
+from alexandra_ai_eval.model_loading import get_model_config, load_model
+from alexandra_ai_eval.question_answering import (
     QuestionAnswering,
     find_best_answer,
     find_valid_answers,
@@ -16,7 +16,7 @@ from aiai_eval.question_answering import (
     postprocess_predictions,
     prepare_test_examples,
 )
-from aiai_eval.task_configs import QA
+from alexandra_ai_eval.task_configs import QA
 
 
 @pytest.fixture(scope="module")

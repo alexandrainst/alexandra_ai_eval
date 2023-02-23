@@ -5,10 +5,13 @@ from copy import deepcopy
 import pytest
 from transformers.models.auto.configuration_auto import AutoConfig
 
-from aiai_eval.enums import Framework
-from aiai_eval.exceptions import InvalidEvaluation
-from aiai_eval.model_adjustment import adjust_model_to_task, alter_classification_layer
-from aiai_eval.utils import check_supertask, get_class_by_name
+from alexandra_ai_eval.enums import Framework
+from alexandra_ai_eval.exceptions import InvalidEvaluation
+from alexandra_ai_eval.model_adjustment import (
+    adjust_model_to_task,
+    alter_classification_layer,
+)
+from alexandra_ai_eval.utils import check_supertask, get_class_by_name
 
 
 @pytest.fixture(scope="module")

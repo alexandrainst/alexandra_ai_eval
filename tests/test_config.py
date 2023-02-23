@@ -4,14 +4,14 @@ import os
 
 import pytest
 
-from aiai_eval.config import (
+from alexandra_ai_eval.config import (
     EvaluationConfig,
     LabelConfig,
     MetricConfig,
     ModelConfig,
     TaskConfig,
 )
-from aiai_eval.enums import CountryCode, Device, Framework, Modality
+from alexandra_ai_eval.enums import CountryCode, Device, Framework, Modality
 
 
 @pytest.fixture(scope="module")
@@ -109,7 +109,7 @@ class TestEvaluationConfig:
     def test_attributes_correspond_to_arguments(self, evaluation_config):
         auth = os.environ.get("HUGGINGFACE_HUB_TOKEN", True)
         assert evaluation_config.raise_error_on_invalid_model is True
-        assert evaluation_config.cache_dir == ".aiai_cache"
+        assert evaluation_config.cache_dir == ".alexandra_ai_cache"
         assert evaluation_config.use_auth_token == auth
         assert evaluation_config.progress_bar is False
         assert evaluation_config.save_results is False

@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aiai_eval.scoring import aggregate_scores, log_scores
+from alexandra_ai_eval.scoring import aggregate_scores, log_scores
 
 
 @pytest.fixture(scope="module")
