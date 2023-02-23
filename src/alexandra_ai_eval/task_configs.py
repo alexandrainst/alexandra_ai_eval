@@ -49,6 +49,7 @@ SENT = TaskConfig(
     feature_column_names=["text"],
     label_column_name="label",
     test_name="test",
+    search_terms=["sent"],
 )
 
 
@@ -186,6 +187,7 @@ NER = TaskConfig(
     feature_column_names=["text"],
     label_column_name="ner_tags",
     test_name="test",
+    search_terms=["ner"],
 )
 
 
@@ -209,6 +211,7 @@ QA = TaskConfig(
     feature_column_names=["question", "context"],
     label_column_name="answers",
     test_name="test",
+    search_terms=[],
 )
 
 
@@ -232,6 +235,7 @@ OFFENSIVE = TaskConfig(
     feature_column_names=["text"],
     label_column_name="label",
     test_name="test",
+    search_terms=["offensiv", "hate"],
 )
 
 DISCOURSE = TaskConfig(
@@ -258,6 +262,7 @@ DISCOURSE = TaskConfig(
     feature_column_names=["text"],
     label_column_name="rating",
     test_name="test",
+    search_terms=["discourse"],
 )
 
 ASR = TaskConfig(
@@ -284,4 +289,5 @@ ASR = TaskConfig(
     feature_column_names=["audio"],
     label_column_name="sentence",
     test_name="test",
+    search_terms=[],
 )

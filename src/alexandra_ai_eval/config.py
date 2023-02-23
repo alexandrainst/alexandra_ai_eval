@@ -96,6 +96,9 @@ class TaskConfig:
             The architectures that can be used to solve the task. If None then
             it defaults to the list containing only the name of the supertaks. Defaults
             to None.
+        search_terms (list of str):
+            The search terms used to find the task on the Hugging Face Hub. Defaults
+            to an empty list.
     """
 
     name: str
@@ -109,6 +112,7 @@ class TaskConfig:
     label_column_name: str
     test_name: Optional[str]
     architectures: Optional[List[str]] = None
+    search_terms: List[str] = field(default_factory=list)
 
     @property
     def pretty_name(self) -> str:
