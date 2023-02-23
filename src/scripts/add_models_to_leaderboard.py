@@ -16,7 +16,6 @@ def main():
     for task_name, task_config in task_mapping.items():
         search = {task_name: []}
         for language in languages:
-
             # Get supertask, and check that it is correct.
             if task_config.supertask == "sequence-classification":
                 supertask = "text-classification"
