@@ -1,10 +1,15 @@
 """Script which searches the huggingface_hub for models fitting the supported tasks and add their results to the leaderboard."""
 
+import logging
+from csv import writer
+
 import pandas as pd
 from huggingface_hub.hf_api import HfApi, ModelFilter
 
 from alexandra_ai_eval.evaluator import Evaluator
 from alexandra_ai_eval.task_configs import get_all_task_configs
+
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -41,13 +46,26 @@ def main():
 
         searches.append(search)
 
+    # Check if we already have a list of failed models, if so, we load it.
+    csv_is_new = False
+    try:
+        failed_models_csv = open("failed_models.csv", "a")
+    except FileNotFoundError:
+        failed_models_csv = open("failed_models.csv", "w+")
+
+    # If failed_models.csv is empty, we add a header.
+    if failed_models_csv.tell() == 0:
+        csv_is_new = True
+        csv_writer = writer(failed_models_csv)
+        csv_writer.writerow(["model_id", "error"])
+
     # Loop through searches
     hf_api = HfApi()
     models_ids_evaluated = []
-    failed_models = []
     for search in searches:
         for task, search_input in search.items():
             for search in search_input:
+
                 # Search for models
                 search_term = search["search"]
                 search_filter = search["filter"]
@@ -65,26 +83,34 @@ def main():
 
                 # Evaluate models
                 for model in models:
-                    # Check if we have already evaluated this model
-                    if model.modelId in models_ids_evaluated:
-                        continue
-                    try:
-                        evaluator.evaluate(
-                            model_id=model.modelId,
-                            task=task,
-                        )
-                        models_ids_evaluated.append(model.modelId)
 
-                    # If we fail to evaluate the model, we add it to a list of failed models.
-                    except Exception as e:
-                        print(f"Failed to evaluate {model.modelId} because of {e}")
-                        failed_models.append(
-                            {"model_id": model.modelId, "error": str(e)}
-                        )
-                        continue
+                    # If we haven't evaluated the model we evaluate it.
+                    if model.modelId not in models_ids_evaluated:
+                        try:
+                            evaluator.evaluate(
+                                model_id=model.modelId,
+                                task=task,
+                            )
+                            models_ids_evaluated.append(model.modelId)
 
-    # Save failed models to csv, for later debugging.
-    pd.DataFrame.from_dict(failed_models).to_csv("failed_models.csv", index=False)
+                        # If we fail to evaluate the model, we add it to a list of failed models.
+                        except Exception as e:
+                            logger.info(
+                                f"Failed to evaluate model: {model.modelId} with error: {e}"
+                            )
+                            csv_writer.writerow([model.modelId, e])
+    csv_writer.close()
+
+    # If the csv not created during this run, it might contain old failed model_ids, which might have succeeded in this run.
+    # we therefore check if there is any model_ids in the csv which we have been succesfully evaluated in this run, and remove them.
+    if not csv_is_new:
+        failed_models_df = pd.read_csv("failed_models.csv")
+        failed_models_df = failed_models_df.drop(
+            failed_models_df[
+                failed_models_df["model_id"].isin(models_ids_evaluated)
+            ].index
+        )
+        failed_models_df.to_csv("failed_models.csv", index=False)
 
 
 if __name__ == "__main__":
