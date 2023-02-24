@@ -10,12 +10,12 @@ include .env
 
 install-poetry:
 	@echo "Installing poetry..."
-	@curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 -
+	@curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3.10 -
 	@$(eval include ${HOME}/.poetry/env)
 
 uninstall-poetry:
 	@echo "Uninstalling poetry..."
-	@curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3 - --uninstall
+	@curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3.10 - --uninstall
 
 install:
 	@echo "Installing..."
@@ -32,10 +32,10 @@ install:
 	@$(MAKE) setup-git
 
 setup-poetry:
-	@poetry env use python3 && poetry install
+	@poetry env use python3.10 && poetry install
 
 setup-environment-variables:
-	@poetry run python3 -m src.scripts.fix_dot_env_file
+	@poetry run python3.10 -m src.scripts.fix_dot_env_file
 
 setup-git:
 	@git init
