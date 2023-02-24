@@ -17,6 +17,15 @@ To install the package simply write the following command in your favorite termi
 pip install alexandra-ai-eval
 ```
 
+If you're on MacOS and get an error saying something along the lines of "fatal error:
+'lzma.h' file not found" then try the following:
+
+```
+export CPPFLAGS="-I$(brew --prefix)/include"
+pip install alexandra-ai-eval
+```
+
+
 ## Quickstart
 
 ### Benchmarking from the Command Line
