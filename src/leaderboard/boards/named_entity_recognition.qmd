@@ -1,0 +1,10 @@
+---
+title: "Named Entity Recognition"
+execute:
+    echo: false
+---
+
+```{ojs}
+data = FileAttachment("../data/named_entity_recognition.json").json({ typed: true })
+Inputs.table(data, {sort: "overall", reverse: true})
+```

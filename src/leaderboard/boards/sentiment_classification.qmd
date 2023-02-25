@@ -1,0 +1,10 @@
+---
+title: "Sentiment Classification"
+execute:
+    echo: false
+---
+
+```{ojs}
+data = FileAttachment("../data/sentiment_classification.json").json({ typed: true })
+Inputs.table(data, {sort: "overall", reverse: true})
+```

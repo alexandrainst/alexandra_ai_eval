@@ -1,0 +1,5 @@
+---
+title: Leaderboards
+listing:
+    contents: boards
+---

@@ -1,0 +1,23 @@
+project:
+  type: website
+
+website:
+  title: "Alexandra AI Leaderboard"
+  navbar:
+    background: primary
+    search: false
+    left:
+      - href: boards/sentiment_classification.qmd
+        text: Sentiment Classification
+      - href: boards/named_entity_recognition.qmd
+        text: Named Entity Recognition
+      - about.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+
+
