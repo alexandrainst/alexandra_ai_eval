@@ -30,7 +30,6 @@ def define_searches(task_mapping: Dict[str, Any]) -> List[Dict[str, Any]]:
     for task_name, task_config in task_mapping.items():
         search: Dict[str, List[Dict[str, Any]]] = {task_name: []}
         for language in languages:
-
             # Get supertask, and check that it is correct.
             if task_config.supertask == "sequence-classification":
                 supertask = "text-classification"
@@ -157,7 +156,6 @@ def main(cache_dir: str = ".alexandra_ai_cache", output_path: str = "output"):
     for search in searches:
         for task, search_input in search.items():
             for search in search_input:
-
                 # Search for models
                 search_term = search["search"]
                 search_filter = search["filter"]
@@ -175,7 +173,6 @@ def main(cache_dir: str = ".alexandra_ai_cache", output_path: str = "output"):
 
                 # Evaluate models
                 for model in models:
-
                     # If we haven't evaluated the model we evaluate it.
                     if model.modelId not in models_ids_evaluated:
                         try:
