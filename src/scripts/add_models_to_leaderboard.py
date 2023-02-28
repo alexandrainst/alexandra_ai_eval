@@ -17,6 +17,12 @@ logger = logging.getLogger(__name__)
 def define_searches(task_mapping: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Define the searches to be performed on the huggingface_hub.
 
+    This function defines a list of 'searches' to be performed on the huggingface_hub.
+    Each search consists of three filters:
+     1. The search term, which is a string. If a model_id contains the string it will be added to the search.
+     2. The supertask, which is a string. If a model has the supertask it will be added to the search.
+     3. The language, which is a string. If a model has the language it will be added to the search.
+    Any model which fulfills all three filters will be added to the search.
     Args:
         task_mapping (dict):
             A mapping between names of dataset tasks and their configurations.
@@ -30,6 +36,7 @@ def define_searches(task_mapping: Dict[str, Any]) -> List[Dict[str, Any]]:
     for task_name, task_config in task_mapping.items():
         search: Dict[str, List[Dict[str, Any]]] = {task_name: []}
         for language in languages:
+
             # Get supertask, and check that it is correct.
             if task_config.supertask == "sequence-classification":
                 supertask = "text-classification"
