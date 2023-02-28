@@ -6,6 +6,7 @@ from csv import writer
 from typing import Any, Dict, List, Tuple
 
 import pandas as pd
+from _csv import _writer
 from huggingface_hub.hf_api import HfApi, ModelFilter
 
 from alexandra_ai_eval.evaluator import Evaluator
@@ -66,7 +67,7 @@ def define_searches(task_mapping: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 def prepare_cache_and_get_succeeded_and_failed_models(
     cache_dir: str, output_path: str
-) -> Tuple[Any, bool, List[str], Any]:
+) -> Tuple[_writer, bool, List[str], _writer]:
     """
     Prepare cache and get succeeded and failed models.
 
@@ -196,7 +197,7 @@ def main(cache_dir: str = ".alexandra_ai_cache", output_path: str = "output"):
                                 f"Failed to evaluate model: {model.modelId} with error: {e}"
                             )
                             failed_models_csv_writer.writerow([model.modelId, e])
-    failed_models_csv_writer.close()
+    failed_models_csv_writer.close()  # type: ignore[attr-defined]
 
     # If the csv not created during this run, it might contain old failed model_ids, which might have succeeded in this run.
     # we therefore check if there is any model_ids in the csv which we have been succesfully evaluated in this run, and remove them.
