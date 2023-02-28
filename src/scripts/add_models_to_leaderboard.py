@@ -1,4 +1,4 @@
-"""Script which searches the huggingface_hub for models fitting the supported tasks and add their results to the leaderboard."""
+"""Script which searches the Hugging Face Hub for models fitting the supported tasks and add their results to the leaderboard."""
 
 import logging
 from csv import writer
