@@ -38,7 +38,7 @@ class TestSession:
                 existing_model,
                 raw=True,
             )
-            assert model["name"] == existing_model
+            assert model["model_id"]["0"] == existing_model
         else:
             pytest.skip("No models for task")
 
@@ -51,7 +51,7 @@ class TestSession:
                 "sentiment-classification",
                 existing_model,
             )
-            assert model["name"] == existing_model
+            assert model["model_id"]["0"] == existing_model
         else:
             pytest.skip("No models for task")
 
