@@ -37,7 +37,6 @@ def define_searches(task_mapping: Dict[str, Any]) -> List[Dict[str, Any]]:
     for task_name, task_config in task_mapping.items():
         search: Dict[str, List[Dict[str, Any]]] = {task_name: []}
         for language in languages:
-
             # Get supertask, and check that it is correct.
             if task_config.supertask == "sequence-classification":
                 supertask = "text-classification"
