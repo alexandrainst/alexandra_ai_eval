@@ -74,7 +74,7 @@ def prepare_cache_and_get_succeeded_and_failed_models(
         cache_dir_str (str): Path to cache directory.
         output_path_str (str): Path to output directory.
 
-        Returns:
+    Returns:
         failed_models_csv_writer (csv.writer): Writer for failed_models.csv.
         failed_models_csv_is_new (bool): True if failed_models.csv is new, False if it already existed.
         models_ids_evaluated (list): List of model ids which have already been evaluated.
