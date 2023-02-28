@@ -29,7 +29,7 @@ def define_searches(task_mapping: Dict[str, Any]) -> List[Dict[str, Any]]:
             A mapping between names of dataset tasks and their configurations.
 
         Returns:
-            list:
+            list of dict:
                 A list of searches to be performed on the huggingface_hub.
     """
     searches = []
