@@ -14,6 +14,7 @@ import torch.nn as nn
 from datasets.arrow_dataset import Dataset
 from datasets.load import load_dataset
 from spacy.language import Language
+from torch.cuda import OutOfMemoryError
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from transformers import DataProcessor, WhisperForConditionalGeneration
@@ -260,28 +261,35 @@ class Task(ABC):
             torch.manual_seed(703 + idx)
             torch.cuda.manual_seed_all(703 + idx)
 
-            # Define batch size, which depends on whether we are testing or not
-            batch_size = (
-                2
-                if self.evaluation_config.testing
-                else 4
-                if self.task_config.name == "automatic-speech-recognition"
-                else 32
-            )
-
             # Start carbon emissions tracking
             if self.evaluation_config.track_carbon_emissions:
                 self.carbon_tracker.start()
 
-            # Get model predictions
-            model_predictions = self._get_model_predictions(
-                model=model,
-                tokenizer=tokenizer,
-                processor=processor,
-                prepared_dataset=prepared_dataset,
-                batch_size=batch_size,
-                framework=framework,
+            # Define batch size, which depends on whether we are testing or not
+            batch_size = (
+                2
+                if self.evaluation_config.testing
+                else 32
+                if self.task_config.name == "automatic-speech-recognition"
+                else 512
             )
+            while batch_size > 1:
+                try:
+                    # Get model predictions
+                    model_predictions = self._get_model_predictions(
+                        model=model,
+                        tokenizer=tokenizer,
+                        processor=processor,
+                        prepared_dataset=prepared_dataset,
+                        batch_size=batch_size,
+                        framework=framework,
+                    )
+                except (OutOfMemoryError, RuntimeError) as e:  # type: ignore
+                    # If we encounter an OOM error, or Runtimeerror in case of CPU, we halve the batch size
+                    # and try again, we raise an error in case the batch size is reduced from 1 to 0.
+                    batch_size //= 2
+                    if batch_size == 0:
+                        raise e
 
             # Extract attributes if they are available
             try:
@@ -303,35 +311,12 @@ class Task(ABC):
                 processor=processor,
             )
 
-            # If there are multiple metrics but only one pair in the
-            # `all_predictions_labels` list, we copy our that entry to ensure there is a
-            # pair for each metric
-            if (
-                len(prepared_predictions_and_labels) == 1
-                and len(self.task_config.metrics) > 1
-            ):
-                prepared_predictions_and_labels *= len(self.task_config.metrics)
-
-            # In the first iteration we do a check to see if the model outputs fit the
-            # expected format. If not, we raise an exception.
-            if idx == 0:
-                if not self._check_if_model_is_trained_for_task(
-                    model_predictions=model_predictions
-                ):
-                    raise ModelNotTrainedForTask(task=self.task_config.name)
-
-            # Compute the metrics for each prediction batch
-            scores = self._compute_metrics(
-                predictions_and_labels=prepared_predictions_and_labels,
+            scores = self.check_and_compute_scores(
+                model_predictions,
+                prepared_predictions_and_labels,
+                idx,
+                prepared_dataset,
             )
-
-            # Stop carbon emissions tracking and store emission metrics
-            if self.evaluation_config.track_carbon_emissions:
-                self.carbon_tracker.stop()
-                emissions_data = self.carbon_tracker.final_emissions_data
-                factor = 1_000_000 / len(prepared_dataset)
-                scores["carbon_emissions"] = factor * emissions_data.emissions
-                scores["energy_consumed"] = factor * emissions_data.energy_consumed
 
             return scores
 
@@ -348,6 +333,54 @@ class Task(ABC):
 
             # Return the error if it wasn't caught by the above conditionals
             return e
+
+    def check_and_compute_scores(
+        self, model_predictions, prepared_predictions_and_labels, idx, prepared_dataset
+    ) -> Union[dict, Exception]:
+        """Check if the model is trained for the task and compute the scores, and stop carbon emissions tracking.
+
+        Args:
+            model_predictions (list): list of model predictions.
+            prepared_predictions_and_labels (list): list of tuples of predictions and labels.
+            idx (int): index of the current iteration.
+            prepared_dataset (Dataset): the preprocessed test dataset.
+
+        Raises:
+            ModelNotTrainedForTask: If the model is not trained for the task.
+
+        Returns:
+            Union[dict, Exception]: The keys in the dict correspond to the metrics and values.
+        """
+        # If there are multiple metrics but only one pair in the
+        # `all_predictions_labels` list, we copy our that entry to ensure there is a
+        # pair for each metric
+        if (
+            len(prepared_predictions_and_labels) == 1
+            and len(self.task_config.metrics) > 1
+        ):
+            prepared_predictions_and_labels *= len(self.task_config.metrics)
+
+        # In the first iteration we do a check to see if the model outputs fit the
+        # expected format. If not, we raise an exception.
+        if idx == 0:
+            if not self._check_if_model_is_trained_for_task(
+                model_predictions=model_predictions
+            ):
+                raise ModelNotTrainedForTask(task=self.task_config.name)
+
+        # Compute the metrics for each prediction batch
+        scores = self._compute_metrics(
+            predictions_and_labels=prepared_predictions_and_labels,
+        )
+
+        # Stop carbon emissions tracking and store emission metrics
+        if self.evaluation_config.track_carbon_emissions:
+            self.carbon_tracker.stop()
+            emissions_data = self.carbon_tracker.final_emissions_data
+            factor = 1_000_000 / len(prepared_dataset)
+            scores["carbon_emissions"] = factor * emissions_data.emissions
+            scores["energy_consumed"] = factor * emissions_data.energy_consumed
+        return scores
 
     def _compute_metrics(
         self,
