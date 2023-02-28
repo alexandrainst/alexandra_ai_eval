@@ -206,8 +206,10 @@ def main(cache_dir: str = ".alexandra_ai_cache", output_path: str = "output"):
     failed_models_csv_writer.close()  # type: ignore[attr-defined]
     evaluated_models_csv_writer.close()  # type: ignore[attr-defined]
 
-    # If the csv not created during this run, it might contain old failed model_ids, which might have succeeded in this run.
-    # we therefore check if there is any model_ids in the csv which we have been succesfully evaluated in this run, and remove them.
+    # If the csv not created during this run, it might contain old failed model_ids,
+    # which might have succeeded in this run. We therefore check if there is any
+    # model_ids in the csv which we have been succesfully evaluated in this run,
+    # and remove them.
     if not failed_models_csv_is_new:
         failed_models_csv_path = Path(output_path) / "failed_models.csv"
         failed_models_df = pd.read_csv(failed_models_csv_path)
