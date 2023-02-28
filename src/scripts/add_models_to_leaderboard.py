@@ -1,8 +1,8 @@
 """Script which searches the huggingface_hub for models fitting the supported tasks and add their results to the leaderboard."""
 
 import logging
-import os
 from csv import writer
+from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import pandas as pd
@@ -66,14 +66,14 @@ def define_searches(task_mapping: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 
 def prepare_cache_and_get_succeeded_and_failed_models(
-    cache_dir: str, output_path: str
+    cache_dir_str: str, output_path_str: str
 ) -> Tuple[_writer, bool, List[str], _writer]:
     """
     Prepare cache and get succeeded and failed models.
 
     Args:
-        cache_dir (str): Path to cache directory.
-        output_path (str): Path to output directory.
+        cache_dir_str (str): Path to cache directory.
+        output_path_str (str): Path to output directory.
 
         Returns:
         failed_models_csv_writer (csv.writer): Writer for failed_models.csv.
@@ -81,34 +81,37 @@ def prepare_cache_and_get_succeeded_and_failed_models(
         models_ids_evaluated (list): List of model ids which have already been evaluated.
         evaluated_models_csv_writer (csv.writer): Writer for evaluated_models.csv.
     """
+    output_path = Path(output_path_str)
+    cache_dir = Path(cache_dir_str)
+
     # check if output_path exists, if not, create it.
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
+    if not output_path.exists():
+        output_path.mkdir(parents=True)
 
     # check if cache_dir exists, if not, create it.
-    if not os.path.exists(cache_dir):
-        os.makedirs(cache_dir)
+    if not cache_dir.exists():
+        cache_dir.mkdir(parents=True)
 
     # make folder in cache_dir for evaluated models list
-    if not os.path.exists(f"{cache_dir}/evaluated_models"):
-        os.makedirs(f"{cache_dir}/evaluated_models")
+    if not (cache_dir / "evaluated_models").exists():
+        (cache_dir / "evaluated_models").mkdir(parents=True)
 
     # Check if we already have a list of failed models, if so, we load it.
     failed_models_csv_is_new = False
     try:
-        failed_models_csv = open(f"{output_path}/failed_models.csv", "a")
+        failed_models_csv_path = output_path / "failed_models.csv"
+        failed_models_csv = failed_models_csv_path.open(mode="a")
     except FileNotFoundError:
-        failed_models_csv = open(f"{output_path}/failed_models.csv", "w+")
+        failed_models_csv = failed_models_csv_path.open("w+")
 
     # Check if we already have a list of evaluated_models, if so, we load it.
     try:
-        models_ids_evaluated_csv = open(
-            f"{cache_dir}/evaluated_models/evaluated_models.csv", "a"
+        models_ids_evaluated_csv_path = (
+            cache_dir / "evaluated_models" / "evaluated_models.csv"
         )
+        models_ids_evaluated_csv = models_ids_evaluated_csv_path.open(mode="a")
     except FileNotFoundError:
-        models_ids_evaluated_csv = open(
-            f"{cache_dir}/evaluated_models/evaluated_models.csv", "w+"
-        )
+        models_ids_evaluated_csv = models_ids_evaluated_csv_path.open(mode="+w")
 
     # If failed_models.csv is empty, we add a header.
     if failed_models_csv.tell() == 0:
@@ -156,7 +159,7 @@ def main(cache_dir: str = ".alexandra_ai_cache", output_path: str = "output"):
         models_ids_evaluated,
         evaluated_models_csv_writer,
     ) = prepare_cache_and_get_succeeded_and_failed_models(
-        cache_dir=cache_dir, output_path=output_path
+        cache_dir_str=cache_dir, output_path_str=output_path
     )
 
     # Loop through searches
