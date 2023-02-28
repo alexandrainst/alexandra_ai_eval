@@ -140,8 +140,11 @@ def prepare_cache_and_get_succeeded_and_failed_models(
 
 def main(cache_dir: str = ".alexandra_ai_cache", output_path: str = "output"):
     """
-    Main function of the script. Searches the huggingface_hub for models fitting the supported tasks and add their results to the leaderboard.
+    Searches the huggingface_hub for fitting models and their results to the leaderboard.
 
+    This script will search the huggingface_hub for models which fit the search criteria, defined in the
+    `define_searches` function. It will then evaluate the models on the leaderboard, and save the results to
+    `output_path`. If a model fails to evaluate, it will be saved to `failed_models.csv` in `output_path`.
     Args:
         cache_dir (str): Path to cache directory.
         output_path (str): Path to output directory.
@@ -201,6 +204,7 @@ def main(cache_dir: str = ".alexandra_ai_cache", output_path: str = "output"):
                             )
                             failed_models_csv_writer.writerow([model.modelId, e])
     failed_models_csv_writer.close()  # type: ignore[attr-defined]
+    evaluated_models_csv_writer.close()  # type: ignore[attr-defined]
 
     # If the csv not created during this run, it might contain old failed model_ids, which might have succeeded in this run.
     # we therefore check if there is any model_ids in the csv which we have been succesfully evaluated in this run, and remove them.
