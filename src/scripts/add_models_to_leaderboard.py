@@ -68,8 +68,7 @@ def define_searches(task_mapping: Dict[str, Any]) -> List[Dict[str, Any]]:
 def prepare_cache_and_get_succeeded_and_failed_models(
     cache_dir_str: str, output_path_str: str
 ) -> Tuple[_writer, bool, List[str], _writer]:
-    """
-    Prepare cache and get succeeded and failed models.
+    """Prepare cache and get succeeded and failed models.
 
     Args:
         cache_dir_str (str): Path to cache directory.
