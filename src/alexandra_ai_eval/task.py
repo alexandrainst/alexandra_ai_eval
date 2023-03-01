@@ -1,5 +1,6 @@
 """Abstract Task class."""
 
+import gc
 import logging
 import random
 import warnings
@@ -287,7 +288,9 @@ class Task(ABC):
                 except (OutOfMemoryError, RuntimeError) as e:  # type: ignore
                     # If we encounter an OOM error, or Runtimeerror in case of CPU, we halve the batch size
                     # and try again, we raise an error in case the batch size is reduced from 1 to 0.
+                    # We also clear the memory to avoid memory leaks.
                     batch_size //= 2
+                    clear_memory()
                     if batch_size == 0:
                         raise e
 
