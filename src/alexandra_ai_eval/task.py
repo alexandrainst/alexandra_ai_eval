@@ -270,9 +270,9 @@ class Task(ABC):
             batch_size = (
                 2
                 if self.evaluation_config.testing
-                else 32
+                else 4
                 if self.task_config.name == "automatic-speech-recognition"
-                else 256
+                else 32
             )
             while batch_size > 1:
                 try:
