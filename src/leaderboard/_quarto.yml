@@ -8,14 +8,14 @@ website:
   title: "Alexandra AI Leaderboard"
   search: false
   repo-url: https://github.com/alexandrainst/AlexandraAI-eval
-  navbar:
-    background: primary
-    left:
-      - href: boards/sentiment_classification.qmd
-        text: Sentiment Classification
-      - href: boards/named_entity_recognition.qmd
-        text: Named Entity Recognition
+  repo-actions: [edit, issue]
+  sidebar:
+    logo: logo.png
+    style: "docked"
+    contents: 
+      - auto: boards/*.qmd
       - about.qmd
+  page-footer: "Copyright 2023, Alexandra Instituttet"
 
 format:
   html:
@@ -23,7 +23,4 @@ format:
       light: flatly
       dark: darkly
     css: styles.css
-    toc: true
-
-
-
+    toc: false
