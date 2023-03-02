@@ -1,0 +1,65 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Leaderboards",
+    "section": "",
+    "text": "Named Entity Recognition\n\n\n\n\n\n\n\n\n\n\n \n\n\n\n\n\n\nSentiment Classification\n\n\n\n\n\n\n\n\n\n\n \n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site"
+  },
+  {
+    "objectID": "boards/named_entity_recognition.html",
+    "href": "boards/named_entity_recognition.html",
+    "title": "Named Entity Recognition",
+    "section": "",
+    "text": "data = FileAttachment(\"../data/named_entity_recognition.json\").json({ typed: true })\nInputs.table(data, {sort: \"overall\", reverse: true})"
+  },
+  {
+    "objectID": "boards/sentiment_classification.html",
+    "href": "boards/sentiment_classification.html",
+    "title": "Sentiment Classification",
+    "section": "",
+    "text": "data = FileAttachment(\"../data/sentiment_classification.json\").json({ typed: true })\nInputs.table(data, {sort: \"overall\", reverse: true})"
+  },
+  {
+    "objectID": "587a5243/index.html",
+    "href": "587a5243/index.html",
+    "title": "Leaderboards",
+    "section": "",
+    "text": "Named Entity Recognition\n\n\n\n\n\n\n\n\n\n\n \n\n\n\n\n\n\nSentiment Classification\n\n\n\n\n\n\n\n\n\n\n \n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "587a5243/about.html",
+    "href": "587a5243/about.html",
+    "title": "About",
+    "section": "",
+    "text": "About this site"
+  },
+  {
+    "objectID": "587a5243/AlexandraAI-eval.html",
+    "href": "587a5243/AlexandraAI-eval.html",
+    "title": "AlexandraAI-eval",
+    "section": "",
+    "text": "Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see https://quarto.org."
+  },
+  {
+    "objectID": "587a5243/boards/named_entity_recognition.html",
+    "href": "587a5243/boards/named_entity_recognition.html",
+    "title": "Named Entity Recognition",
+    "section": "",
+    "text": "data = FileAttachment(\"../data/named_entity_recognition.json\").json({ typed: true })\nInputs.table(data, {sort: \"overall\", reverse: true})"
+  },
+  {
+    "objectID": "587a5243/boards/sentiment_classification.html",
+    "href": "587a5243/boards/sentiment_classification.html",
+    "title": "Sentiment Classification",
+    "section": "",
+    "text": "data = FileAttachment(\"../data/sentiment_classification.json\").json({ typed: true })\nInputs.table(data, {sort: \"overall\", reverse: true})"
+  }
+]
