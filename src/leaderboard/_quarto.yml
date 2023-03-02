@@ -11,6 +11,9 @@ website:
   repo-actions: [edit, issue]
   sidebar:
     logo: logo.png
+    tools:
+      - icon: github
+        href: https://github.com/alexandrainst
     style: "docked"
     contents: 
       - auto: boards/*.qmd
