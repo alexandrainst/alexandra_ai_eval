@@ -1,0 +1,9 @@
+[
+  {
+    "listing": "/index.html",
+    "items": [
+      "/boards/named_entity_recognition.html",
+      "/boards/sentiment_classification.html"
+    ]
+  }
+]

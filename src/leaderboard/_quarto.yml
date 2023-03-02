@@ -1,11 +1,16 @@
 project:
   type: website
+  output-dir: ../../site
+
+execute:
+  freeze: auto
 
 website:
   title: "Alexandra AI Leaderboard"
+  search: false
+  repo-url: https://github.com/alexandrainst/AlexandraAI-eval
   navbar:
     background: primary
-    search: false
     left:
       - href: boards/sentiment_classification.qmd
         text: Sentiment Classification
