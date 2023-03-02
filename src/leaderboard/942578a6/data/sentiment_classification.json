@@ -1,0 +1,22 @@
+[
+    {
+        "id": 1,
+        "model_type": "mt1",
+        "model_id": 1,
+        "overall": 3,
+        "macro_f1": 0.5,
+        "macro_f1_se": 0.1,
+        "power": 0.8,
+        "emissions": 3.12
+    },
+    {
+        "id": 2,
+        "model_type": "mt2",
+        "model_id": 2,
+        "overall": 2.2,
+        "macro_f1": 0.3,
+        "macro_f1_se": 0.8,
+        "power": 2.1,
+        "emissions": 2143.2
+    }
+]
