@@ -1,5 +1,5 @@
 <div align='center'>
- <img src="https://raw.githubusercontent.com/alexandrainst/AlexandraAI/docs/add-logo/gfx/alexandra-ai-logo-dark.svg">
+ <img src="https://raw.githubusercontent.com/alexandrainst/AlexandraAI/main/gfx/alexandra-ai-logo-dark.svg">
 </div>
 
 # AlexandraAI-eval
