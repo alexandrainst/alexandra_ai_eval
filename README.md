@@ -2,8 +2,6 @@
  <img src="https://raw.githubusercontent.com/alexandrainst/AlexandraAI/main/gfx/alexandra-ai-logo-dark.svg">
 </div>
 
-# AlexandraAI-eval
-
 ### Evaluation of Finetuned Models
 
 ______________________________________________________________________
