@@ -1,6 +1,8 @@
-# AlexandraAI-eval
+<div align='center'>
+ <img src="https://raw.githubusercontent.com/alexandrainst/AlexandraAI/main/gfx/alexandra-ai-logo-dark.svg">
+</div>
 
-### Evaluation of finetuned models
+### Evaluation of Finetuned Models
 
 ______________________________________________________________________
 [![PyPI Status](https://badge.fury.io/py/alexandra_ai_eval.svg)](https://pypi.org/project/alexandra_ai_eval/)
