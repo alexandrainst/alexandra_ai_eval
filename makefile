@@ -1,23 +1,35 @@
 # This ensures that we can call `make <target>` even if `<target>` exists as a file or
 # directory.
-.PHONY: notebook docs
+.PHONY: notebook docs help
 
 # Exports all variables defined in the makefile available to scripts
 .EXPORT_ALL_VARIABLES:
 
+# Create .env file if it does not already exist
+ifeq (,$(wildcard .env))
+  $(shell touch .env)
+endif
+
 # Includes environment variables from the .env file
 include .env
 
+# Set gRPC environment variables, which prevents some errors with the `grpcio` package
+export GRPC_PYTHON_BUILD_SYSTEM_OPENSSL=1
+export GRPC_PYTHON_BUILD_SYSTEM_ZLIB=1
+
+help:
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
 install-poetry:
 	@echo "Installing poetry..."
-	@curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3.10 -
+	@pipx install poetry==1.2.0
 	@$(eval include ${HOME}/.poetry/env)
 
 uninstall-poetry:
 	@echo "Uninstalling poetry..."
-	@curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3.10 - --uninstall
+	@pipx uninstall poetry
 
-install:
+install: ## Install dependencies
 	@echo "Installing..."
 	@if [ "$(shell which poetry)" = "" ]; then \
 		$(MAKE) install-poetry; \
@@ -46,17 +58,19 @@ setup-git:
 		git config --local commit.gpgsign false; \
 	else \
 		echo "Signing with GPG key ID ${GPG_KEY_ID}..."; \
-		echo 'If you get the "failed to sign the data" error when committing, try running `export GPG_TTY=$$(tty)`.'; \
+		echo 'Just for info: If you get the "failed to sign the data" error when '\
+			 'committing, try running `export GPG_TTY=$$(tty)` and `gpgconf --kill '\
+			 'gpg-agent`, and try again.'; \
 		git config --local commit.gpgsign true; \
 		git config --local user.signingkey ${GPG_KEY_ID}; \
 	fi
 	@poetry run pre-commit install
 
-docs:
+docs:  ## Generate documentation
 	@poetry run pdoc --docformat google src/alexandra_ai_eval -o docs
 	@echo "Saved documentation."
 
-view-docs:
+view-docs:  ## View documentation
 	@echo "Viewing API documentation..."
 	@uname=$$(uname); \
 		case $${uname} in \
@@ -88,19 +102,19 @@ publish:
 	fi
 	@echo "Published!"
 
-publish-major: bump-major publish
+publish-major: bump-major publish  ## Publish a major version
 
-publish-minor: bump-minor publish
+publish-minor: bump-minor publish  ## Publish a minor version
 
-publish-patch: bump-patch publish
+publish-patch: bump-patch publish  ## Publish a patch version
 
-test:
+test:  ## Run tests
 	@poetry run pytest && readme-cov
 
-tree:
+tree:  ## Print directory tree
 	@tree -a \
 		-I .git \
-		-I .mypy_cache . \
+		-I .mypy_cache \
 		-I .env \
 		-I .venv \
 		-I poetry.lock \
@@ -112,12 +126,11 @@ tree:
 		-I outputs \
 		-I .DS_Store \
 		-I .cache \
-		-I *.parquet \
-		-I *.csv \
-		-I *.txt \
+		-I raw \
+		-I processed \
+		-I final \
 		-I checkpoint-* \
 		-I .coverage* \
-		-I .alexandra_ai_eval \
-		-I alexandra_ai_evaluation_results.json \
+		-I .DS_Store \
 		-I __pycache__ \
-		-I flagged
+		.
