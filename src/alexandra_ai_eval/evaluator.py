@@ -330,7 +330,7 @@ class Evaluator:
         """
         assert (
             self.leaderboard_client is not None
-        ), "Leaderboard client is not initialized. Ensure that self.send_results_to_leaderboard is set to True."
+        ), "Leaderboard client is not initialized. Ensure self.send_results_to_leaderboard is set to True and try re-initiliazing the evaluator."
 
         self.leaderboard_client.check_connection()
 

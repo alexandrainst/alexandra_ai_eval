@@ -172,7 +172,7 @@ class Session(requests.Session):
         """Checks whether we can establish a connection to the leaderboard.
 
         Args:
-            timeout (int): The timeout in seconds. Defaults to 5.
+            timeout (int, optional): Timeout in seconds. Defaults to 5.
 
         Raises:
             requests.exceptions.ConnectionError: Failed to establish a connection.
