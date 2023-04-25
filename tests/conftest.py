@@ -75,42 +75,42 @@ def model_configs(evaluation_config, task_config):
 @pytest.fixture(scope="session")
 def model_total_scores(model_configs):
     score_mapping = {
-        "pin/senda": dict(
-            macro_f1=1.0,
-            macro_f1_se=0.0,
-            mcc=1.0,
-            mcc_se=0.0,
-        ),
-        "Maltehb/aelaectra-danish-electra-small-cased-ner-dane": dict(
-            micro_f1=0.22222222222222224,
-            micro_f1_se=0.4355555555555556,
-            micro_f1_no_misc=0.3333333333333333,
-            micro_f1_no_misc_se=0.6533333333333333,
-        ),
-        "spacy/da_core_news_sm": dict(
-            micro_f1=0.6857142857142857,
-            micro_f1_no_misc=0.75,
-            micro_f1_no_misc_se=0.49,
-            micro_f1_se=0.22400000000000003,
-        ),
-        "deepset/minilm-uncased-squad2": dict(
-            exact_match=75.0,
-            exact_match_se=49.0,
-            qa_f1=75.0,
-            qa_f1_se=49.0,
-        ),
-        "alexandrainst/da-hatespeech-detection-small": dict(
-            macro_f1=1.0,
-            macro_f1_se=0.0,
-            mcc=0.0,
-            mcc_se=0.0,
-        ),
-        "alexandrainst/da-discourse-coherence-base": dict(
-            macro_f1=0.06666666666666667,
-            macro_f1_se=0.13066666666666665,
-            mcc=0.0,
-            mcc_se=0.0,
-        ),
+        "pin/senda": {
+            "macro_f1": 1.0,
+            "macro_f1_se": 0.0,
+            "mcc": 1.0,
+            "mcc_se": 0.0,
+        },
+        "Maltehb/aelaectra-danish-electra-small-cased-ner-dane": {
+            "micro_f1": 0.22222222222222224,
+            "micro_f1_se": 0.4355555555555556,
+            "micro_f1_no_misc": 0.3333333333333333,
+            "micro_f1_no_misc_se": 0.6533333333333333,
+        },
+        "spacy/da_core_news_sm": {
+            "micro_f1": 0.6857142857142857,
+            "micro_f1_no_misc": 0.75,
+            "micro_f1_no_misc_se": 0.49,
+            "micro_f1_se": 0.22400000000000003,
+        },
+        "deepset/minilm-uncased-squad2": {
+            "exact_match": 75.0,
+            "exact_match_se": 49.0,
+            "qa_f1": 75.0,
+            "qa_f1_se": 49.0,
+        },
+        "alexandrainst/da-hatespeech-detection-small": {
+            "macro_f1": 1.0,
+            "macro_f1_se": 0.0,
+            "mcc": 0.0,
+            "mcc_se": 0.0,
+        },
+        "alexandrainst/da-discourse-coherence-base": {
+            "macro_f1": 0.06666666666666667,
+            "macro_f1_se": 0.13066666666666665,
+            "mcc": 0.0,
+            "mcc_se": 0.0,
+        },
         "openai/whisper-tiny": {
             "word_error_rate": 7.0,
             "word_error_rate_se": 3.4299999999999997,
