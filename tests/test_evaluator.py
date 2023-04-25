@@ -23,6 +23,7 @@ def evaluator(evaluation_config):
         prefer_device=evaluation_config.prefer_device,
         only_return_log=evaluation_config.only_return_log,
         verbose=evaluation_config.verbose,
+        send_results_to_leaderboard=False,
     )
     evaluator.evaluation_config.testing = True
     yield evaluator
@@ -126,10 +127,8 @@ def test_evaluate_single(evaluator, model_configs, task_config, model_total_scor
         assert results["total"] == model_total_scores[idx]
 
 
+@pytest.mark.skip(reason="Leaderboard is offline.")
 def test_send_results_to_leaderboard(evaluator, model_configs, task_config):
-    # Set up evaluator to not send results to leaderboard, so we can test this
-    # function
-    evaluator.send_results_to_leaderboard = False
     if len(model_configs) > 1:
         model_id = [model_config.model_id for model_config in model_configs][0]
 
@@ -140,6 +139,7 @@ def test_send_results_to_leaderboard(evaluator, model_configs, task_config):
         assert all(evaluator._send_results_to_leaderboard())
 
 
+@pytest.mark.skip(reason="Leaderboard is offline.")
 def test_send_results_to_leaderboard_raises_exception(
     evaluator_invalid_url, model_configs, task_config
 ):

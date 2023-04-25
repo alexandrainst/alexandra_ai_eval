@@ -167,3 +167,17 @@ class Session(requests.Session):
         response.close()
 
         return response_json
+
+    def check_connection(self, timeout: int = 5):
+        """Checks whether we can establish a connection to the leaderboard.
+
+        Args:
+            timeout (int): The timeout in seconds. Defaults to 5.
+
+        Raises:
+            requests.exceptions.ConnectionError: Failed to establish a connection.
+            requests.exceptions.ReadTimeout: Connection timed out after 5 seconds.
+            requests.exceptions.HTTPError: Non 200 response.
+        """
+        response = self.get(self.base_url, timeout=timeout)
+        response.raise_for_status()
