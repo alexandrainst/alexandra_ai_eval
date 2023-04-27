@@ -6,7 +6,6 @@ on:
       - main
 
 jobs:
-
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -15,9 +14,9 @@ jobs:
 
   pytest:
     strategy:
-        matrix:
-            os: [macos-latest, ubuntu-latest]
-            python-version: ["3.8", "3.9", "3.10"]
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+        python-version: ["3.8", "3.9", "3.10"]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Install libsndfile
@@ -53,3 +52,6 @@ jobs:
         run: poetry run pytest --dist no -n 0
         env:
           HUGGINGFACE_HUB_TOKEN: ${{ secrets.HUGGINGFACE_HUB_TOKEN }}
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
