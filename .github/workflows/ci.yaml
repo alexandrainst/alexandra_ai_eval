@@ -19,19 +19,6 @@ jobs:
         python-version: ["3.8", "3.9", "3.10"]
     runs-on: ${{ matrix.os }}
     steps:
-      # - name: Install libsndfile
-      #   run: |
-      #     if [ "$RUNNER_OS" == "macOS" ]; then
-      #       NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-      #       brew install libsndfile
-      #       export CPPFLAGS="-I$(brew --prefix)/include"
-      #     elif [ "$RUNNER_OS" == "Linux" ]; then
-      #     sudo apt -y update
-      #       sudo apt-get install libsndfile1-dev
-      #       sudo apt install ffmpeg
-      #     fi
-      #   shell: bash
-
       - uses: actions/checkout@v3
 
       - name: Install Poetry
@@ -47,6 +34,17 @@ jobs:
         run: |
           poetry env use "${{ matrix.python-version }}"
           poetry install
+
+      - name: Downgrade soundfile version on macOS x86_64
+        # soundfile>=0.12.0 prepackages libsndfile, but the prepackaged version gives
+        # different results than the system version for macOS running x86_64
+        # (which is what GitHub Actions uses). As such we have to downgrade to
+        # soundfile==0.11.0 and use the system libsndfile.
+        run: |
+          if [ "$RUNNER_OS" == "macOS" ] && [ "$(uname -m)" == "x86_64" ]; then
+            poetry add soundfile==0.11.0
+          fi
+        shell: bash
 
       - name: Test with pytest
         run: poetry run pytest --dist no -n 0
