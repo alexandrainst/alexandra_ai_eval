@@ -6,6 +6,8 @@ from requests.exceptions import ConnectionError
 
 from alexandra_ai_eval.leaderboard_utils import Session
 
+pytestmark = pytest.mark.skip(reason="Leaderboard is offline.")
+
 
 class TestSession:
     @pytest.fixture(scope="class")

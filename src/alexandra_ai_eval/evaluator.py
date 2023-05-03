@@ -138,10 +138,13 @@ class Evaluator:
 
         # Initialise the leaderboard client if we want to send results to the
         # leaderboard
-        if self.send_results_to_leaderboard:
-            self.leaderboard_client = Session(
+        self.leaderboard_client = (
+            Session(
                 base_url=self.leaderboard_url,
             )
+            if self.send_results_to_leaderboard
+            else None
+        )
 
     def evaluate(
         self,
@@ -325,6 +328,12 @@ class Evaluator:
                 A list of booleans indicating whether the results were
                 successfully sent to the leaderboard.
         """
+        assert (
+            self.leaderboard_client is not None
+        ), "Leaderboard client is not initialized. Ensure self.send_results_to_leaderboard is set to True and try re-initiliazing the evaluator."
+
+        self.leaderboard_client.check_connection()
+
         # Initialize a list of status bools
         status: List[bool] = []
 
