@@ -95,7 +95,7 @@ docs/alexandra_ai_eval.html
 docs/index.html
 docs/search.json
 
-# Alexandra AI 
+# Alexandra AI
 .alexandra_ai_cache/
 .alexandra_ai_eval/
 alexandra_ai_evaluation_results.json
@@ -106,3 +106,6 @@ gradio_cached_examples/
 
 # Data
 attack/
+
+# Testing
+.hypothesis
