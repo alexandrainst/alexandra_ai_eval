@@ -101,14 +101,9 @@ def test_compute_metrics(ner):
         ["B-PER", "I-PER", "O"],
     ]
 
-    # Set up predictions and labels as arrays
-    predictions_and_labels = [
-        (np.asarray(predictions), np.array(labels)),
-    ]
-
     # Compute metrics
     metrics = ner._compute_metrics(
-        predictions_and_labels=predictions_and_labels,
+        predictions_and_labels=[(predictions, labels)],
     )
 
     # Check metrics
