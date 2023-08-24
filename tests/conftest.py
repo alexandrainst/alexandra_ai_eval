@@ -57,9 +57,6 @@ def model_configs(evaluation_config, task_config):
             "spacy/da_core_news_sm",
         ],
         "question-answering": ["deepset/minilm-uncased-squad2"],
-        "offensive-text-classification": [
-            "alexandrainst/da-hatespeech-detection-small"
-        ],
         "automatic-speech-recognition": ["openai/whisper-tiny"],
     }
     yield [
@@ -98,12 +95,6 @@ def model_total_scores(model_configs):
             "exact_match_se": 49.0,
             "qa_f1": 75.0,
             "qa_f1_se": 49.0,
-        },
-        "alexandrainst/da-hatespeech-detection-small": {
-            "macro_f1": 1.0,
-            "macro_f1_se": 0.0,
-            "mcc": 0.0,
-            "mcc_se": 0.0,
         },
         "alexandrainst/da-discourse-coherence-base": {
             "macro_f1": 0.06666666666666667,
