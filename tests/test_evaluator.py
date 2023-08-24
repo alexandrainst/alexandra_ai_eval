@@ -6,7 +6,6 @@ import pytest
 from requests.exceptions import HTTPError
 
 from alexandra_ai_eval.evaluator import Evaluator
-from alexandra_ai_eval.leaderboard_utils import Session
 from alexandra_ai_eval.task_factory import TaskFactory
 
 
@@ -120,6 +119,8 @@ class TestPrepareTaskConfigs:
 
 
 def test_evaluate_single(evaluator, model_configs, task_config, model_total_scores):
+    if task_config.name == "offensive-text-classification":
+        pytest.skip("Dataset is not accessible")
     for idx, model_config in enumerate(model_configs):
         model_id = model_config.model_id
         evaluator._evaluate_single(task_config=task_config, model_id=model_id)
