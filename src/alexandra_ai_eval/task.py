@@ -407,7 +407,7 @@ class Task(ABC):
         return load_dataset(
             path=self.task_config.huggingface_id,
             name=self.task_config.huggingface_subset,
-            use_auth_token=self.evaluation_config.use_auth_token,
+            token=self.evaluation_config.use_auth_token,
             cache_dir=self.evaluation_config.cache_dir,
             split=self.task_config.test_name,
         )

@@ -72,6 +72,8 @@ class TestTaskAttributes:
 class TestLoadData:
     @pytest.fixture(scope="class")
     def loaded_data(self, task):
+        if task.task_config.name == "offensive-text-classification":
+            pytest.skip("Dataset is not accessible")
         yield task._load_data()
 
     def test_loaded_data_is_dataset(self, loaded_data):

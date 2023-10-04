@@ -9,7 +9,7 @@ ______________________________________________________________________
 [![Documentation](https://img.shields.io/badge/docs-passing-green)](https://alexandrainst.github.io/AlexandraAI-eval/alexandra_ai_eval.html)
 [![License](https://img.shields.io/github/license/alexandrainst/AlexandraAI-eval)](https://github.com/alexandrainst/AlexandraAI-eval/blob/main/LICENSE)
 [![LastCommit](https://img.shields.io/github/last-commit/alexandrainst/AlexandraAI-eval)](https://github.com/alexandrainst/AlexandraAI-eval/commits/main)
-[![Code Coverage](https://img.shields.io/badge/Coverage-78%25-yellowgreen.svg)](https://github.com/alexandrainst/AlexandraAI-eval/tree/main/tests)
+[![Code Coverage](https://img.shields.io/badge/Coverage-75%25-yellowgreen.svg)](https://github.com/alexandrainst/AlexandraAI-eval/tree/main/tests)
 
 ## Installation
 
