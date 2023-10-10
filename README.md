@@ -10,6 +10,7 @@ ______________________________________________________________________
 [![License](https://img.shields.io/github/license/alexandrainst/AlexandraAI-eval)](https://github.com/alexandrainst/AlexandraAI-eval/blob/main/LICENSE)
 [![LastCommit](https://img.shields.io/github/last-commit/alexandrainst/AlexandraAI-eval)](https://github.com/alexandrainst/AlexandraAI-eval/commits/main)
 [![Code Coverage](https://img.shields.io/badge/Coverage-74%25-yellow.svg)](https://github.com/alexandrainst/AlexandraAI-eval/tree/main/tests)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg)](https://github.com/alexandrainst/AlexandraAI-eval/blob/main/CODE_OF_CONDUCT.md)
 
 ## Installation
 
