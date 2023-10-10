@@ -22,13 +22,12 @@ def load_spacy_model(model_id: str) -> Dict[str, Language]:
     """Load a spaCy model.
 
     Args:
-        model_id (str):
+        model_id:
             The ID of the model.
 
     Returns:
-        dict:
-            A dictionary containing at least the key 'model', with the value being the
-            model.
+        A dictionary containing at least the key 'model', with the value being the
+        model.
 
     Raises:
         ModelFetchFailed:
@@ -69,12 +68,11 @@ def model_exists_on_spacy(model_id: str) -> bool:
     """Checks if a model exists as a spaCy model.
 
     Args:
-        model_id (str):
+        model_id:
             The name of the model.
 
     Returns:
-        bool:
-            Whether the model exists as a spaCy model.
+        Whether the model exists as a spaCy model.
     """
     try:
         load_spacy_model(model_id=model_id)
@@ -87,12 +85,11 @@ def get_model_config_from_spacy(model_id: str) -> ModelConfig:
     """Get the model configuration from a spaCy model.
 
     Args:
-        model_id (str):
+        model_id:
             The ID of the model.
 
     Returns:
-        ModelConfig:
-            The model configuration.
+        The model configuration.
     """
     return ModelConfig(
         model_id=model_id,

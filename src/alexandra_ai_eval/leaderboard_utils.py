@@ -24,14 +24,17 @@ class Session(requests.Session):
         """Get the leaderboard for the task corresponding to task_name.
 
         Args:
-            task_name (str): The name of the task.
-            raw (bool): Whether to get the raw leaderboard or not.
+            task_name:
+                The name of the task.
+            raw:
+                Whether to get the raw leaderboard or not.
 
         Returns:
-            dict: A dictionary with the models for the task.
+            A dictionary with the models for the task.
 
         Raises:
-            ValueError: If the task is not found.
+            ValueError:
+                If the task is not found.
         """
         # Check if task is valid
         try:
@@ -66,15 +69,18 @@ class Session(requests.Session):
     def get_model_for_task(
         self, task_name: str, model_id: str, raw: bool = False
     ) -> dict:
-        """Get the entries on leaderboard for the model_id for the task corresponding to task_name.
+        """Get the entries on leaderboard for the model and task.
 
         Args:
-            task_name (str): The name of the task.
-            model_id (str): The model id.
-            raw (bool): Whether to get the raw leaderboard or not.
+            task_name:
+                The name of the task.
+            model_id:
+                The model id.
+            raw:
+                Whether to get the raw leaderboard or not.
 
         Returns:
-            dict: A dictionary with the model for the task.
+            A dictionary with the model for the task.
 
         Raises:
             ValueError: If the task or model is not found.
@@ -117,19 +123,26 @@ class Session(requests.Session):
         """Post a model to the leaderboard for the task corresponding to task_name.
 
         Args:
-            model_type (str): The model type.
-            task_name (str): The name of the task.
-            model_id (str): The model id.
-            metrics (dict): A dictionary with the metrics for the model.
-            test (bool):
+            model_type:
+                The model type.
+            task_name:
+                The name of the task.
+            model_id:
+                The model id.
+            metrics:
+                A dictionary with the metrics for the model.
+            test:
                 Whether we are in test mode or not. If we are in test mode, we will not
-                actually post the model to the leaderboard, but we will still return the response.
+                actually post the model to the leaderboard, but we will still return
+                the response.
 
         Returns:
-            dict: A dictionary with the possibly updated leaderboard.
+            A dictionary with the possibly updated leaderboard.
 
         Raises:
-            ValueError: If the task is not found, or if a non 200 response is returned from the API.
+            ValueError:
+                If the task is not found, or if a non 200 response is returned from the
+                API.
         """
 
         # Check if task is valid
@@ -172,7 +185,8 @@ class Session(requests.Session):
         """Checks whether we can establish a connection to the leaderboard.
 
         Args:
-            timeout (int, optional): Timeout in seconds. Defaults to 5.
+            timeout:
+                Timeout in seconds. Defaults to 5.
 
         Raises:
             requests.exceptions.ConnectionError: Failed to establish a connection.

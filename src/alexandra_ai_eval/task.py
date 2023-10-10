@@ -46,15 +46,15 @@ class Task(ABC):
     """Abstract evaluation task class.
 
     Args:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
 
     Attributes:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
     """
 
@@ -72,15 +72,14 @@ class Task(ABC):
         """Evaluate a model.
 
         Args:
-            model_id (str):
+            model_id:
                 The full Hugging Face Hub path to the pretrained transformer model. The
                 specific model version to use can be added after the suffix '@':
                 "model_id@v1.0.0". It can be a branch name, a tag name, or a commit id.
 
         Returns:
-            dict:
-                The keys in the dict are 'raw' and 'total', with all the raw scores in
-                the first dictionary and the aggregated scores in the second.
+            The keys in the dict are 'raw' and 'total', with all the raw scores in the
+            first dictionary and the aggregated scores in the second.
 
         Raises:
             WrongFeatureColumnName:
@@ -226,25 +225,24 @@ class Task(ABC):
         """Run a single iteration of a PyTorch/JAX benchmark.
 
         Args:
-            idx (int):
+            idx:
                 The index of the current iteration.
-            model (PyTorch module or spaCy Language):
+            model:
                 The model.
-            model_config (ModelConfig):
+            model_config:
                 The model configuration.
-            tokenizer (Hugging Face tokenizer or None):
+            tokenizer:
                 The tokenizer, or None if the model does not require a tokenizer.
-            dataset (Dataset):
+            dataset:
                 The raw test dataset.
-            prepared_dataset (Dataset):
+            prepared_dataset:
                 The preprocessed test dataset.
-            framework (Framework):
+            framework:
                 The model framework.
 
         Returns:
-            dict or Exception:
-                The keys in the dict correspond to the metrics and values
-                the corresponding values.
+            The keys in the dict correspond to the metrics and values the corresponding
+            values.
 
         Raises:
             ModelNotTrainedForTask:
@@ -356,13 +354,12 @@ class Task(ABC):
         """Compute the metrics needed for evaluation.
 
         Args:
-            predictions_and_labels (list of pairs of lists):
+            predictions_and_labels:
                 The predictions and labels for each metric.
 
         Returns:
-            dict:
-                A dictionary with the names of the metrics as keys and the metric
-                values as values.
+            A dictionary with the names of the metrics as keys and the metric values as
+            values.
         """
         # Iterate over the predictions, labels and associated metrics
         results = dict()
@@ -397,8 +394,7 @@ class Task(ABC):
         """Load the dataset.
 
         Returns:
-            Dataset:
-                The dataset.
+            The dataset.
 
         Raises:
             InvalidEvaluation:
@@ -416,14 +412,13 @@ class Task(ABC):
         """Prepare a batch for the PyTorch model.
 
         Args:
-            batch (dict):
+            batch:
                 The batch.
-            input_modality (Framework):
+            input_modality:
                 The input modality, can be 'audio' or 'text'.
 
         Returns:
-            dict:
-                The prepared batch.
+            The prepared batch.
         """
         # Move the tensors to the correct device
         batch = {
@@ -462,20 +457,19 @@ class Task(ABC):
         """Get the predictions of the model.
 
         Args:
-            model (torch.nn.Module or Language):
+            model:
                 The model.
-            tokenizer (PreTrainedTokenizerBase or None):
+            tokenizer:
                 The tokenizer. Can be None if the model does not use a tokenizer.
-            prepared_dataset (Dataset):
+            prepared_dataset:
                 The prepared dataset.
-            batch_size (int):
+            batch_size:
                 The batch size.
-            framework (Framework):
+            framework:
                 The framework.
 
         Returns:
-            list:
-                The model predictions.
+            The model predictions.
 
         Raises:
             InvalidFramework:
@@ -627,17 +621,16 @@ class Task(ABC):
         """Preprocess the data.
 
         Args:
-            dataset (Dataset):
+            dataset:
                 The dataset.
-            framework (Framework):
+            framework:
                 The framework of the model.
             kwargs:
                 Extra keyword arguments containing objects used in preprocessing the
                 dataset.
 
         Returns:
-            Hugging Face Dataset:
-                The preprocessed dataset.
+            The preprocessed dataset.
 
         Raises:
             InvalidFramework:
@@ -683,19 +676,18 @@ class Task(ABC):
         """Prepare predictions and labels for output.
 
         Args:
-            predictions (sequence of either ints or floats):
+            predictions:
                 The predictions of the model.
-            dataset (Dataset):
+            dataset:
                 The raw dataset.
-            prepared_dataset (Dataset):
+            prepared_dataset:
                 The prepared dataset.
             kwargs:
                 Extra keyword arguments containing objects used in preparing the
                 predictions and labels.
 
         Returns:
-            list of pairs of lists:
-                The prepared predictions and labels.
+            The prepared predictions and labels.
         """
         pass
 
@@ -724,18 +716,17 @@ class Task(ABC):
         """Preprocess the data for PyTorch.
 
         Args:
-            examples (BatchEncoding):
+            examples:
                 The examples to preprocess.
-            tokenizer (Hugging Face tokenizer):
+            tokenizer:
                 The tokenizer.
-            model_config (ModelConfig):
+            model_config:
                 The model configuration.
-            task_config (TaskConfig):
+            task_config:
                 The task configuration.
 
         Returns:
-            dict:
-                The preprocessed examples.
+            The preprocessed examples.
         """
         pass
 
@@ -748,14 +739,13 @@ class Task(ABC):
         text different from those.
 
         Args:
-            tokens_processed (tuple):
+            tokens_processed:
                 A pair of the labels, being a list of strings, and the SpaCy processed
                 document, being a Spacy `Doc` instance.
 
         Returns:
-            list:
-                A list of predictions for each token, of the same length as the gold
-                tokens (first entry of `tokens_processed`).
+            A list of predictions for each token, of the same length as the gold tokens
+            (first entry of `tokens_processed`).
         """
         pass
 
@@ -766,12 +756,11 @@ class Task(ABC):
         """Load the data collator used to prepare samples during finetuning.
 
         Args:
-            tokenizer_or_processor (Hugging Face tokenizer or DataProcessor):
+            tokenizer_or_processor:
                 A pretrained tokenizer or processor.
 
         Returns:
-            Hugging Face DataCollator:
-                The data collator.
+            The data collator.
         """
         pass
 
@@ -780,11 +769,10 @@ class Task(ABC):
         """Check if the model is trained for the task.
 
         Args:
-            model_predictions (list):
+            model_predictions:
                 The model predictions.
 
         Returns:
-            bool:
-                Whether the model is trained for the task.
+            Whether the model is trained for the task.
         """
         pass

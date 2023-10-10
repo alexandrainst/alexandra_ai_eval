@@ -2,7 +2,7 @@
 
 from copy import deepcopy
 from functools import partial
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import List, Optional, Sequence, Tuple
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
@@ -21,15 +21,15 @@ class NamedEntityRecognition(Task):
     """Named entity recognition task.
 
     Args:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
 
     Attributes:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
     """
 
@@ -139,21 +139,20 @@ def tokenize_and_align_labels(
     """Tokenize all texts and align the labels with them.
 
     Args:
-        examples (BatchEncoding):
+        examples:
             The examples to be tokenized.
-        tokenizer (Hugging Face tokenizer):
+        tokenizer:
             A pretrained tokenizer.
-        model_label2id (dict or None):
+        model_label2id:
             A dictionary that converts NER tags to IDs. If None then no label
             conversion has been set up for the model and an error is raised.
-        dataset_id2label (list):
+        dataset_id2label:
             A list that maps IDs to NER tags.
-        label_column_name (str):
+        label_column_name:
             The name of the label column.
 
     Returns:
-        BatchEncoding:
-            The tokenized data as well as labels.
+        The tokenized data as well as labels.
 
     Raises:
         InvalidEvaluation:
@@ -277,16 +276,15 @@ def get_ent(token: Token, dataset_id2label: list, dataset_label2id: dict) -> str
     """Extracts the entity from a SpaCy token.
 
     Args:
-        token (spaCy Token):
+        token:
             The inputted token from spaCy.
-        dataset_id2label (list):
+        dataset_id2label:
             A list that maps IDs to NER tags.
-        dataset_label2id (dict):
+        dataset_label2id:
             A dictionary that converts NER tags (and their synonyms) to IDs.
 
     Returns:
-        str:
-            The entity of the token.
+        The entity of the token.
     """
 
     # Deal with the O tag separately, as it is the only tag not of the form B-tag or
@@ -317,19 +315,18 @@ def remove_ignored_index_from_predictions_and_labels(
     """Removes the ignored index from the predictions and labels.
 
     Args:
-        predictions (list of lists):
+        predictions:
             The predicted labels.
-        labels (list of lists):
+        labels:
             The true labels.
-        model_id2label (list of str, or None):
+        model_id2label:
             A list that maps IDs to NER tags. If None then the predictions and labels
             will not be modified.
-        index_to_ignore (int, optional):
+        index_to_ignore:
             The index to ignore. Defaults to -100.
 
     Returns:
-        tuple of list of list of str:
-            The predictions and labels with the ignored index removed.
+        The predictions and labels with the ignored index removed.
     """
     # If `model_id2label` is None then we simply return the predictions and labels
     if model_id2label is None:
@@ -368,15 +365,13 @@ def replace_unknown_tags_with_misc_tags(
     the *dataset labels* with either MISC or O tags.
 
     Args:
-        list_of_tag_lists (list of list of str):
+        list_of_tag_lists:
             A list of lists containing NER tags.
-        dataset_id2label (list of str):
+        dataset_id2label:
             The mapping from label IDs to labels.
 
     Returns:
-        list of list of str:
-            The list of lists containing NER tags with unknown tags replaced with MISC
-            tags.
+        The list of lists containing NER tags with unknown tags replaced with MISC tags.
     """
     # Use the `id2label` mapping to get a list of all the non-MISC NER tags present in
     # the dataset
@@ -403,12 +398,11 @@ def remove_misc_tags(list_of_tag_lists: List[List[str]]) -> List[List[str]]:
     """Removes MISC tags from a list of lists of tags.
 
     Args:
-        list_of_tag_lists (list of list of str):
+        list_of_tag_lists:
             A list of lists containing NER tags.
 
     Returns:
-        list of list of str:
-            The list of lists containing NER tags with MISC tags removed.
+        The list of lists containing NER tags with MISC tags removed.
     """
     # Make a copy of the list, to ensure that we don't get any side effects
     list_of_tag_lists = deepcopy(list_of_tag_lists)
@@ -434,14 +428,13 @@ def align_spacy_tokens_with_gold_tokens(
     necessary.
 
     Args:
-        spacy_tokens (list of Token):
+        spacy_tokens:
             A list of spaCy tokens.
-        gold_tokens (list of str):
+        gold_tokens:
             A list of gold tokens.
 
     Returns:
-        list of int:
-            A list of indices of `spacy_tokens` that correspond to the gold tokens.
+        A list of indices of `spacy_tokens` that correspond to the gold tokens.
     """
     # Get the alignment between the SpaCy model's tokens and the gold tokens
     gold_token_idxs = [

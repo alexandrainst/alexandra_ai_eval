@@ -28,11 +28,11 @@ def adjust_model_to_task(
     include these labels.
 
     Args:
-        model (PyTorch model):
+        model:
             The model to adjust the label ids of.
-        model_config (ModelConfig):
+        model_config:
             The model configuration.
-        task_config (TaskConfig):
+        task_config:
             The task configuration.
 
     Raises:
@@ -152,15 +152,15 @@ def alter_classification_layer(
     This code needs to be rewritten when we add other types of tasks and model types.
 
     Args:
-        model (PreTrainedModel):
+        model:
             The model to alter the classification layer of.
-        model_id2label (list):
+        model_id2label:
             The model's label conversion.
-        old_model_id2label (list):
+        old_model_id2label:
             The model's old label conversion.
-        flat_dataset_synonyms (list):
+        flat_dataset_synonyms:
             The synonyms of the dataset labels.
-        dataset_num_labels (int):
+        dataset_num_labels:
             The number of labels in the dataset.
 
     Raises:

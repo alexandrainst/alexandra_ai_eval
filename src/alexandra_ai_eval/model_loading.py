@@ -36,18 +36,16 @@ def load_model(
     """Load the model.
 
     Args:
-        model_config (ModelConfig):
+        model_config:
             The model configuration.
-        task_config (TaskConfig):
+        task_config:
             The task configuration.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The evaluation configuration.
 
     Returns:
-        dict:
-            A dictionary containing at least the key 'model', with the value being the
-            model. Can contain other objects related to the model, such as its
-            tokenizer.
+        A dictionary containing at least the key 'model', with the value being the
+        model. Can contain other objects related to the model, such as its tokenizer.
 
     Raises:
         InvalidFramework:
@@ -101,16 +99,15 @@ def get_model_config(
     """Fetches configuration for a model.
 
     Args:
-        model_id (str):
+        model_id:
             The ID of the model.
-        task_config (TaskConfig):
+        task_config:
             The task configuration.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the benchmark.
 
     Returns:
-        ModelConfig:
-            The model configuration.
+        The model configuration.
 
     Raises:
         ModelIsPrivate:

@@ -12,9 +12,9 @@ class LabelConfig:
     """Configuration for a label in a dataset task.
 
     Attributes:
-        name (str):
+        name:
             The name of the label.
-        synonyms (list of str):
+        synonyms:
             The synonyms of the label.
     """
 
@@ -27,21 +27,21 @@ class MetricConfig:
     """Configuration for a metric.
 
     Attributes:
-        name (str):
+        name:
             The name of the metric.
-        pretty_name (str):
+        pretty_name:
             A longer prettier name for the metric, which allows cases and spaces. Used
             for logging.
-        huggingface_id (str):
+        huggingface_id:
             The Hugging Face ID of the metric.
-        results_key (str):
+        results_key:
             The name of the key used to extract the metric scores from the results
             dictionary.
-        postprocessing_fn (callable):
+        postprocessing_fn:
             A function that is applied to the metric scores after they are extracted
             from the results dictionary. Must take a single float as input and return
             a single string.
-        compute_kwargs (dict, optional):
+        compute_kwargs:
             Keyword arguments to pass to the metric's compute function. Defaults to
             an empty dictionary.
     """
@@ -59,44 +59,44 @@ class TaskConfig:
     """Configuration for a task dataset.
 
     Attributes:
-        name (str):
+        name:
             The name of the task. Must be lower case with no spaces.
-        pretty_name (str):
+        pretty_name:
             A longer prettier name for the task, which allows cases and spaces. Used
             for logging.
-        huggingface_id (str):
+        huggingface_id:
             The Hugging Face ID of the dataset associated with the task.
-        huggingface_subset (str or None, optional):
+        huggingface_subset:
             The subset of the Hugging Face dataset associated with the task. Defaults
             to None.
-        supertask (str):
+        supertask:
             The supertask of the task, describing the overall type of task.
-        modality (Modality):
+        modality:
             The modality of the input data.
-        metrics (sequence of MetricConfig objects):
+        metrics:
             The metrics used to evaluate the task.
-        labels (sequence of LabelConfig objects):
+        labels:
             The labels used in the task.
-        feature_column_names (list of str):
+        feature_column_names:
             The names of the feature columns for the dataset.
-        label_column_name (str):
+        label_column_name:
             The name of the label column for the dataset.
-        test_name (str or None):
+        test_name:
             The name of the test split of the task. If None, the task has no test
             split.
-        id2label (list of str):
+        id2label:
             The mapping from ID to label.
-        label2id (dict of str to int):
+        label2id:
             The mapping from label to ID. This includes all label synonyms as well.
-        num_labels (int):
+        num_labels:
             The number of labels in the dataset.
-        label_synonyms (list of list of str):
+        label_synonyms:
             The synonyms of all the labels, including the main label.
-        architectures (None or list of str):
+        architectures:
             The architectures that can be used to solve the task. If None then
             it defaults to the list containing only the name of the supertaks. Defaults
             to None.
-        search_terms (list of str):
+        search_terms:
             The search terms used to find the task on the Hugging Face Hub. Defaults
             to an empty list.
     """
@@ -144,47 +144,47 @@ class EvaluationConfig:
     """General benchmarking configuration, across datasets and models.
 
     Attributes:
-        raise_error_on_invalid_model (bool):
+        raise_error_on_invalid_model:
             Whether to raise an error if a model is invalid.
-        cache_dir (str):
+        cache_dir:
             Directory to store cached models and datasets.
-        evaluate_train (bool):
+        evaluate_train:
             Whether to evaluate on the training set.
-        use_auth_token (bool or str):
+        use_auth_token:
             The authentication token for the Hugging Face Hub. If a boolean value is
             specified then the token will be fetched from the Hugging Face CLI, where
             the user has logged in through `huggingface-cli login`. If a string is
             specified then it will be used as the token. Defaults to False.
-        progress_bar (bool):
+        progress_bar:
             Whether to show a progress bar.
-        save_results (bool):
+        save_results:
             Whether to save the benchmark results to
             'evaluation_results.json'.
-        verbose (bool):
+        verbose:
             Whether to print verbose output.
-        track_carbon_usage (bool):
+        track_carbon_usage:
             Whether to track carbon usage.
-        country_code (CountryCode):
+        country_code:
             The 3-letter alphabet ISO Code of the country where the compute
             infrastructure is hosted. Only relevant if no internet connection is
             available. Only relevant if `track_carbon_emissions` is set to True. A list
             of all such codes are available here:
             https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
-        prefer_device (Device):
+        prefer_device:
             The device to prefer when evaluating the model. If the device is not
             available then another device will be used. Can be "cuda", "mps" and "cpu".
             Defaults to "cuda".
-        only_return_log (bool, optional):
+        only_return_log:
             Whether to only return the log. Defaults to False.
-        architecture_fname (str or None, optional):
+        architecture_fname:
             The name of the architecture file, if local models are used. If None, the
             architecture file will be automatically detected as the first Python script
             in the model directory. Defaults to None.
-        weight_fname (str or None, optional):
+        weight_fname:
             The name of the file containing the model weights, if local models are
             used. If None, the weight file will be automatically detected as the first
             "*.bin" file in the model directory. Defaults to None.
-        testing (bool, optional):
+        testing:
             Whether a unit test is being run. Defaults to False.
     """
 
@@ -207,8 +207,7 @@ class EvaluationConfig:
         """The compute device to use for the evaluation.
 
         Returns:
-            str:
-                The compute device to use for the evaluation.
+            The compute device to use for the evaluation.
         """
 
         # If CPU is preferred then everything else will be ignored, as the CPU is
@@ -233,23 +232,23 @@ class ModelConfig:
     """Configuration for a model.
 
     Attributes:
-        model_id (str):
+        model_id:
             The ID of the model.
-        tokenizer_id (str):
+        tokenizer_id:
             The ID of the tokenizer.
-        processor_id (None or str):
+        processor_id:
             The ID of the processor.
-        revision (str):
+        revision:
             The revision of the model.
-        framework (Framework):
+        framework:
             The framework of the model.
-        id2label (None or list of str):
+        id2label:
             The model's mapping from ID to label. If None, the model does not have a
             mapping from ID to label.
-        label2id (None or dict of str to int, optional):
+        label2id:
             The model's mapping from label to ID. If None, the model does not have a
             mapping from label to ID. Defaults to None.
-        num_labels (None or int):
+        num_labels:
             The number of labels in the model. If None, the model does not have a
             mapping between labels and IDs.
     """

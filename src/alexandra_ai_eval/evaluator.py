@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Union
 
 import pandas as pd
-from requests.exceptions import ConnectionError, HTTPError
+from requests.exceptions import ConnectionError, RequestException
 from tabulate import tabulate
 
 from .config import EvaluationConfig, TaskConfig
@@ -25,57 +25,57 @@ class Evaluator:
     """Evaluating finetuned models.
 
     Args:
-        progress_bar (bool, optional):
+        progress_bar:
             Whether progress bars should be shown. Defaults to True.
-        save_results (bool, optional):
+        save_results:
             Whether to save the benchmark results to
             'alexandra_ai_evaluation_results.json'. Defaults to False.
-        send_results_to_leaderboard (bool, optional):
+        send_results_to_leaderboard:
             Whether to send the benchmark results to the leaderboard. Defaults to
             True.
-        leaderboard_url (str, optional):
+        leaderboard_url:
             The URL of the leaderboard. Defaults to
             'https://api.aiai.alexandrainst.dk'.
-        raise_error_on_invalid_model (bool, optional):
+        raise_error_on_invalid_model:
             Whether to raise an error if a model is invalid. Defaults to False.
-        cache_dir (str, optional):
+        cache_dir:
             Directory to store cached models. Defaults to '.alexandra_ai_cache'.
-        use_auth_token (bool or str, optional):
+        use_auth_token:
             The authentication token for the Hugging Face Hub. If a boolean value is
             specified then the token will be fetched from the Hugging Face CLI, where
             the user has logged in through `huggingface-cli login`. If a string is
             specified then it will be used as the token. Defaults to False.
-        track_carbon_emissions (bool, optional):
+        track_carbon_emissions:
             Whether to track carbon usage. Defaults to False.
-        country_code (CountryCode or str, optional):
+        country_code:
             The 3-letter alphabet ISO Code of the country where the compute
             infrastructure is hosted. Only relevant if no internet connection is
             available. Only relevant if `track_carbon_emissions` is set to True.
             Defaults to the empty string. A list of all such codes are available here:
             https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
-        prefer_device (Device, optional):
+        prefer_device:
             The device to prefer when evaluating the model. If the device is not
             available then another device will be used. Can be "cuda", "mps" and "cpu".
             Defaults to "cuda".
-        only_return_log (bool, optional):
+        only_return_log:
             Whether to only return the log of the evaluation. Defaults to False.
-        architecture_fname (str or None, optional):
+        architecture_fname:
             The name of the architecture file, if local models are used. If None, the
             architecture file will be automatically detected as the first Python script
             in the model directory. Defaults to None.
-        weight_fname (str or None, optional):
+        weight_fname:
             The name of the file containing the model weights, if local models are
             used. If None, the weight file will be automatically detected as the first
             "*.bin" file in the model directory. Defaults to None.
-        verbose (bool, optional):
+        verbose:
             Whether to output additional output. Defaults to False.
 
     Attributes:
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The evaluation configuration.
-        evaluation_results (dict):
+        evaluation_results:
             The evaluation results.
-        task_factory (TaskFactory):
+        task_factory:
             The factory object used to generate tasks to be evaluated.
     """
 
@@ -89,7 +89,9 @@ class Evaluator:
         cache_dir: str = ".alexandra_ai_cache",
         use_auth_token: Union[bool, str] = False,
         track_carbon_emissions: bool = False,
-        country_code: Union[str, CountryCode] = CountryCode.EMPTY,  # type: ignore[attr-defined]
+        country_code: Union[str, CountryCode] = (
+            CountryCode.EMPTY  # type: ignore[attr-defined]
+        ),
         prefer_device: Device = Device.CUDA,
         only_return_log: bool = False,
         architecture_fname: Optional[str] = None,
@@ -154,16 +156,19 @@ class Evaluator:
         """Evaluates models on datasets.
 
         Args:
-            model_id (str or list of str):
+            model_id:
                 The model ID(s) of the models to be evaluated.
-            task (str or list of str):
+            task:
                 The task(s) to evaluate the model(s) on.
 
         Returns:
-            dict:
-                A nested dictionary of the evaluation results. The keys are the names
-                of the datasets, with values being new dictionaries having the model
-                IDs as keys.
+            A nested dictionary of the evaluation results. The keys are the names of
+            the datasets, with values being new dictionaries having the model IDs as
+            keys.
+
+        Raises:
+            RequestException:
+                If the request to the leaderboard fails.
         """
         try:
             # Prepare the model IDs and tasks
@@ -219,9 +224,8 @@ class Evaluator:
                 if all(self._send_results_to_leaderboard()):
                     logger.info("Successfully sent results to leaderboard.")
                 else:
-                    raise HTTPError("Failed to send result(s) to leaderboard.")
+                    raise RequestException("Failed to send result(s) to leaderboard.")
 
-            # Return the evaluation results
             return self.evaluation_results
 
         except Exception as e:
@@ -238,12 +242,11 @@ class Evaluator:
         """Prepare the model ID(s) to be evaluated.
 
         Args:
-            model_id (str or list of str):
+            model_id:
                 The model ID(s) of the models to evaluate.
 
         Returns:
-            sequence of str:
-                The prepared list of model IDs.
+            The prepared list of model IDs.
         """
         model_ids: Sequence[str]
         if isinstance(model_id, str):
@@ -259,12 +262,11 @@ class Evaluator:
         """Prepare the model ID(s) to be evaluated.
 
         Args:
-            task_name (str or list of str):
+            task_name:
                 The task name(s) to evaluate the model(s) on.
 
         Returns:
-            list of TaskConfig objects:
-                The prepared list of task configurations.
+            The prepared list of task configurations.
         """
         # Create a dictionary that maps evaluation tasks to their associated evaluation
         # task objects
@@ -291,9 +293,9 @@ class Evaluator:
         """Evaluate a single model on a single task.
 
         Args:
-            model_id (str):
+            model_id:
                 The model ID to use.
-            task_config (TaskConfig):
+            task_config:
                 The dataset task configuration to use.
 
         Raises:
@@ -324,13 +326,15 @@ class Evaluator:
                 The evaluation results to send.
 
         Returns:
-            list of bool:
-                A list of booleans indicating whether the results were
-                successfully sent to the leaderboard.
+            A list of booleans indicating whether the results were successfully sent to
+            the leaderboard.
         """
-        assert (
-            self.leaderboard_client is not None
-        ), "Leaderboard client is not initialized. Ensure self.send_results_to_leaderboard is set to True and try re-initiliazing the evaluator."
+        error_if_client_is_none = (
+            "Leaderboard client is not initialized. Ensure that "
+            "`self.send_results_to_leaderboard is set to True and try re-initialising "
+            "the evaluator."
+        )
+        assert self.leaderboard_client is not None, error_if_client_is_none
 
         self.leaderboard_client.check_connection()
 
@@ -384,7 +388,8 @@ class Evaluator:
                 # Make dataframe from leaderboard json
                 task_leaderboard = pd.DataFrame.from_dict(task_leaderboard_json)
 
-                # Get metric columns, i.e. all columns except "id", "model_type" and "model_id"
+                # Get metric columns, i.e. all columns except "id", "model_type" and
+                # "model_id"
                 metric_columns = task_leaderboard.columns.difference(
                     ["id", "model_type", "model_id"]
                 )
@@ -396,12 +401,14 @@ class Evaluator:
                 task_leaderboard.sort_values("average_score")
 
                 # Log the leaderboard
-                logger.info(
-                    f"Leaderboard:\n{tabulate(task_leaderboard, headers='keys', tablefmt='fancy_grid')}"
+                tabulated_leaderboard = tabulate(
+                    tabular_data=task_leaderboard, headers="keys", tablefmt="fancy_grid"
                 )
+                logger.info(f"Leaderboard:\n{tabulated_leaderboard}")
 
-                # Get the rank of the model, first check it is in the leaderboard
-                # and then get the rank. If it is not in the leaderboard, we are running tests.
+                # Get the rank of the model, first check it is in the leaderboard and
+                # then get the rank. If it is not in the leaderboard, we are running
+                # tests.
                 with warnings.catch_warnings():
                     warnings.simplefilter(
                         action="ignore", category=FutureWarning
@@ -418,7 +425,8 @@ class Evaluator:
 
                         # Log the rank of the model
                         logger.info(
-                            f"{model_id} is ranked {model_rank} on the {task_name}-leaderboard."
+                            f"{model_id} is ranked {model_rank} on the "
+                            f"{task_name}-leaderboard."
                         )
 
                         # The post was a success

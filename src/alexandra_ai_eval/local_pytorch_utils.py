@@ -28,16 +28,15 @@ def load_local_pytorch_model(
     """Load a local PyTorch model from a path.
 
     Args:
-        model_config (ModelConfig):
+        model_config:
             The configuration of the model.
-        task_config (TaskConfig):
+        task_config:
             The task configuration.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The evaluation configuration.
 
     Returns:
-        dict:
-            A dictionary containing the model and tokenizer.
+        A dictionary containing the model and tokenizer.
 
     Raises:
         ValueError:
@@ -192,20 +191,19 @@ def pytorch_model_exists_locally(
     """Check if a PyTorch model exists locally.
 
     Args:
-        model_id (str or Path):
+        model_id:
             Path to the model folder.
-        architecture_fname (str or Path or None, optional):
+        architecture_fname:
             Name of the file containing the model architecture, which is located inside
             the model folder. If None then the first Python script found in the model
             folder will be used. Defaults to None.
-        weight_fname (str or Path or None, optional):
+        weight_fname:
             Name of the file containing the model weights, which is located inside
             the model folder. If None then the first file found in the model folder
             ending with ".bin" will be used. Defaults to None.
 
     Returns:
-        bool:
-            Whether the model exists locally.
+        Whether the model exists locally.
     """
     # Ensure that the model_folder is a Path object
     model_folder = Path(model_id)
@@ -239,14 +237,13 @@ def get_pytorch_model_config_locally(
     """Get the model configuration from a local PyTorch model.
 
     Args:
-        model_folder (str or Path):
+        model_folder:
             Path to the model folder.
-        dataset_id2label (list of str):
+        dataset_id2label:
             List of labels in the dataset.
 
     Returns:
-        ModelConfig:
-            The model configuration.
+        The model configuration.
     """
     return ModelConfig(
         model_id=Path(model_folder).name,
@@ -292,26 +289,25 @@ def get_from_config(
     created named `config.json`.
 
     Args:
-        key (str):
+        key:
             The key to get from the configuration.
-        expected_type (Type):
+        expected_type:
             The expected type of the value.
-        model_folder (str or Path):
+        model_folder:
             Path to the model folder.
-        default_value (Any or None, optional):
+        default_value:
             The default value to use if the attribute is not found in the local model
             configuration. If None then the user will be prompted to enter the value.
             Defaults to None.
-        user_prompt (str or None, optional):
+        user_prompt:
             The prompt to show the user when asking for the value. If None then the
             prompt will be automatically generated. Defaults to None.
-        user_prompt_default_value (Any or None, optional):
+        user_prompt_default_value:
             The default value that a user can press Enter to use, when prompted. If
             None then the user cannot choose a default value. Defaults to None.
 
     Returns:
-        Any:
-            The value of the key, of data type `expected_type`.
+        The value of the key, of data type `expected_type`.
     """
     # Ensure that the model_folder is a Path object
     model_folder = Path(model_folder)
@@ -383,18 +379,17 @@ def get_missing_key_value_from_user(
     """Get a missing key from the user.
 
     Args:
-        user_prompt (str or None):
+        user_prompt:
             The prompt to show the user when asking for the value. If None then the
             prompt will be automatically generated.
-        expected_type (type):
+        expected_type:
             The expected type of the value.
-        default_value (Any or None, optional):
+        default_value:
             The default value that a user can press Enter to use, when prompted. If
             None then the user cannot choose a default value. Defaults to None.
 
     Returns:
-        Any:
-            The value of the key, of data type `expected_type`.
+        The value of the key, of data type `expected_type`.
     """
     # Prompt the user to enter the value
     user_input = input(user_prompt)

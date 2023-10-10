@@ -1,6 +1,6 @@
 """Class for sequence classification tasks."""
 
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import List, Optional, Sequence, Tuple
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
@@ -23,15 +23,15 @@ class SequenceClassification(Task):
     """Sequence classification task.
 
     Args:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
 
     Attributes:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
     """
 
@@ -98,21 +98,20 @@ def tokenize_and_numericalize(
     """Tokenize and numericalize the text in the examples.
 
     Args:
-        examples (BatchEncoding):
+        examples:
             The examples to tokenize.
-        tokenizer (PreTrainedTokenizerBase):
+        tokenizer:
             The tokenizer to use.
-        feature_column_names (list of str):
+        feature_column_names:
             The names of the columns containing the features.
-        label_column_name (str):
+        label_column_name:
             The name of the column containing the labels.
-        model_label2id (dict or None):
+        model_label2id:
             The mapping from model labels to ids. If None, the mapping is not set and
             an error will be raised.
 
     Returns:
-        BatchEncoding:
-            The tokenized and numericalized examples.
+        The tokenized and numericalized examples.
 
     Raises:
         InvalidEvaluation:

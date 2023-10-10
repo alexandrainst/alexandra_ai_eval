@@ -10,14 +10,13 @@ def evaluate(model_id: str, task: str) -> str:
     """Evaluate a model.
 
     Args:
-        model_id (str):
+        model_id:
             The Hugging Face Hub model ID of the model to evaluate.
-        task (str):
+        task:
             The task to evaluate the model on.
 
     Returns:
-        str:
-            The evaluation results.
+        The evaluation results.
 
     Raises:
         gradio Error:
@@ -63,7 +62,7 @@ def main(cache_examples: bool) -> None:
     """Set up and display the graphical user interface.
 
     Args:
-        cache_examples (bool):
+        cache_examples:
             Whether to cache examples.
     """
     demo = gr.Interface(

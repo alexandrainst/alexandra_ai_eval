@@ -19,8 +19,7 @@ def get_all_task_configs() -> Dict[str, TaskConfig]:
     """Get a list of all the dataset tasks.
 
     Returns:
-        dict:
-            A mapping between names of dataset tasks and their configurations.
+        A mapping between names of dataset tasks and their configurations.
     """
     return {cfg.name: cfg for cfg in globals().values() if isinstance(cfg, TaskConfig)}
 

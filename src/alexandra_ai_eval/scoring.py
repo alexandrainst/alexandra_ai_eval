@@ -22,25 +22,24 @@ def log_scores(
     """Log the scores.
 
     Args:
-        task_name (str):
+        task_name:
             Name of the dataset.
-        metric_configs (sequence of MetricConfig objects):
+        metric_configs:
             Sequence of metrics to log.
-        scores (dict):
+        scores:
             The scores that are to be logged.
-        model_id (str):
+        model_id:
             The full Hugging Face Hub path to the pretrained transformer model.
-        only_return_log (bool, optional):
+        only_return_log:
             If only the logging string should be returned. Defaults to False.
-        model_type (str, optional):
+        model_type:
             The type of model, either "huggingface" or "other". Defaults to "other".
 
     Returns:
-        dict or str:
-            If the `only_return_log` is set then a string is returned containing
-            the logged evaluation results. Otherwise, a nested dictionary of the
-            evaluation results. The keys are the names of the datasets, with values
-            being new dictionaries having the model IDs as keys.
+        If the `only_return_log` is set then a string is returned containing the logged
+        evaluation results. Otherwise, a nested dictionary of the evaluation results.
+        The keys are the names of the datasets, with values being new dictionaries
+        having the model IDs as keys.
     """
     # Initial logging message
     logger.info(f"Finished evaluation of {model_id} on {task_name}.")
@@ -81,16 +80,15 @@ def aggregate_scores(
     """Helper function to compute the mean with confidence intervals.
 
     Args:
-        scores (list):
+        scores:
             List of dictionaries with the names of the metrics as keys, of the form
             "<metric_name>", such as "f1", and values the metric values.
-        metric_config (MetricConfig):
+        metric_config:
             The configuration of the metric, which is used to collect the correct
             metric from `scores`.
 
     Returns:
-        pair of floats:
-            A pair (score, se) of the mean and the standard error of the scores.
+        A pair (score, se) of the mean and the standard error of the scores.
     """
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")

@@ -4,7 +4,6 @@ from collections import defaultdict
 from typing import List, Sequence, Tuple, Union
 
 import numpy as np
-import torch
 from datasets.arrow_dataset import Dataset
 from transformers.data.data_collator import DataCollator, default_data_collator
 from transformers.models.auto.processing_auto import AutoProcessor
@@ -19,15 +18,15 @@ class QuestionAnswering(Task):
     """Question answering task.
 
     Args:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
 
     Attributes:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
     """
 
@@ -92,14 +91,13 @@ def prepare_test_examples(
     """Prepare test examples.
 
     Args:
-        examples (BatchEncoding):
+        examples:
             Dictionary of test examples.
-        tokenizer (Hugging Face tokenizer):
+        tokenizer:
             The tokenizer used to preprocess the examples.
 
     Returns:
-        BatchEncoding:
-            Dictionary of prepared test examples.
+        Dictionary of prepared test examples.
     """
     # Some of the questions have lots of whitespace on the left, which is not useful
     # and will make the truncation of the context fail (the tokenized question will
@@ -163,18 +161,17 @@ def postprocess_predictions(
     """Postprocess the predictions, to allow easier metric computation.
 
     Args:
-        predictions (Sequence):
+        predictions:
             The predictions to postprocess.
-        dataset (Dataset):
+        dataset:
             The dataset containing the examples.
-        prepared_dataset (Dataset):
+        prepared_dataset:
             The dataset containing the prepared examples.
-        cls_token_index (int):
+        cls_token_index:
             The index of the CLS token.
 
     Returns:
-        list of dicts:
-            The postprocessed predictions.
+        The postprocessed predictions.
     """
     # Extract the logits from the predictions
     all_start_logits = np.asarray(predictions)[:, :, 0]
@@ -234,28 +231,27 @@ def find_best_answer(
     """Find the best answer for a given example.
 
     Args:
-        all_start_logits (NumPy array):
+        all_start_logits:
             The start logits for all the features.
-        all_end_logits (NumPy array):
+        all_end_logits:
             The end logits for all the features.
-        prepared_dataset (Dataset):
+        prepared_dataset:
             The dataset containing the prepared examples.
-        feature_indices (list of int):
+        feature_indices:
             The indices of the features associated with the current example.
-        context (str):
+        context:
             The context of the example.
-        max_answer_length (int):
+        max_answer_length:
             The maximum length of the answer.
-        num_best_logits (int):
+        num_best_logits:
             The number of best logits to consider.
-        min_null_score (float):
+        min_null_score:
             The minimum score an answer can have.
-        cls_token_index (int):
+        cls_token_index:
             The index of the CLS token.
 
     Returns:
-        str:
-            The best answer for the example.
+        The best answer for the example.
     """
     # Loop through all the features associated to the current example
     valid_answers = list()
@@ -308,25 +304,24 @@ def find_valid_answers(
     """Find the valid answers from the start and end indexes.
 
     Args:
-        start_logits (NumPy array):
+        start_logits:
             The logits for the start of the answer.
-        end_logits (NumPy array):
+        end_logits:
             The logits for the end of the answer.
-        offset_mapping (list of pairs of int):
+        offset_mapping:
             The offset mapping, being a list of pairs of integers for each token index,
             containing the start and end character index in the original context.
-        max_answer_length (int):
+        max_answer_length:
             The maximum length of the answer.
-        num_best_logits (int):
+        num_best_logits:
             The number of best logits to consider. Note that this function will run in
-            O(`num_best_logits` ^ 2) time.
-        min_null_score (float):
+             time.
+        min_null_score:
             The minimum score an answer can have.
 
     Returns:
-        list of dicts:
-            A list of the valid answers, each being a dictionary with keys "text" and
-            "score", the score being the sum of the start and end logits.
+        A list of the valid answers, each being a dictionary with keys "text" and
+        "score", the score being the sum of the start and end logits.
     """
     # Fetch the top-k predictions for the start- and end token indices
     start_indexes = np.argsort(start_logits)[-1 : -num_best_logits - 1 : -1].tolist()
@@ -377,12 +372,11 @@ def postprocess_labels(dataset: Dataset) -> List[dict]:
     """Postprocess the labels, to allow easier metric computation.
 
     Args:
-        dataset (Dataset):
+        dataset:
             The dataset containing the examples.
 
     Returns:
-        list of dicts:
-             The postprocessed labels.
+         The postprocessed labels.
     """
     labels = list()
     for example in dataset:

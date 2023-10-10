@@ -29,13 +29,13 @@ def set_new_version(major: int, minor: int, patch: int):
     """Sets a new version.
 
     Args:
-        major (int):
+        major:
             The major version. This only changes when the code stops being backwards
             compatible.
-        minor (int):
+        minor:
             The minor version. This changes when a backwards compatible change
             happened.
-        patch (init):
+        patch:
             The patch version. This changes when the only new changes are bug fixes.
     """
     version = f"{major}.{minor}.{patch}"
@@ -75,8 +75,7 @@ def get_current_version() -> Tuple[int, int, int]:
     """Fetch the current version of the package.
 
     Returns:
-        triple of ints:
-            The current version, separated into major, minor and patch versions.
+        The current version, separated into major, minor and patch versions.
     """
     # Get all the version candidates from pyproject.toml
     version_candidates = re.search(

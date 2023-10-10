@@ -1,14 +1,11 @@
 """Class for automatic speech recognition tasks."""
 
-import re
 from dataclasses import dataclass
 from typing import Dict, List, Sequence, Tuple, Union
-from unicodedata import normalize
 
 import numpy as np
 import torch
 from datasets.arrow_dataset import Dataset
-from numpy.typing import NDArray
 from transformers import Wav2Vec2Processor, Wav2Vec2ProcessorWithLM, WhisperProcessor
 from transformers.configuration_utils import PretrainedConfig
 from transformers.models.auto.processing_auto import AutoProcessor
@@ -24,9 +21,9 @@ class DataCollatorCTCWithPadding:
     """Data collator that will dynamically pad the inputs received.
 
     Args:
-        processor (Wav2Vec2Processor)
+        processor:
             The processor used for proccessing the data.
-        padding (bool, str or PaddingStrategy, optional):
+        padding:
             Select a strategy to pad the returned sequences (according to the
             model's padding side and padding index) among:
             * True or 'longest':
@@ -49,17 +46,17 @@ class DataCollatorCTCWithPadding:
         """Collate the features.
 
         Args:
-            features (list of dict):
+            features:
                 A list of feature dicts.
 
         Returns:
-            dict:
-                A dictionary of the collated features.
+            A dictionary of the collated features.
         """
         # Get sampling rate
         sampling_rate = self.processor.feature_extractor.sampling_rate
 
-        # Whisper and Wav2Vec2 have different input APIs which we need to take into account
+        # Whisper and Wav2Vec2 have different input APIs which we need to take into
+        # account
         if isinstance(self.processor, WhisperProcessor):
             input_features = [
                 {
@@ -98,15 +95,15 @@ class AutomaticSpeechRecognition(Task):
     """Automatic Speech Recognition task.
 
     Args:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
 
     Attributes:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
     """
 
@@ -123,7 +120,8 @@ class AutomaticSpeechRecognition(Task):
         # If there is more than on feature column list raise an exception
         if len(task_config.feature_column_names) != 1:
             raise ValueError(
-                "Only one feature column is supported, for the Automatic Speech Recognition task."
+                "Only one feature column is supported, for the Automatic Speech "
+                "Recognition task."
             )
 
         # Rename the feature column to input_values

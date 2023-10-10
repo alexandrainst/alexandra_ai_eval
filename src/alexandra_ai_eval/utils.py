@@ -28,12 +28,11 @@ def has_integers(seq: Sequence) -> bool:
     """Checks if a sequence contains only integers.
 
     Args:
-        seq (Sequence):
+        seq:
             The sequence to check.
 
     Returns:
-        bool:
-            Whether the sequence contains only integers.
+        Whether the sequence contains only integers.
     """
     return np.asarray(seq).dtype.kind == "i"
 
@@ -42,12 +41,11 @@ def has_floats(seq: Sequence) -> bool:
     """Checks if a sequence contains only floats.
 
     Args:
-        seq (Sequence):
+        seq:
             The sequence to check.
 
     Returns:
-        bool:
-            Whether the sequence contains only floats.
+        Whether the sequence contains only floats.
     """
     return np.asarray(seq).dtype.kind == "f"
 
@@ -70,14 +68,13 @@ def enforce_reproducibility(
     """Ensures reproducibility of experiments.
 
     Args:
-        framework (Framework):
+        framework:
             The framework used for the benchmarking.
-        seed (int):
+        seed:
             Seed for the random number generator.
 
     Returns:
-        NumPy Generator object:
-            A random number generator, with seed `seed`.
+        A random number generator, with seed `seed`.
     """
     random.seed(seed)
     np.random.seed(seed)
@@ -100,12 +97,11 @@ def is_module_installed(module: str) -> bool:
     Python packages.
 
     Args:
-        module (str):
+        module:
             The name of the module.
 
     Returns:
-        bool:
-            Whether the module is installed or not.
+        Whether the module is installed or not.
     """
     # Get list of all modules, including their versions
     installed_modules_with_versions = list(pkg_resources.working_set)
@@ -157,8 +153,7 @@ def internet_connection_available() -> bool:
     """Checks if internet connection is available by pinging google.com.
 
     Returns:
-            bool:
-                Whether or not internet connection is available.
+        Whether or not internet connection is available.
     """
     try:
         requests.get("https://www.google.com")
@@ -198,29 +193,30 @@ def check_supertask(
     supertask: str,
     allowed_architectures: Optional[Sequence[str]],
 ) -> Tuple[bool, Sequence[str]]:
-    """Checks if the supertask corresponds to the architectures and if the architectures are among the allowed architectures.
+    """Checks if the supertask corresponds to the architectures.
 
     Args:
-        architectures (list of str):
+        architectures:
             The model architecture names.
-        supertask (str):
+        supertask:
             The supertask associated to a task written in kebab-case, e.g.,
             text-classification.
 
     Returns:
-        tuple of bool and list of str:
-            The boolean value indicate if the supertask corresponds to one of the the supplied
-            model architecture names, i.e. if there exists a class AutoModelFor<pascal(supertask)>.
-            The list of string value, contains the architectures from the supplied allowed
-            architectures, i.e. the contents of  `allowed_architectures`, which correspond to a
-            supplied model architecture names.
+        The boolean value indicate if the supertask corresponds to one of the the
+        supplied model architecture names, i.e. if there exists a class
+        AutoModelFor<pascal(supertask)>. The list of string value, contains the
+        architectures from the supplied allowed architectures, i.e. the contents of
+        `allowed_architectures`, which correspond to a supplied model architecture
+        names.
 
     Raises:
         InvalidArchitectureForTask:
             If the PascalCase version of the supertask is not found in any of the
             architectures.
     """
-    # Create list which contains the supertask if it exists among the available architectures
+    # Create list which contains the supertask if it exists among the available
+    # architectures
     supertask_which_is_architectures = any(
         kebab_to_pascal(supertask) in architecture for architecture in architectures
     )
@@ -235,7 +231,8 @@ def check_supertask(
     else:
         allowed_and_checked_architectures = []
 
-    # If the supertask is not an architecture or the model architecture is not allowed, raise an error
+    # If the supertask is not an architecture or the model architecture is not allowed,
+    # raise an error
     if not supertask_which_is_architectures and not allowed_and_checked_architectures:
         raise InvalidArchitectureForTask(
             architectures=architectures, supertask=supertask
@@ -250,19 +247,18 @@ def get_class_by_name(
     """Get a class by its name.
 
     Args:
-        class_name (str or list of str):
+        class_name:
             The name of the class, written in kebab-case. The corresponding class name
             must be the same, but written in PascalCase, and lying in a module with the
             same name, but written in snake_case. If a list of strings is passed, the
             first class that is found is returned.
-        module_name (str, optional):
+        module_name:
             The name of the module where the class is located. If None then the module
             name is assumed to be the same as the class name, but written in
             snake_case. Defaults to None.
 
     Returns:
-        type or None:
-            The class. If the class is not found, None is returned.
+        The class. If the class is not found, None is returned.
     """
     # Ensure that `class_name` is a sequence
     if isinstance(class_name, str):
@@ -301,12 +297,11 @@ def kebab_to_pascal(kebab_string: str) -> str:
     """Converts a kebab-case string to PascalCase.
 
     Args:
-        kebab_string (str):
+        kebab_string:
             The kebab-case string.
 
     Returns:
-        str:
-            The PascalCase string.
+        The PascalCase string.
     """
     return "".join(word.title() for word in kebab_string.split("-"))
 
@@ -315,11 +310,10 @@ def pascal_to_kebab(pascal_string: str) -> str:
     """Converts a PascalCase string to kebab-case.
 
     Args:
-        pascal_string (str):
+        pascal_string:
             The PascalCase string.
 
     Returns:
-        str:
-            The kebab-case string.
+        The kebab-case string.
     """
     return re.sub(r"(?<!^)(?=[A-Z])", "-", pascal_string).lower()

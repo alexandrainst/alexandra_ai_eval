@@ -13,11 +13,11 @@ class TaskFactory:
     """Factory which produces tasks from a configuration.
 
     Args:
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The benchmark configuration to be used in all tasks constructed.
 
     Attributes:
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The benchmark configuration to be used in all tasks constructed.
     """
 
@@ -28,12 +28,11 @@ class TaskFactory:
         """Build a evaluation task from a configuration or a name.
 
         Args:
-            task_name_or_config (str or TaskConfig):
+            task_name_or_config:
                 The name of the dataset, or the dataset configuration.
 
         Returns:
-            task (Task):
-                The evaluation task.
+            The evaluation task.
 
         Raises:
             InvalidTask:
