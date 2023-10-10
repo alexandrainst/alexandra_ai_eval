@@ -121,7 +121,7 @@ def evaluate(
     model_id: tuple[str],
     task: tuple[str],
     auth_token: str,
-    use_auth_token: bool,
+    token: bool,
     track_carbon_emissions: bool,
     country_code: str,
     no_progress_bar: bool,
@@ -144,7 +144,7 @@ def evaluate(
     # Set up variables
     model_ids = list(model_id)
     tasks = list(task)
-    auth: str | bool = auth_token if auth_token != "" else use_auth_token
+    auth: str | bool = auth_token if auth_token != "" else token
     architecture_fname_or_none: str | None = architecture_fname
     weight_fname_or_none: str | None = weight_fname
 
@@ -160,7 +160,7 @@ def evaluate(
         save_results=(not no_save_results),
         raise_error_on_invalid_model=raise_error_on_invalid_model,
         cache_dir=cache_dir,
-        use_auth_token=auth,
+        token=auth,
         track_carbon_emissions=track_carbon_emissions,
         country_code=CountryCode(country_code.lower()),
         prefer_device=Device(prefer_device.lower()),

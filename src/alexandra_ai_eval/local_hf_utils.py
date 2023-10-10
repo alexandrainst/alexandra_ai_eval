@@ -48,7 +48,7 @@ def load_local_hf_model(
     tokenizer = AutoTokenizer.from_pretrained(
         tokenizer_id,
         revision=model_config.revision,
-        use_auth_token=evaluation_config.use_auth_token,
+        token=evaluation_config.token,
         **params,
     )
 

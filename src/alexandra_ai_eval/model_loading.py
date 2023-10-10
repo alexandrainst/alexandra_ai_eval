@@ -62,7 +62,7 @@ def load_model(
     if model_config.framework == Framework.PYTORCH:
         model_on_hf_hub = model_exists_on_hf_hub(
             model_id=model_config.model_id,
-            use_auth_token=evaluation_config.use_auth_token,
+            token=evaluation_config.token,
         )
         if model_on_hf_hub:
             return load_model_from_hf_hub(
@@ -111,19 +111,19 @@ def get_model_config(
 
     Raises:
         ModelIsPrivate:
-            If the model is private and `use_auth_token` has not been set.
+            If the model is private and `token` has not been set.
         ModelDoesNotExist:
             If the model id does not exist on the Hugging Face Hub.
     """
     # Define variable with authentication token
-    auth = evaluation_config.use_auth_token
+    auth = evaluation_config.token
 
     # If the model exists on the Hugging Face Hub, then fetch the model config from
     # there
-    if model_exists_on_hf_hub(model_id=model_id, use_auth_token=auth):
+    if model_exists_on_hf_hub(model_id=model_id, token=auth):
         # If the model is private and an authentication token has not been provided,
         # raise an error
-        if model_is_private_on_hf_hub(model_id=model_id, use_auth_token=auth) and (
+        if model_is_private_on_hf_hub(model_id=model_id, token=auth) and (
             auth is False or auth == ""
         ):
             raise ModelIsPrivate(model_id=model_id)

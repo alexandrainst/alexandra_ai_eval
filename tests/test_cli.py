@@ -17,7 +17,7 @@ def test_cli_param_names(params):
         "model_id",
         "task",
         "auth_token",
-        "use_auth_token",
+        "token",
         "track_carbon_emissions",
         "country_code",
         "no_progress_bar",
@@ -36,7 +36,7 @@ def test_cli_param_types(params):
     assert params["model_id"] == STRING
     assert isinstance(params["task"], Choice)
     assert params["auth_token"] == STRING
-    assert params["use_auth_token"] == BOOL
+    assert params["token"] == BOOL
     assert params["track_carbon_emissions"] == BOOL
     assert isinstance(params["country_code"], Choice)
     assert params["no_progress_bar"] == BOOL

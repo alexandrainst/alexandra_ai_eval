@@ -39,7 +39,7 @@ class Evaluator:
             Whether to raise an error if a model is invalid. Defaults to False.
         cache_dir:
             Directory to store cached models. Defaults to '.alexandra_ai_cache'.
-        use_auth_token:
+        token:
             The authentication token for the Hugging Face Hub. If a boolean value is
             specified then the token will be fetched from the Hugging Face CLI, where
             the user has logged in through `huggingface-cli login`. If a string is
@@ -86,7 +86,7 @@ class Evaluator:
         leaderboard_url: str = "https://api.aiai.alexandrainst.dk",
         raise_error_on_invalid_model: bool = False,
         cache_dir: str = ".alexandra_ai_cache",
-        use_auth_token: bool | str = False,
+        token: bool | str = False,
         track_carbon_emissions: bool = False,
         country_code: str
         | CountryCode = (CountryCode.EMPTY),  # type: ignore[attr-defined]
@@ -106,7 +106,7 @@ class Evaluator:
         self.evaluation_config = EvaluationConfig(
             raise_error_on_invalid_model=raise_error_on_invalid_model,
             cache_dir=cache_dir,
-            use_auth_token=use_auth_token,
+            token=token,
             progress_bar=progress_bar,
             save_results=save_results,
             verbose=verbose,

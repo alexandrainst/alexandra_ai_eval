@@ -150,7 +150,7 @@ class EvaluationConfig:
             Directory to store cached models and datasets.
         evaluate_train:
             Whether to evaluate on the training set.
-        use_auth_token:
+        token:
             The authentication token for the Hugging Face Hub. If a boolean value is
             specified then the token will be fetched from the Hugging Face CLI, where
             the user has logged in through `huggingface-cli login`. If a string is
@@ -190,7 +190,7 @@ class EvaluationConfig:
 
     raise_error_on_invalid_model: bool
     cache_dir: str
-    use_auth_token: bool | str
+    token: bool | str
     progress_bar: bool
     save_results: bool
     verbose: bool

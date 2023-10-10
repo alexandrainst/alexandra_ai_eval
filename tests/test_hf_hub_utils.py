@@ -83,7 +83,7 @@ class TestGetHfHubModelInfo:
     def test_model_info_is_model_info(self, existing_model_id, evaluation_config):
         model_info = get_hf_hub_model_info(
             model_id=existing_model_id,
-            use_auth_token=evaluation_config.use_auth_token,
+            token=evaluation_config.token,
         )
         assert isinstance(model_info, ModelInfo)
 
@@ -93,7 +93,7 @@ class TestGetHfHubModelInfo:
         with pytest.raises(RepositoryNotFoundError):
             get_hf_hub_model_info(
                 model_id=non_existing_model_id,
-                use_auth_token=evaluation_config.use_auth_token,
+                token=evaluation_config.token,
             )
 
 
@@ -109,7 +109,7 @@ class TestModelExistsOnHfHub:
     def test_existing_model_id_exists(self, existing_model_id, evaluation_config):
         assert model_exists_on_hf_hub(
             model_id=existing_model_id,
-            use_auth_token=evaluation_config.use_auth_token,
+            token=evaluation_config.token,
         )
 
     def test_non_existing_model_id_does_not_exist(
@@ -117,7 +117,7 @@ class TestModelExistsOnHfHub:
     ):
         assert not model_exists_on_hf_hub(
             model_id=non_existing_model_id,
-            use_auth_token=evaluation_config.use_auth_token,
+            token=evaluation_config.token,
         )
 
 

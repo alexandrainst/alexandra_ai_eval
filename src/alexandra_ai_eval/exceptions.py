@@ -38,7 +38,7 @@ class ModelIsPrivate(Exception):
                 f"The model ID '{model_id}' is a private model on the Hugging Face "
                 "Hub. Please make sure that you have the correct credentials, are "
                 "logged in to the Hugging Face Hub via `huggingface-cli login`, and "
-                "ensure that `use_auth_token` is set (`--use-auth-token` in the CLI)."
+                "ensure that `token` is set (`--token` in the CLI)."
             )
         )
         super().__init__(self.message)

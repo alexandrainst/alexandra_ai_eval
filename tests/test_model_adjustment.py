@@ -27,7 +27,7 @@ def model(model_config, task_config, evaluation_config):
     config = AutoConfig.from_pretrained(
         model_config.model_id,
         revision=model_config.revision,
-        use_auth_token=evaluation_config.use_auth_token,
+        token=evaluation_config.token,
     )
 
     # Check whether the supertask is a valid one
