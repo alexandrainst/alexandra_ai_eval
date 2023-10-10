@@ -6,10 +6,10 @@
 
 ______________________________________________________________________
 [![PyPI Status](https://badge.fury.io/py/alexandra_ai_eval.svg)](https://pypi.org/project/alexandra_ai_eval/)
-[![Documentation](https://img.shields.io/badge/docs-passing-green)](https://alexandrainst.github.io/AlexandraAI-eval/alexandra_ai_eval.html)
-[![License](https://img.shields.io/github/license/alexandrainst/AlexandraAI-eval)](https://github.com/alexandrainst/AlexandraAI-eval/blob/main/LICENSE)
-[![LastCommit](https://img.shields.io/github/last-commit/alexandrainst/AlexandraAI-eval)](https://github.com/alexandrainst/AlexandraAI-eval/commits/main)
-[![Code Coverage](https://img.shields.io/badge/Coverage-75%25-yellowgreen.svg)](https://github.com/alexandrainst/AlexandraAI-eval/tree/main/tests)
+[![Documentation](https://img.shields.io/badge/docs-passing-green)](https://alexandrainst.github.io/alexandra_ai_eval/alexandra_ai_eval.html)
+[![License](https://img.shields.io/github/license/alexandrainst/alexandra_ai_eval)](https://github.com/alexandrainst/alexandra_ai_eval/blob/main/LICENSE)
+[![LastCommit](https://img.shields.io/github/last-commit/alexandrainst/alexandra_ai_eval)](https://github.com/alexandrainst/alexandra_ai_eval/commits/main)
+[![Code Coverage](https://img.shields.io/badge/Coverage-75%25-yellowgreen.svg)](https://github.com/alexandrainst/alexandra_ai_eval/tree/main/tests)
 
 ## Installation
 
