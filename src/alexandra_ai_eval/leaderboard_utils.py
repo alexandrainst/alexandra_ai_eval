@@ -51,19 +51,16 @@ class Session(requests.Session):
         # Get task from Leaderboard
         response = self.get(endpoint)
 
-        # Check if we got a valid response and raise error if not
+        # Raise error if we didn't get a valid response
         if response.status_code != 200:
             raise ValueError(response.text)
-
-        # Return the leaderboard
         try:
             task = response.json()
         except JSONDecodeError:
             raise ValueError(response.text)
-
-        # Check if we got a valid response
         if task == {"error": "Table not found"}:
             raise ValueError(f"Task {task_name} not found.")
+
         return task
 
     def get_model_for_task(
@@ -100,21 +97,18 @@ class Session(requests.Session):
         # Get the model from leaderboard
         response = self.get(endpoint)
 
-        # Check if we got a valid response and raise error if not
+        # Raise error if we didn't get a valid response
         if response.status_code != 200:
             raise ValueError(response.text)
-
         try:
             task = response.json()
         except JSONDecodeError:
             raise ValueError(response.text)
-
-        # Check if we got a valid response
         if task == {"error": "Table not found"}:
             raise ValueError(f"Task {task_name} not found.")
-
         if task == {"error": "Model not found"}:
             raise ValueError(f"Model {model_id} not found.")
+
         return task
 
     def post_model_to_task(
@@ -144,7 +138,6 @@ class Session(requests.Session):
                 If the task is not found, or if a non 200 response is returned from the
                 API.
         """
-
         # Check if task is valid
         try:
             task_config = get_all_task_configs()[task_name]
@@ -166,19 +159,15 @@ class Session(requests.Session):
         # Post the model to leaderboard
         response = self.post(endpoint, json=payload)
 
-        # Check if we got a valid response and raise error if not
+        # Raise error if we didn't get a valid response
         if response.status_code != 200:
             raise ValueError(response.text)
-
-        # Return the leaderboard
         try:
             response_json = response.json()
         except JSONDecodeError:
             raise ValueError(response.text)
 
-        # Close the connection
         response.close()
-
         return response_json
 
     def check_connection(self, timeout: int = 5):

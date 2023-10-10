@@ -70,7 +70,6 @@ class NamedEntityRecognition(Task):
         )
         spacy_tags = list(map(get_ent_fn, processed))
 
-        # Get the aligned labels
         aligned_spacy_predictions = [spacy_tags[i] for i in aligned_spacy_tokens]
 
         return aligned_spacy_predictions
@@ -89,7 +88,6 @@ class NamedEntityRecognition(Task):
         prepared_dataset: Dataset,
         **kwargs,
     ) -> list[tuple[list, list]]:
-        # Extract the labels from the dataset
         labels = prepared_dataset["labels"]
 
         # Collapse the logits into single predictions for every sample
@@ -114,7 +112,6 @@ class NamedEntityRecognition(Task):
         predictions_no_misc = remove_misc_tags(list_of_tag_lists=predictions)
         labels_no_misc = remove_misc_tags(list_of_tag_lists=labels)
 
-        # Return the predictions and labels, both with and without MISC tags
         return [(predictions, labels), (predictions_no_misc, labels_no_misc)]
 
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
@@ -348,7 +345,6 @@ def remove_ignored_index_from_predictions_and_labels(
         for label in labels
     ]
 
-    # Finally, we return the predictions and labels
     return predictions, labels
 
 
@@ -388,8 +384,6 @@ def replace_unknown_tags_with_misc_tags(
                 else:
                     list_of_tag_lists[i][j] = "O"
 
-    # Return the list of lists containing NER tags with unknown tags replaced with MISC
-    # tags
     return list_of_tag_lists
 
 
@@ -412,7 +406,6 @@ def remove_misc_tags(list_of_tag_lists: list[list[str]]) -> list[list[str]]:
             if ner_tag == "B-MISC" or ner_tag == "I-MISC":
                 list_of_tag_lists[i][j] = "O"
 
-    # Return the list of lists containing NER tags with MISC tags removed
     return list_of_tag_lists
 
 
@@ -454,5 +447,4 @@ def align_spacy_tokens_with_gold_tokens(
         ][0]
         predictions.append(aligned_pred_token)
 
-    # Return the aligned predictions
     return predictions

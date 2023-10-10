@@ -17,16 +17,11 @@ DESIRED_ENVIRONMENT_VARIABLES = dict(
 
 def fix_dot_env_file():
     """Ensures that the .env file exists and contains all desired variables."""
-    # Create path to the .env file
     env_file_path = Path(".env")
-
-    # Ensure that the .env file exists
     env_file_path.touch(exist_ok=True)
 
-    # Otherwise, extract all the lines in the .env file
-    env_file_lines = env_file_path.read_text().splitlines(keepends=False)
-
     # Extract all the environment variables in the .env file
+    env_file_lines = env_file_path.read_text().splitlines(keepends=False)
     env_vars = [line.split("=")[0] for line in env_file_lines]
 
     # For each of the desired environment variables, check if it exists in the .env

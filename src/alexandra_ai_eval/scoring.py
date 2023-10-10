@@ -40,10 +40,8 @@ def log_scores(
         The keys are the names of the datasets, with values being new dictionaries
         having the model IDs as keys.
     """
-    # Initial logging message
     logger.info(f"Finished evaluation of {model_id} on {task_name}.")
 
-    # Initialise the total dict
     total_dict = dict()
     logging_strings: list[str] = list()
 
@@ -60,13 +58,10 @@ def log_scores(
         total_dict[metric_cfg.name] = test_score
         total_dict[f"{metric_cfg.name}_se"] = test_se
 
-        # Log the scores
         logger.info(msg)
 
-    # Define a dict with both the raw scores and the aggregated scores
     all_scores = dict(raw=scores, total=total_dict, model_type=model_type)
 
-    # Return the extended scores
     if only_return_log:
         return "\n\n".join(logging_strings)
     else:

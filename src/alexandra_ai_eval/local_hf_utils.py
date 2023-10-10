@@ -65,20 +65,15 @@ def load_local_hf_model(
         else:
             tokenizer.model_max_length = 512
 
-    # Set the model to evaluation mode, making its predictions deterministic
     model.eval()
-
-    # Move the model to the specified device
     model.to(evaluation_config.device)
 
-    # Adjust the model to the task
     adjust_model_to_task(
         model=model,
         model_config=model_config,
         task_config=task_config,
     )
 
-    # Return the model and tokenizer as a dict
     return dict(model=model, tokenizer=tokenizer, model_type="other")
 
 
@@ -92,10 +87,8 @@ def hf_model_exists_locally(model_id: str | Path) -> bool:
     Returns:
         Whether the model exists locally.
     """
-    # Ensure that `model_id` is a Path object
     model_id = Path(model_id)
 
-    # Return False if the model folder does not exist
     if not model_id.exists():
         return False
 
@@ -133,7 +126,6 @@ def get_hf_model_config_locally(model_folder: str | Path) -> ModelConfig:
         ModelDoesNotExist:
             If there is no model in the model folder.
     """
-    # Ensure that the model folder is a Path object
     model_folder = Path(model_folder)
 
     # Get the Hugging Face model config, from which we can get the model's label

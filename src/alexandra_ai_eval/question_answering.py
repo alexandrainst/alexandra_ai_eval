@@ -53,7 +53,6 @@ class QuestionAnswering(Task):
         prepared_dataset: Dataset,
         **kwargs,
     ) -> list[tuple[list, list]]:
-        # Extract the predictions and labels
         predictions = postprocess_predictions(
             predictions=predictions,
             dataset=dataset,
@@ -62,7 +61,6 @@ class QuestionAnswering(Task):
         )
         labels = postprocess_labels(dataset=dataset)
 
-        # Package the predictions and labels into the standard format and return them
         return [(predictions, labels)]
 
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
@@ -172,7 +170,6 @@ def postprocess_predictions(
     Returns:
         The postprocessed predictions.
     """
-    # Extract the logits from the predictions
     all_start_logits = np.asarray(predictions)[:, :, 0]
     all_end_logits = np.asarray(predictions)[:, :, 1]
 
@@ -189,7 +186,6 @@ def postprocess_predictions(
     # Loop over all the examples
     predictions = list()
     for example_index, example in enumerate(dataset):
-        # Extract the best valid answer associated with the current example
         best_answer = find_best_answer(
             all_start_logits=all_start_logits,
             all_end_logits=all_end_logits,
@@ -209,8 +205,6 @@ def postprocess_predictions(
             prediction_text=best_answer,
             no_answer_probability=0.0,
         )
-
-        # Add the answer to the list of predictions
         predictions.append(prediction)
 
     return predictions
@@ -255,7 +249,6 @@ def find_best_answer(
     # Loop through all the features associated to the current example
     valid_answers = list()
     for feature_index in feature_indices:
-        # Get the features associated with the current example
         features = prepared_dataset[feature_index]
 
         # Get the predictions of the model for this feature
@@ -388,8 +381,6 @@ def postprocess_labels(dataset: Dataset) -> list[dict]:
                 answer_start=[example["answer_start"]],
             ),
         )
-
-        # Add the answer and label to the list of predictions and labels, respectively
         labels.append(label)
 
     return labels

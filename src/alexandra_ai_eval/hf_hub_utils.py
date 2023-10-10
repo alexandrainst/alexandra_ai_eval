@@ -54,7 +54,6 @@ def load_model_from_hf_hub(
             not set.
     """
     try:
-        # Load the configuration of the pretrained model
         config = AutoConfig.from_pretrained(
             model_config.model_id,
             revision=model_config.revision,
@@ -81,6 +80,7 @@ def load_model_from_hf_hub(
                 class_name=f"auto-model-for-{supertask}",
                 module_name="transformers",
             )
+
         # If the class name is not of the form "auto-model-for-<supertask>" then
         # use fallback "architectures" from config to get the model class
         elif allowed_and_checked_architectures:
@@ -113,16 +113,12 @@ def load_model_from_hf_hub(
 
     # If an error occured then throw an informative exception
     except (OSError, ValueError):
-        # If the model is private then raise an informative error
         private_model = model_is_private_on_hf_hub(
             model_id=model_config.model_id,
             token=evaluation_config.token,
         )
         if private_model:
             raise ModelIsPrivate(model_id=model_config.model_id)
-
-        # Otherwise, the model does not have any frameworks registered, so raise an
-        # error
         else:
             raise InvalidEvaluation(
                 f"The model {model_config.model_id} does not have any frameworks "
@@ -173,10 +169,7 @@ def load_model_from_hf_hub(
         else:
             tokenizer.model_max_length = 512
 
-    # Set the model to evaluation mode, making its predictions deterministic
     model.eval()
-
-    # Move the model to the specified device
     model.to(evaluation_config.device)
 
     return dict(
@@ -329,7 +322,6 @@ def get_model_config_from_hf_hub(
         author = None
         model_name = model_id_without_revision
 
-    # Define the Hugging Face Hub API object
     api = HfApi()
 
     # Fetch the model metadata from the Hugging Face Hub
@@ -349,7 +341,6 @@ def get_model_config_from_hf_hub(
     # Filter the models to only keep the one with the specified model ID
     models = [model for model in models if model.modelId == model_id_without_revision]
 
-    # Fetch the model tags
     tags = models[0].tags
 
     # Extract the framework, which defaults to PyTorch
@@ -363,7 +354,6 @@ def get_model_config_from_hf_hub(
     elif "tf" in tags or "tensorflow" in tags or "keras" in tags:
         raise InvalidFramework("tensorflow")
 
-    # Extract the model ID
     model_id = models[0].modelId
 
     # Get the label conversions
@@ -373,7 +363,6 @@ def get_model_config_from_hf_hub(
         token=evaluation_config.token,
     )
 
-    # Construct and return the model config
     return ModelConfig(
         model_id=model_id,
         tokenizer_id=model_id,

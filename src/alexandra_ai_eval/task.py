@@ -37,7 +37,7 @@ from .model_loading import get_model_config, load_model
 from .scoring import log_scores
 from .utils import clear_memory, enforce_reproducibility
 
-# Set up a logger
+
 logger = logging.getLogger(__name__)
 
 
@@ -87,7 +87,6 @@ class Task(ABC):
             InvalidEvaluation:
                 If an error occurs during evaluation.
         """
-        # Fetch the model config
         model_config = get_model_config(
             model_id=model_id,
             task_config=self.task_config,
@@ -98,14 +97,12 @@ class Task(ABC):
         # weights
         rng = enforce_reproducibility(framework=model_config.framework)
 
-        # Load the model
         model_dict = load_model(
             model_config=model_config,
             task_config=self.task_config,
             evaluation_config=self.evaluation_config,
         )
 
-        # Prepare carbon tracker
         if self.evaluation_config.track_carbon_emissions:
             self.carbon_tracker = get_carbon_tracker(
                 task_name=self.task_config.name,
@@ -113,7 +110,6 @@ class Task(ABC):
                 verbose=self.evaluation_config.verbose,
             )
 
-        # Load the dataset
         dataset = self._load_data()
 
         # Remove empty examples from the datasets
@@ -123,10 +119,8 @@ class Task(ABC):
             except KeyError:
                 raise WrongFeatureColumnName(feat_column)
 
-        # Set variable with number of iterations
         num_iter = 10 if not self.evaluation_config.testing else 2
 
-        # Extract the model and tokenizer
         model = model_dict["model"]
         tokenizer = model_dict.get("tokenizer")
         processor = model_dict.get("processor")
@@ -140,13 +134,11 @@ class Task(ABC):
         if self.evaluation_config.testing:
             dataset = dataset.select(range(4))
 
-        # Get bootstrapped datasets
         bootstrapped_datasets = [
             Dataset.from_dict(dataset[rng.integers(0, len(dataset), len(dataset))])
             for _ in range(num_iter)
         ]
 
-        # Preprocess the bootstrapped datasets
         prepared_datasets = [
             self._preprocess_data(
                 bootstrapped_dataset,
@@ -199,7 +191,6 @@ class Task(ABC):
             metric_configs.append(EMISSIONS)
             metric_configs.append(POWER)
 
-        # Log scores
         all_scores = log_scores(
             task_name=self.task_config.pretty_name,
             metric_configs=metric_configs,
@@ -266,11 +257,9 @@ class Task(ABC):
                 else 32
             )
 
-            # Start carbon emissions tracking
             if self.evaluation_config.track_carbon_emissions:
                 self.carbon_tracker.start()
 
-            # Get model predictions
             model_predictions = self._get_model_predictions(
                 model=model,
                 tokenizer=tokenizer,
@@ -290,7 +279,6 @@ class Task(ABC):
             except AttributeError:
                 cls_token_index = None
 
-            # Perform post-processing of predictions
             prepared_predictions_and_labels = self._prepare_predictions_and_labels(
                 predictions=model_predictions,
                 dataset=dataset,
@@ -317,7 +305,6 @@ class Task(ABC):
                 ):
                     raise ModelNotTrainedForTask(task=self.task_config.name)
 
-            # Compute the metrics for each prediction batch
             scores = self._compute_metrics(
                 predictions_and_labels=prepared_predictions_and_labels,
             )
@@ -365,7 +352,6 @@ class Task(ABC):
         for metric_cfg, (predictions, labels) in zip(
             self.task_config.metrics, predictions_and_labels
         ):
-            # Load the metric
             metric = self._metrics[metric_cfg.name]
 
             # Compute the metrics. Sometimes a `RuntimeWarning` is displayed, e.g.,
@@ -382,11 +368,9 @@ class Task(ABC):
                 if isinstance(score_dict, float):
                     score_dict = {metric_cfg.huggingface_id: score_dict}
 
-            # Add scores to the `results` dictionary
             if score_dict is not None:
                 results[metric_cfg.name] = score_dict[metric_cfg.results_key]
 
-        # Return the results
         return results
 
     def _load_data(self) -> Dataset:
@@ -441,7 +425,6 @@ class Task(ABC):
             if key in accepted_transformer_features
         }
 
-        # Return the prepared batch
         return batch
 
     def _get_model_predictions(
@@ -507,7 +490,6 @@ class Task(ABC):
 
             all_predictions = list()
             for batch in itr:
-                # Prepare the batch
                 batch = self._prepare_pytorch_batch(
                     batch, input_modality=self.task_config.modality
                 )
@@ -581,10 +563,7 @@ class Task(ABC):
                     model_type = str(type(model))
                     raise UnsupportedModelType(model_type=model_type)
 
-                # Move the predictions back to the CPU and convert it to a NumPy array
                 model_predictions = model_predictions.cpu().numpy()
-
-                # Collect predictions
                 all_predictions.extend(model_predictions)
 
             return all_predictions

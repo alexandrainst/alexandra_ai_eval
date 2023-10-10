@@ -170,20 +170,13 @@ def get_available_devices() -> list[Device]:
         list of Device objects:
             The available devices, sorted as CUDA, MPS, CPU.
     """
-    available_devices = list()
+    available_devices: list[Device] = [Device.CPU]
 
-    # Add CUDA to the list if it is available
     if torch.cuda.is_available():
         available_devices.append(Device.CUDA)
-
-    # Add MPS to the list if it is available
     if torch.backends.mps.is_available():
         available_devices.append(Device.MPS)
 
-    # Always add CPU to the list
-    available_devices.append(Device.CPU)
-
-    # Return the list of available devices
     return available_devices
 
 
@@ -259,7 +252,6 @@ def get_class_by_name(
     Returns:
         The class. If the class is not found, None is returned.
     """
-    # Ensure that `class_name` is a sequence
     if isinstance(class_name, str):
         class_name = [class_name]
 
@@ -285,7 +277,6 @@ def get_class_by_name(
             module_name = None
             continue
 
-        # Return the class
         return class_
 
     # If the class could not be found, return None

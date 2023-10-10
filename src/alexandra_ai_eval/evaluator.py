@@ -96,13 +96,11 @@ class Evaluator:
         weight_fname: str | None = None,
         verbose: bool = False,
     ):
-        # If `country_code` is a string then convert it to a `CountryCode` enum
         if isinstance(country_code, str):
             country_code_enum = CountryCode(country_code.lower())
         else:
             country_code_enum = country_code
 
-        # Build evaluation configuration
         self.evaluation_config = EvaluationConfig(
             raise_error_on_invalid_model=raise_error_on_invalid_model,
             cache_dir=cache_dir,
@@ -125,19 +123,13 @@ class Evaluator:
         # updated as more models are evaluated
         self.evaluation_results: dict[str, dict] = defaultdict(dict)
 
-        # Set logging level based on verbosity
         logging_level = logging.DEBUG if verbose else logging.INFO
         logger.setLevel(logging_level)
 
-        # Initialise a task factory
         self.task_factory = TaskFactory(evaluation_config=self.evaluation_config)
 
-        # Initialise the send results to leaderboard flag
         self.send_results_to_leaderboard = send_results_to_leaderboard
         self.leaderboard_url = leaderboard_url
-
-        # Initialise the leaderboard client if we want to send results to the
-        # leaderboard
         self.leaderboard_client = (
             Session(
                 base_url=self.leaderboard_url,
@@ -169,7 +161,6 @@ class Evaluator:
                 If the request to the leaderboard fails.
         """
         try:
-            # Prepare the model IDs and tasks
             model_ids = self._prepare_model_ids(model_id)
             task_configs = self._prepare_task_configs(task_name=task)
 
@@ -177,21 +168,18 @@ class Evaluator:
             # initial message containing all the upcoming evaluations. The individual
             # (model, task) pairs will also be logged individually later
             if len(model_ids) > 1 or len(task_configs) > 1:
-                # Prepare model string for logging
                 if len(model_ids) == 1:
                     model_str = f"{model_ids[0]} model"
                 else:
                     model_str = ", ".join(model_id for model_id in model_ids[:-1])
                     model_str += f" and {model_ids[-1]} models"
 
-                # Prepare task string for logging
                 if len(task_configs) == 1:
                     task_str = f"{task_configs[0].pretty_name} task"
                 else:
                     task_str = ", ".join(cfg.pretty_name for cfg in task_configs[:-1])
                     task_str += f" and {task_configs[-1].pretty_name} tasks"
 
-                # Log status
                 logger.info(f"Evaluating the {model_str} on the {task_str}.")
 
             # Evaluate all the models in `model_ids` on all the datasets in
@@ -336,8 +324,7 @@ class Evaluator:
 
         self.leaderboard_client.check_connection()
 
-        # Initialize a list of status bools
-        status: list[bool] = []
+        status: list[bool] = list()
 
         # Loop through the evaluation results and send each one to the leaderboard
         for task_name in self.evaluation_results.keys():
@@ -408,9 +395,7 @@ class Evaluator:
                 # then get the rank. If it is not in the leaderboard, we are running
                 # tests.
                 with warnings.catch_warnings():
-                    warnings.simplefilter(
-                        action="ignore", category=FutureWarning
-                    )  # ignore pandas warning
+                    warnings.simplefilter(action="ignore", category=FutureWarning)
                     if model_id in task_leaderboard["model_id"].values:
                         model_rank = (
                             int(
@@ -427,7 +412,6 @@ class Evaluator:
                             f"{task_name}-leaderboard."
                         )
 
-                        # The post was a success
                 status.append(True)
         return status
 

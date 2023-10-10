@@ -12,6 +12,7 @@ from .enums import Framework
 from .exceptions import ModelFetchFailed
 from .utils import is_module_installed
 
+
 # Ignore warnings from spaCy. This has to be called after the import, as the
 # __init__.py file of spaCy sets the warning levels of spaCy warning W036
 warnings.filterwarnings("ignore", module="spacy*")

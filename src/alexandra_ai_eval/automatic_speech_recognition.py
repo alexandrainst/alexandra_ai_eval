@@ -51,7 +51,6 @@ class DataCollatorCTCWithPadding:
         Returns:
             A dictionary of the collated features.
         """
-        # Get sampling rate
         sampling_rate = self.processor.feature_extractor.sampling_rate
 
         # Whisper and Wav2Vec2 have different input APIs which we need to take into
@@ -79,14 +78,12 @@ class DataCollatorCTCWithPadding:
                 for feature in features
             ]
 
-        # Create batch from input_features, and pad while doing so
         batch = self.processor.feature_extractor.pad(
             input_features,
             padding=self.padding,
             return_tensors="pt",
         )
 
-        # Return the updated batch
         return batch
 
 
@@ -113,7 +110,6 @@ class AutomaticSpeechRecognition(Task):
         model_config: PretrainedConfig,
         task_config: TaskConfig,
     ) -> BatchEncoding:
-        # Create labels column
         examples["labels"] = examples[task_config.label_column_name]
 
         # If there is more than on feature column list raise an exception
@@ -149,7 +145,6 @@ class AutomaticSpeechRecognition(Task):
         prepared_dataset: Dataset,
         **kwargs,
     ) -> list[tuple[list, list]]:
-        # Get processor
         processor = kwargs["processor"]
 
         # Decode the predictions, Whisper has a different API
@@ -165,7 +160,6 @@ class AutomaticSpeechRecognition(Task):
                 predictions, skip_special_tokens=True
             )
 
-        # Get the labels
         label_str = prepared_dataset["labels"]
 
         return list(zip([predictions_str], [label_str]))

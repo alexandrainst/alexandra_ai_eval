@@ -59,10 +59,8 @@ class SequenceClassification(Task):
         if has_floats(predictions):
             predictions = np.argmax(predictions, axis=-1)
 
-        # Extract labels from dataset
         labels = prepared_dataset["labels"]
 
-        # Return the predictions and labels
         return [(list(predictions), list(labels))]
 
     def _load_data_collator(

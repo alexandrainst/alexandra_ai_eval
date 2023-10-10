@@ -51,11 +51,9 @@ def load_model(
         InvalidFramework:
             If the framework is not recognized.
     """
-    # Ensure that the framework is installed
-    from_flax = model_config.framework == Framework.JAX
-
     # If the framework is JAX then change it to PyTorch, since we will convert JAX
     # models to PyTorch upon download
+    from_flax = model_config.framework == Framework.JAX
     if model_config.framework == Framework.JAX:
         model_config.framework = Framework.PYTORCH
 
@@ -115,11 +113,8 @@ def get_model_config(
         ModelDoesNotExist:
             If the model id does not exist on the Hugging Face Hub.
     """
-    # Define variable with authentication token
     auth = evaluation_config.token
 
-    # If the model exists on the Hugging Face Hub, then fetch the model config from
-    # there
     if model_exists_on_hf_hub(model_id=model_id, token=auth):
         # If the model is private and an authentication token has not been provided,
         # raise an error
@@ -128,28 +123,21 @@ def get_model_config(
         ):
             raise ModelIsPrivate(model_id=model_id)
 
-        # Otherwise, fetch the model configuration from the Hugging Face Hub
         return get_model_config_from_hf_hub(
             model_id=model_id, evaluation_config=evaluation_config
         )
 
-    # Otherwise, if the model exists on Spacy, then fetch the model config from there
     elif model_exists_on_spacy(model_id=model_id):
         return get_model_config_from_spacy(model_id=model_id)
 
-    # Otherwise, if the model exists locally as a Hugging Face model, then fetch the
-    # model config from there
     elif hf_model_exists_locally(model_id=model_id):
         return get_hf_model_config_locally(model_folder=model_id)
 
-    # Otherwise, if the model exists locally as a PyTorch model, then fetch the model
-    # config from there
     elif pytorch_model_exists_locally(model_id=model_id):
         return get_pytorch_model_config_locally(
             model_folder=model_id,
             dataset_id2label=task_config.id2label,
         )
 
-    # If it does not exist on any of the available model sources, raise an error
     else:
         raise ModelDoesNotExist(model_id=model_id)

@@ -141,20 +141,17 @@ def evaluate(
             "Please specify at least one model and one task to evaluate."
         )
 
-    # Set up variables
     model_ids = list(model_id)
     tasks = list(task)
     auth: str | bool = auth_token if auth_token != "" else token
     architecture_fname_or_none: str | None = architecture_fname
     weight_fname_or_none: str | None = weight_fname
 
-    # Set `arc_fname` and `weight_fname` to None if they are "None"
     if architecture_fname_or_none == "None":
         architecture_fname_or_none = None
     if weight_fname_or_none == "None":
         weight_fname_or_none = None
 
-    # Initialise the benchmarker class
     evaluator = Evaluator(
         progress_bar=(not no_progress_bar),
         save_results=(not no_save_results),
@@ -169,5 +166,5 @@ def evaluate(
         verbose=verbose,
     )
 
-    # Perform the benchmark evaluation
+    # Perform the evaluation
     evaluator(model_id=model_ids, task=tasks)

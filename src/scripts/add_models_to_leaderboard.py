@@ -89,15 +89,10 @@ def prepare_cache_and_get_succeeded_and_failed_models(
     output_path = Path(output_path_str)
     cache_dir = Path(cache_dir_str)
 
-    # check if output_path exists, if not, create it.
     if not output_path.exists():
         output_path.mkdir(parents=True)
-
-    # check if cache_dir exists, if not, create it.
     if not cache_dir.exists():
         cache_dir.mkdir(parents=True)
-
-    # make folder in cache_dir for evaluated models list
     if not (cache_dir / "evaluated_models").exists():
         (cache_dir / "evaluated_models").mkdir(parents=True)
 

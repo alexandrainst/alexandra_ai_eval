@@ -22,11 +22,9 @@ def evaluate(model_id: str, task: str) -> str:
         gradio Error:
             If the evaluation fails.
     """
-
     # Convert task to the standard task names
     task = task.lower().replace(" ", "-")
 
-    # Create the evaluator
     evaluator = Evaluator(
         progress_bar=True,
         save_results=False,
@@ -47,7 +45,6 @@ def evaluate(model_id: str, task: str) -> str:
             error_desc = str(e)
         raise gr.Error(f"{type(e)}: {error_desc}")
 
-    # Return the results
     return results  # type: ignore[return-value]
 
 

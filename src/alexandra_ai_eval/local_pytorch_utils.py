@@ -44,8 +44,8 @@ def load_local_pytorch_model(
             folder, or if the model architecture file does not contain a class
             subclassing `torch.nn.Module`.
     """
-    # TEMPORARY: If the model's `id2label` mapping has fewer labels than the dataset,
-    # then raise an informative error. This is a temporary fix until we have a better
+    # TEMP: If the model's `id2label` mapping has fewer labels than the dataset, then
+    # raise an informative error. This is a temporary fix until we have a better
     # solution for handling this case.
     if model_config.id2label is not None and len(model_config.id2label) < len(
         task_config.id2label
@@ -163,23 +163,17 @@ def load_local_pytorch_model(
     state_dict = torch.load(weight_path, map_location=torch.device("cpu"))
     model.load_state_dict(state_dict)
 
-    # Set the model to evaluation mode, making its predictions deterministic
     model.eval()
-
-    # Move the model to the specified device
     model.to(evaluation_config.device)
 
-    # Adjust the model to the task
     adjust_model_to_task(
         model=model,
         model_config=model_config,
         task_config=task_config,
     )
 
-    # Load the tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_config.tokenizer_id)
 
-    # Return the model with the loaded weights
     return dict(model=model, tokenizer=tokenizer, model_type="other")
 
 
@@ -205,7 +199,6 @@ def pytorch_model_exists_locally(
     Returns:
         Whether the model exists locally.
     """
-    # Ensure that the model_folder is a Path object
     model_folder = Path(model_id)
 
     # If no architecture_fname is provided, then use the first Python script found
@@ -309,7 +302,6 @@ def get_from_config(
     Returns:
         The value of the key, of data type `expected_type`.
     """
-    # Ensure that the model_folder is a Path object
     model_folder = Path(model_folder)
 
     # Get the candidate configuration files
@@ -334,7 +326,6 @@ def get_from_config(
         # Otherwise, we prompt the user to enter the value
         else:
             if user_prompt is None:
-                # Define the base user prompt
                 base_prompt = (
                     f"The configuration did not contain the {key!r} entry. Please "
                     "specify its value"
@@ -367,7 +358,6 @@ def get_from_config(
             config_path.touch()
         config_path.write_text(json.dumps(config, indent=4))
 
-    # Return the value of the key
     return config[key]
 
 
@@ -391,7 +381,6 @@ def get_missing_key_value_from_user(
     Returns:
         The value of the key, of data type `expected_type`.
     """
-    # Prompt the user to enter the value
     user_input = input(user_prompt)
 
     # If the user input is blank (i.e. they pressed Enter) and there is a default
