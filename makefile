@@ -35,12 +35,12 @@ install: ## Install dependencies
 		echo "GPG not installed. Install GPG on MacOS with `brew install gnupg` or "; \
 			 "on Ubuntu with `apt install gnupg` and run `make install` again."; \
 	else \
-		echo "Installing the '{{ cookiecutter.project_name }}' project..."; \
+		echo "Installing the 'alexandra_ai_eval' project..."; \
 		$(MAKE) --quiet install-poetry; \
 		$(MAKE) --quiet setup-poetry; \
 		$(MAKE) --quiet setup-environment-variables; \
 		$(MAKE) --quiet setup-git; \
-		echo "Installed the '{{ cookiecutter.project_name }}' project."; \
+		echo "Installed the 'alexandra_ai_eval' project."; \
 	fi
 
 setup-poetry:
