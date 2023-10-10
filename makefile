@@ -21,33 +21,33 @@ help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' makefile | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 install-poetry:
-	@echo "Installing poetry..."
-	@pipx install poetry==1.4.0
-	@$(eval include ${HOME}/.poetry/env)
+	@if [ ! "$(shell poetry --version)" = "Poetry (version 1.4.0)" ]; then \
+		pip3 install --force --quiet poetry==1.4.0; \
+		echo "Installed Poetry."; \
+	fi
 
 uninstall-poetry:
 	@echo "Uninstalling poetry..."
-	@pipx uninstall poetry
+	@pip3 uninstall poetry
 
 install: ## Install dependencies
-	@echo "Installing..."
-	@if [ "$(shell which poetry)" = "" ]; then \
-		$(MAKE) install-poetry; \
-	fi
 	@if [ "$(shell which gpg)" = "" ]; then \
-		echo "GPG not installed, so an error will occur. Install GPG on MacOS with "\
-			 "`brew install gnupg` or on Ubuntu with `apt install gnupg` and run "\
-			 "`make install` again."; \
+		echo "GPG not installed. Install GPG on MacOS with `brew install gnupg` or "; \
+			 "on Ubuntu with `apt install gnupg` and run `make install` again."; \
+	else \
+		echo "Installing the '{{ cookiecutter.project_name }}' project..."; \
+		$(MAKE) --quiet install-poetry; \
+		$(MAKE) --quiet setup-poetry; \
+		$(MAKE) --quiet setup-environment-variables; \
+		$(MAKE) --quiet setup-git; \
+		echo "Installed the '{{ cookiecutter.project_name }}' project."; \
 	fi
-	@$(MAKE) setup-poetry
-	@$(MAKE) setup-environment-variables
-	@$(MAKE) setup-git
 
 setup-poetry:
-	@poetry env use python3.11 && poetry install
+	@poetry env use python3.11 && poetry install --quiet
 
 setup-environment-variables:
-	@poetry run python -m src.scripts.fix_dot_env_file
+	@poetry run python src/scripts/fix_dot_env_file.py
 
 setup-git:
 	@git init
@@ -57,14 +57,13 @@ setup-git:
 		echo "No GPG key ID specified. Skipping GPG signing."; \
 		git config --local commit.gpgsign false; \
 	else \
-		echo "Signing with GPG key ID ${GPG_KEY_ID}..."; \
-		echo 'Just for info: If you get the "failed to sign the data" error when '\
-			 'committing, try running `export GPG_TTY=$$(tty)` and `gpgconf --kill '\
-			 'gpg-agent`, and try again.'; \
 		git config --local commit.gpgsign true; \
 		git config --local user.signingkey ${GPG_KEY_ID}; \
+		echo "Signed with GPG key ID ${GPG_KEY_ID}."; \
 	fi
 	@poetry run pre-commit install
+	@export GPG_TTY=$(tty)
+	@gpgconf --kill gpg-agent
 
 docs:  ## Generate documentation
 	@poetry run pdoc --docformat google src/alexandra_ai_eval -o docs
