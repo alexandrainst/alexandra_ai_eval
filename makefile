@@ -133,4 +133,8 @@ tree:  ## Print directory tree
 		-I .coverage* \
 		-I .DS_Store \
 		-I __pycache__ \
+		-I .ruff_cache \
+		-I .alexandra_ai_cache \
+		-I .hypothesis \
+		-I models \
 		.
