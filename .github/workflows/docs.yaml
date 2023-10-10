@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install Poetry
-        run: pipx install poetry
+        run: pipx install poetry==1.4.0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -27,12 +27,12 @@ jobs:
           cache: "poetry"
 
       - name: Install Dependencies
-        run: poetry install
-
-      - name: Build documentation
         run: |
           poetry env use "3.11"
-          poetry run pdoc --docformat google src/alexandra_ai_eval -o docs
+          poetry install --no-interaction --no-cache
+
+      - name: Build documentation
+        run: poetry run pdoc --docformat google src/alexandra_ai_eval -o docs
 
       - name: Compress documentation
         run: tar --directory docs/ -hcf artifact.tar .
