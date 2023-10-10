@@ -31,10 +31,10 @@ from .task_configs import get_all_task_configs
     default="",
     show_default=True,
     help="""The authentication token for the Hugging Face Hub. If specified then the
-    `--use-auth-token` flag will be set to True.""",
+    `--token` flag will be set to True.""",
 )
 @click.option(
-    "--use-auth-token",
+    "--token",
     is_flag=True,
     show_default=True,
     help="""Whether an authentication token should be used, enabling evaluation of
