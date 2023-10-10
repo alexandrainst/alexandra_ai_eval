@@ -2,7 +2,6 @@
 
 import warnings
 from subprocess import CalledProcessError
-from typing import Dict
 
 import spacy
 from spacy.cli.download import download as download_spacy
@@ -13,22 +12,22 @@ from .enums import Framework
 from .exceptions import ModelFetchFailed
 from .utils import is_module_installed
 
+
 # Ignore warnings from spaCy. This has to be called after the import, as the
 # __init__.py file of spaCy sets the warning levels of spaCy warning W036
 warnings.filterwarnings("ignore", module="spacy*")
 
 
-def load_spacy_model(model_id: str) -> Dict[str, Language]:
+def load_spacy_model(model_id: str) -> dict[str, Language]:
     """Load a spaCy model.
 
     Args:
-        model_id (str):
+        model_id:
             The ID of the model.
 
     Returns:
-        dict:
-            A dictionary containing at least the key 'model', with the value being the
-            model.
+        A dictionary containing at least the key 'model', with the value being the
+        model.
 
     Raises:
         ModelFetchFailed:
@@ -69,12 +68,11 @@ def model_exists_on_spacy(model_id: str) -> bool:
     """Checks if a model exists as a spaCy model.
 
     Args:
-        model_id (str):
+        model_id:
             The name of the model.
 
     Returns:
-        bool:
-            Whether the model exists as a spaCy model.
+        Whether the model exists as a spaCy model.
     """
     try:
         load_spacy_model(model_id=model_id)
@@ -87,12 +85,11 @@ def get_model_config_from_spacy(model_id: str) -> ModelConfig:
     """Get the model configuration from a spaCy model.
 
     Args:
-        model_id (str):
+        model_id:
             The ID of the model.
 
     Returns:
-        ModelConfig:
-            The model configuration.
+        The model configuration.
     """
     return ModelConfig(
         model_id=model_id,

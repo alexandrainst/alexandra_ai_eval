@@ -10,25 +10,16 @@ ______________________________________________________________________
 [![License](https://img.shields.io/github/license/alexandrainst/alexandra_ai_eval)](https://github.com/alexandrainst/alexandra_ai_eval/blob/main/LICENSE)
 [![LastCommit](https://img.shields.io/github/last-commit/alexandrainst/alexandra_ai_eval)](https://github.com/alexandrainst/alexandra_ai_eval/commits/main)
 [![Code Coverage](https://img.shields.io/badge/Coverage-75%25-yellowgreen.svg)](https://github.com/alexandrainst/alexandra_ai_eval/tree/main/tests)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg)](https://github.com/alexandrainst/alexandra_ai_eval/blob/main/CODE_OF_CONDUCT.md)
 
-## Installation
+
+## Quickstart
 
 To install the package simply write the following command in your favorite terminal:
 
 ```
 pip install alexandra-ai-eval
 ```
-
-If you're on MacOS and get an error saying something along the lines of "fatal error:
-'lzma.h' file not found" then try the following:
-
-```
-export CPPFLAGS="-I$(brew --prefix)/include"
-pip install alexandra-ai-eval
-```
-
-
-## Quickstart
 
 ### Benchmarking from the Command Line
 
@@ -100,20 +91,21 @@ The following are the core maintainers of the `alexandra_ai_eval` package:
 
 ```
 .
-├── .flake8
 ├── .github
+│   ├── ISSUE_TEMPLATE
+│   │   ├── bug_report.md
+│   │   └── feature_request.md
 │   └── workflows
 │       ├── ci.yaml
 │       └── docs.yaml
 ├── .gitignore
 ├── .pre-commit-config.yaml
+├── CHANGELOG.md
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING.md
 ├── LICENSE
 ├── README.md
-├── gfx
-│   └── alexandra-ai-eval-logo.png
 ├── makefile
-├── models
-├── notebooks
 ├── poetry.toml
 ├── pyproject.toml
 ├── src
@@ -124,19 +116,28 @@ The following are the core maintainers of the `alexandra_ai_eval` package:
 │   │   ├── co2.py
 │   │   ├── config.py
 │   │   ├── country_codes.py
+│   │   ├── enums.py
 │   │   ├── evaluator.py
 │   │   ├── exceptions.py
-│   │   ├── hf_hub.py
-│   │   ├── image_to_text.py
+│   │   ├── gui.py
+│   │   ├── hf_hub_utils.py
+│   │   ├── leaderboard_utils.py
+│   │   ├── local_hf_utils.py
+│   │   ├── local_pytorch_utils.py
+│   │   ├── metric_configs.py
+│   │   ├── model_adjustment.py
+│   │   ├── model_loading.py
 │   │   ├── named_entity_recognition.py
 │   │   ├── question_answering.py
 │   │   ├── scoring.py
+│   │   ├── sequence_classification.py
+│   │   ├── spacy_utils.py
 │   │   ├── task.py
 │   │   ├── task_configs.py
 │   │   ├── task_factory.py
-│   │   ├── text_classification.py
 │   │   └── utils.py
 │   └── scripts
+│       ├── add_models_to_leaderboard.py
 │       ├── fix_dot_env_file.py
 │       └── versioning.py
 └── tests
@@ -146,16 +147,24 @@ The following are the core maintainers of the `alexandra_ai_eval` package:
     ├── test_co2.py
     ├── test_config.py
     ├── test_country_codes.py
+    ├── test_enums.py
     ├── test_evaluator.py
     ├── test_exceptions.py
-    ├── test_hf_hub.py
-    ├── test_image_to_text.py
+    ├── test_gui.py
+    ├── test_hf_hub_utils.py
+    ├── test_leaderboard_utils.py
+    ├── test_local_hf_utils.py
+    ├── test_local_pytorch_utils.py
+    ├── test_metric_configs.py
+    ├── test_model_adjustment.py
+    ├── test_model_loading.py
     ├── test_named_entity_recognition.py
     ├── test_question_answering.py
     ├── test_scoring.py
+    ├── test_sequence_classification.py
+    ├── test_spacy_utils.py
     ├── test_task.py
     ├── test_task_configs.py
     ├── test_task_factory.py
-    ├── test_text_classification.py
     └── test_utils.py
 ```

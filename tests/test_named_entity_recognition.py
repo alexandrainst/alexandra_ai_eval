@@ -2,7 +2,6 @@
 
 from functools import partial
 
-import numpy as np
 import pytest
 from datasets.load import load_dataset
 from transformers.data.data_collator import DataCollatorForTokenClassification

@@ -1,7 +1,5 @@
 """Functions related to carbon emission measurement."""
 
-from typing import Union
-
 from codecarbon import EmissionsTracker, OfflineEmissionsTracker
 
 from .enums import CountryCode
@@ -14,25 +12,24 @@ def get_carbon_tracker(
     country_code: CountryCode,
     verbose: bool,
     prefer_offline: bool = False,
-) -> Union[EmissionsTracker, OfflineEmissionsTracker]:
+) -> EmissionsTracker | OfflineEmissionsTracker:
     """Prepares a carbon emissions tracker.
 
     Args:
-        task_name (str):
+        task_name:
             Name of the task.
-        country_code (CountryCode):
+        country_code:
             ISO code of the country. Only relevant if no internet connection is
             available. A list of all such codes are available here:
             https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
-        verbose (bool):
+        verbose:
             Whether to print verbose output.
-        prefer_offline (bool, optional):
+        prefer_offline:
             Whether to prefer offline carbon emissions tracker. Defaults to False.
 
     Returns:
-        EmissionsTracker or OfflineEmissionsTracker:
-            A carbon emissions tracker. OfflineEmissionsTracker is returned if no
-            internet connection is available.
+        A carbon emissions tracker. OfflineEmissionsTracker is returned if no internet
+        connection is available.
 
     Raises:
         MissingCountryISOCode:

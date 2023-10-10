@@ -10,31 +10,28 @@ def evaluate(model_id: str, task: str) -> str:
     """Evaluate a model.
 
     Args:
-        model_id (str):
+        model_id:
             The Hugging Face Hub model ID of the model to evaluate.
-        task (str):
+        task:
             The task to evaluate the model on.
 
     Returns:
-        str:
-            The evaluation results.
+        The evaluation results.
 
     Raises:
         gradio Error:
             If the evaluation fails.
     """
-
     # Convert task to the standard task names
     task = task.lower().replace(" ", "-")
 
-    # Create the evaluator
     evaluator = Evaluator(
         progress_bar=True,
         save_results=False,
         raise_error_on_invalid_model=True,
         track_carbon_emissions=True,
         only_return_log=True,
-        use_auth_token=True,
+        token=True,
     )
 
     # Evaluate the model on the task
@@ -48,7 +45,6 @@ def evaluate(model_id: str, task: str) -> str:
             error_desc = str(e)
         raise gr.Error(f"{type(e)}: {error_desc}")
 
-    # Return the results
     return results  # type: ignore[return-value]
 
 
@@ -63,7 +59,7 @@ def main(cache_examples: bool) -> None:
     """Set up and display the graphical user interface.
 
     Args:
-        cache_examples (bool):
+        cache_examples:
             Whether to cache examples.
     """
     demo = gr.Interface(

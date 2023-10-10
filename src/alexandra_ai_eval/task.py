@@ -5,7 +5,6 @@ import random
 import warnings
 from abc import ABC, abstractmethod
 from functools import partial
-from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import evaluate as evaluate_hf
 import numpy as np
@@ -38,7 +37,7 @@ from .model_loading import get_model_config, load_model
 from .scoring import log_scores
 from .utils import clear_memory, enforce_reproducibility
 
-# Set up a logger
+
 logger = logging.getLogger(__name__)
 
 
@@ -46,15 +45,15 @@ class Task(ABC):
     """Abstract evaluation task class.
 
     Args:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
 
     Attributes:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
     """
 
@@ -68,19 +67,18 @@ class Task(ABC):
             for metric_cfg in task_config.metrics
         }
 
-    def evaluate(self, model_id: str) -> Union[Dict[str, Dict[str, float]], str]:
+    def evaluate(self, model_id: str) -> dict[str, dict[str, float]] | str:
         """Evaluate a model.
 
         Args:
-            model_id (str):
+            model_id:
                 The full Hugging Face Hub path to the pretrained transformer model. The
                 specific model version to use can be added after the suffix '@':
                 "model_id@v1.0.0". It can be a branch name, a tag name, or a commit id.
 
         Returns:
-            dict:
-                The keys in the dict are 'raw' and 'total', with all the raw scores in
-                the first dictionary and the aggregated scores in the second.
+            The keys in the dict are 'raw' and 'total', with all the raw scores in the
+            first dictionary and the aggregated scores in the second.
 
         Raises:
             WrongFeatureColumnName:
@@ -89,7 +87,6 @@ class Task(ABC):
             InvalidEvaluation:
                 If an error occurs during evaluation.
         """
-        # Fetch the model config
         model_config = get_model_config(
             model_id=model_id,
             task_config=self.task_config,
@@ -100,14 +97,12 @@ class Task(ABC):
         # weights
         rng = enforce_reproducibility(framework=model_config.framework)
 
-        # Load the model
         model_dict = load_model(
             model_config=model_config,
             task_config=self.task_config,
             evaluation_config=self.evaluation_config,
         )
 
-        # Prepare carbon tracker
         if self.evaluation_config.track_carbon_emissions:
             self.carbon_tracker = get_carbon_tracker(
                 task_name=self.task_config.name,
@@ -115,7 +110,6 @@ class Task(ABC):
                 verbose=self.evaluation_config.verbose,
             )
 
-        # Load the dataset
         dataset = self._load_data()
 
         # Remove empty examples from the datasets
@@ -125,10 +119,8 @@ class Task(ABC):
             except KeyError:
                 raise WrongFeatureColumnName(feat_column)
 
-        # Set variable with number of iterations
         num_iter = 10 if not self.evaluation_config.testing else 2
 
-        # Extract the model and tokenizer
         model = model_dict["model"]
         tokenizer = model_dict.get("tokenizer")
         processor = model_dict.get("processor")
@@ -142,13 +134,11 @@ class Task(ABC):
         if self.evaluation_config.testing:
             dataset = dataset.select(range(4))
 
-        # Get bootstrapped datasets
         bootstrapped_datasets = [
             Dataset.from_dict(dataset[rng.integers(0, len(dataset), len(dataset))])
             for _ in range(num_iter)
         ]
 
-        # Preprocess the bootstrapped datasets
         prepared_datasets = [
             self._preprocess_data(
                 bootstrapped_dataset,
@@ -201,7 +191,6 @@ class Task(ABC):
             metric_configs.append(EMISSIONS)
             metric_configs.append(POWER)
 
-        # Log scores
         all_scores = log_scores(
             task_name=self.task_config.pretty_name,
             metric_configs=metric_configs,
@@ -215,36 +204,35 @@ class Task(ABC):
     def _evaluate_single_iteration(
         self,
         idx: int,
-        model: Union[nn.Module, Language],
+        model: nn.Module | Language,
         model_config: ModelConfig,
-        tokenizer: Optional[PreTrainedTokenizerBase],
-        processor: Optional[DataProcessor],
+        tokenizer: PreTrainedTokenizerBase | None,
+        processor: DataProcessor | None,
         dataset: Dataset,
         prepared_dataset: Dataset,
         framework: Framework,
-    ) -> Union[dict, Exception]:
+    ) -> dict | Exception:
         """Run a single iteration of a PyTorch/JAX benchmark.
 
         Args:
-            idx (int):
+            idx:
                 The index of the current iteration.
-            model (PyTorch module or spaCy Language):
+            model:
                 The model.
-            model_config (ModelConfig):
+            model_config:
                 The model configuration.
-            tokenizer (Hugging Face tokenizer or None):
+            tokenizer:
                 The tokenizer, or None if the model does not require a tokenizer.
-            dataset (Dataset):
+            dataset:
                 The raw test dataset.
-            prepared_dataset (Dataset):
+            prepared_dataset:
                 The preprocessed test dataset.
-            framework (Framework):
+            framework:
                 The model framework.
 
         Returns:
-            dict or Exception:
-                The keys in the dict correspond to the metrics and values
-                the corresponding values.
+            The keys in the dict correspond to the metrics and values the corresponding
+            values.
 
         Raises:
             ModelNotTrainedForTask:
@@ -269,11 +257,9 @@ class Task(ABC):
                 else 32
             )
 
-            # Start carbon emissions tracking
             if self.evaluation_config.track_carbon_emissions:
                 self.carbon_tracker.start()
 
-            # Get model predictions
             model_predictions = self._get_model_predictions(
                 model=model,
                 tokenizer=tokenizer,
@@ -293,7 +279,6 @@ class Task(ABC):
             except AttributeError:
                 cls_token_index = None
 
-            # Perform post-processing of predictions
             prepared_predictions_and_labels = self._prepare_predictions_and_labels(
                 predictions=model_predictions,
                 dataset=dataset,
@@ -320,7 +305,6 @@ class Task(ABC):
                 ):
                     raise ModelNotTrainedForTask(task=self.task_config.name)
 
-            # Compute the metrics for each prediction batch
             scores = self._compute_metrics(
                 predictions_and_labels=prepared_predictions_and_labels,
             )
@@ -351,25 +335,23 @@ class Task(ABC):
 
     def _compute_metrics(
         self,
-        predictions_and_labels: List[Tuple[list, list]],
-    ) -> Dict[str, float]:
+        predictions_and_labels: list[tuple[list, list]],
+    ) -> dict[str, float]:
         """Compute the metrics needed for evaluation.
 
         Args:
-            predictions_and_labels (list of pairs of lists):
+            predictions_and_labels:
                 The predictions and labels for each metric.
 
         Returns:
-            dict:
-                A dictionary with the names of the metrics as keys and the metric
-                values as values.
+            A dictionary with the names of the metrics as keys and the metric values as
+            values.
         """
         # Iterate over the predictions, labels and associated metrics
         results = dict()
         for metric_cfg, (predictions, labels) in zip(
             self.task_config.metrics, predictions_and_labels
         ):
-            # Load the metric
             metric = self._metrics[metric_cfg.name]
 
             # Compute the metrics. Sometimes a `RuntimeWarning` is displayed, e.g.,
@@ -386,19 +368,16 @@ class Task(ABC):
                 if isinstance(score_dict, float):
                     score_dict = {metric_cfg.huggingface_id: score_dict}
 
-            # Add scores to the `results` dictionary
             if score_dict is not None:
                 results[metric_cfg.name] = score_dict[metric_cfg.results_key]
 
-        # Return the results
         return results
 
     def _load_data(self) -> Dataset:
         """Load the dataset.
 
         Returns:
-            Dataset:
-                The dataset.
+            The dataset.
 
         Raises:
             InvalidEvaluation:
@@ -407,7 +386,7 @@ class Task(ABC):
         return load_dataset(
             path=self.task_config.huggingface_id,
             name=self.task_config.huggingface_subset,
-            token=self.evaluation_config.use_auth_token,
+            token=self.evaluation_config.token,
             cache_dir=self.evaluation_config.cache_dir,
             split=self.task_config.test_name,
         )
@@ -416,14 +395,13 @@ class Task(ABC):
         """Prepare a batch for the PyTorch model.
 
         Args:
-            batch (dict):
+            batch:
                 The batch.
-            input_modality (Framework):
+            input_modality:
                 The input modality, can be 'audio' or 'text'.
 
         Returns:
-            dict:
-                The prepared batch.
+            The prepared batch.
         """
         # Move the tensors to the correct device
         batch = {
@@ -447,14 +425,13 @@ class Task(ABC):
             if key in accepted_transformer_features
         }
 
-        # Return the prepared batch
         return batch
 
     def _get_model_predictions(
         self,
-        model: Union[nn.Module, Language],
-        tokenizer: Optional[PreTrainedTokenizerBase],
-        processor: Optional[DataProcessor],
+        model: nn.Module | Language,
+        tokenizer: PreTrainedTokenizerBase | None,
+        processor: DataProcessor | None,
         prepared_dataset: Dataset,
         batch_size: int,
         framework: Framework,
@@ -462,20 +439,19 @@ class Task(ABC):
         """Get the predictions of the model.
 
         Args:
-            model (torch.nn.Module or Language):
+            model:
                 The model.
-            tokenizer (PreTrainedTokenizerBase or None):
+            tokenizer:
                 The tokenizer. Can be None if the model does not use a tokenizer.
-            prepared_dataset (Dataset):
+            prepared_dataset:
                 The prepared dataset.
-            batch_size (int):
+            batch_size:
                 The batch size.
-            framework (Framework):
+            framework:
                 The framework.
 
         Returns:
-            list:
-                The model predictions.
+            The model predictions.
 
         Raises:
             InvalidFramework:
@@ -514,7 +490,6 @@ class Task(ABC):
 
             all_predictions = list()
             for batch in itr:
-                # Prepare the batch
                 batch = self._prepare_pytorch_batch(
                     batch, input_modality=self.task_config.modality
                 )
@@ -588,10 +563,7 @@ class Task(ABC):
                     model_type = str(type(model))
                     raise UnsupportedModelType(model_type=model_type)
 
-                # Move the predictions back to the CPU and convert it to a NumPy array
                 model_predictions = model_predictions.cpu().numpy()
-
-                # Collect predictions
                 all_predictions.extend(model_predictions)
 
             return all_predictions
@@ -627,17 +599,16 @@ class Task(ABC):
         """Preprocess the data.
 
         Args:
-            dataset (Dataset):
+            dataset:
                 The dataset.
-            framework (Framework):
+            framework:
                 The framework of the model.
             kwargs:
                 Extra keyword arguments containing objects used in preprocessing the
                 dataset.
 
         Returns:
-            Hugging Face Dataset:
-                The preprocessed dataset.
+            The preprocessed dataset.
 
         Raises:
             InvalidFramework:
@@ -675,27 +646,26 @@ class Task(ABC):
     @abstractmethod
     def _prepare_predictions_and_labels(
         self,
-        predictions: Sequence,
+        predictions: list,
         dataset: Dataset,
         prepared_dataset: Dataset,
         **kwargs,
-    ) -> List[Tuple[list, list]]:
+    ) -> list[tuple[list, list]]:
         """Prepare predictions and labels for output.
 
         Args:
-            predictions (sequence of either ints or floats):
+            predictions:
                 The predictions of the model.
-            dataset (Dataset):
+            dataset:
                 The raw dataset.
-            prepared_dataset (Dataset):
+            prepared_dataset:
                 The prepared dataset.
             kwargs:
                 Extra keyword arguments containing objects used in preparing the
                 predictions and labels.
 
         Returns:
-            list of pairs of lists:
-                The prepared predictions and labels.
+            The prepared predictions and labels.
         """
         pass
 
@@ -724,18 +694,17 @@ class Task(ABC):
         """Preprocess the data for PyTorch.
 
         Args:
-            examples (BatchEncoding):
+            examples:
                 The examples to preprocess.
-            tokenizer (Hugging Face tokenizer):
+            tokenizer:
                 The tokenizer.
-            model_config (ModelConfig):
+            model_config:
                 The model configuration.
-            task_config (TaskConfig):
+            task_config:
                 The task configuration.
 
         Returns:
-            dict:
-                The preprocessed examples.
+            The preprocessed examples.
         """
         pass
 
@@ -748,30 +717,28 @@ class Task(ABC):
         text different from those.
 
         Args:
-            tokens_processed (tuple):
+            tokens_processed:
                 A pair of the labels, being a list of strings, and the SpaCy processed
                 document, being a Spacy `Doc` instance.
 
         Returns:
-            list:
-                A list of predictions for each token, of the same length as the gold
-                tokens (first entry of `tokens_processed`).
+            A list of predictions for each token, of the same length as the gold tokens
+            (first entry of `tokens_processed`).
         """
         pass
 
     @abstractmethod
     def _load_data_collator(
-        self, tokenizer_or_processor: Union[PreTrainedTokenizerBase, DataProcessor]
+        self, tokenizer_or_processor: PreTrainedTokenizerBase | DataProcessor
     ) -> DataCollator:
         """Load the data collator used to prepare samples during finetuning.
 
         Args:
-            tokenizer_or_processor (Hugging Face tokenizer or DataProcessor):
+            tokenizer_or_processor:
                 A pretrained tokenizer or processor.
 
         Returns:
-            Hugging Face DataCollator:
-                The data collator.
+            The data collator.
         """
         pass
 
@@ -780,11 +747,10 @@ class Task(ABC):
         """Check if the model is trained for the task.
 
         Args:
-            model_predictions (list):
+            model_predictions:
                 The model predictions.
 
         Returns:
-            bool:
-                Whether the model is trained for the task.
+            Whether the model is trained for the task.
         """
         pass

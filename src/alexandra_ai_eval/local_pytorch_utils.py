@@ -6,7 +6,7 @@ import logging
 import sys
 from importlib import import_module
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, Union, get_type_hints
+from typing import Any, Type, get_type_hints
 
 import torch
 import torch.nn as nn
@@ -24,20 +24,19 @@ def load_local_pytorch_model(
     model_config: ModelConfig,
     task_config: TaskConfig,
     evaluation_config: EvaluationConfig,
-) -> Dict[str, Union[nn.Module, PreTrainedTokenizerBase]]:
+) -> dict[str, nn.Module | PreTrainedTokenizerBase]:
     """Load a local PyTorch model from a path.
 
     Args:
-        model_config (ModelConfig):
+        model_config:
             The configuration of the model.
-        task_config (TaskConfig):
+        task_config:
             The task configuration.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The evaluation configuration.
 
     Returns:
-        dict:
-            A dictionary containing the model and tokenizer.
+        A dictionary containing the model and tokenizer.
 
     Raises:
         ValueError:
@@ -45,8 +44,8 @@ def load_local_pytorch_model(
             folder, or if the model architecture file does not contain a class
             subclassing `torch.nn.Module`.
     """
-    # TEMPORARY: If the model's `id2label` mapping has fewer labels than the dataset,
-    # then raise an informative error. This is a temporary fix until we have a better
+    # TEMP: If the model's `id2label` mapping has fewer labels than the dataset, then
+    # raise an informative error. This is a temporary fix until we have a better
     # solution for handling this case.
     if model_config.id2label is not None and len(model_config.id2label) < len(
         task_config.id2label
@@ -164,50 +163,42 @@ def load_local_pytorch_model(
     state_dict = torch.load(weight_path, map_location=torch.device("cpu"))
     model.load_state_dict(state_dict)
 
-    # Set the model to evaluation mode, making its predictions deterministic
     model.eval()
-
-    # Move the model to the specified device
     model.to(evaluation_config.device)
 
-    # Adjust the model to the task
     adjust_model_to_task(
         model=model,
         model_config=model_config,
         task_config=task_config,
     )
 
-    # Load the tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_config.tokenizer_id)
 
-    # Return the model with the loaded weights
     return dict(model=model, tokenizer=tokenizer, model_type="other")
 
 
 def pytorch_model_exists_locally(
-    model_id: Union[str, Path],
-    architecture_fname: Optional[Union[str, Path]] = None,
-    weight_fname: Optional[Union[str, Path]] = None,
+    model_id: str | Path,
+    architecture_fname: str | Path | None = None,
+    weight_fname: str | Path | None = None,
 ) -> bool:
     """Check if a PyTorch model exists locally.
 
     Args:
-        model_id (str or Path):
+        model_id:
             Path to the model folder.
-        architecture_fname (str or Path or None, optional):
+        architecture_fname:
             Name of the file containing the model architecture, which is located inside
             the model folder. If None then the first Python script found in the model
             folder will be used. Defaults to None.
-        weight_fname (str or Path or None, optional):
+        weight_fname:
             Name of the file containing the model weights, which is located inside
             the model folder. If None then the first file found in the model folder
             ending with ".bin" will be used. Defaults to None.
 
     Returns:
-        bool:
-            Whether the model exists locally.
+        Whether the model exists locally.
     """
-    # Ensure that the model_folder is a Path object
     model_folder = Path(model_id)
 
     # If no architecture_fname is provided, then use the first Python script found
@@ -233,20 +224,19 @@ def pytorch_model_exists_locally(
 
 
 def get_pytorch_model_config_locally(
-    model_folder: Union[str, Path],
-    dataset_id2label: List[str],
+    model_folder: str | Path,
+    dataset_id2label: list[str],
 ) -> ModelConfig:
     """Get the model configuration from a local PyTorch model.
 
     Args:
-        model_folder (str or Path):
+        model_folder:
             Path to the model folder.
-        dataset_id2label (list of str):
-            List of labels in the dataset.
+        dataset_id2label:
+            list of labels in the dataset.
 
     Returns:
-        ModelConfig:
-            The model configuration.
+        The model configuration.
     """
     return ModelConfig(
         model_id=Path(model_folder).name,
@@ -279,10 +269,10 @@ def get_pytorch_model_config_locally(
 def get_from_config(
     key: str,
     expected_type: Type,
-    model_folder: Union[str, Path],
-    default_value: Optional[Any] = None,
-    user_prompt: Optional[str] = None,
-    user_prompt_default_value: Optional[Any] = None,
+    model_folder: str | Path,
+    default_value: Any | None = None,
+    user_prompt: str | None = None,
+    user_prompt_default_value: Any | None = None,
 ) -> Any:
     """Get an attribute from the local model configuration.
 
@@ -292,28 +282,26 @@ def get_from_config(
     created named `config.json`.
 
     Args:
-        key (str):
+        key:
             The key to get from the configuration.
-        expected_type (Type):
+        expected_type:
             The expected type of the value.
-        model_folder (str or Path):
+        model_folder:
             Path to the model folder.
-        default_value (Any or None, optional):
+        default_value:
             The default value to use if the attribute is not found in the local model
             configuration. If None then the user will be prompted to enter the value.
             Defaults to None.
-        user_prompt (str or None, optional):
+        user_prompt:
             The prompt to show the user when asking for the value. If None then the
             prompt will be automatically generated. Defaults to None.
-        user_prompt_default_value (Any or None, optional):
+        user_prompt_default_value:
             The default value that a user can press Enter to use, when prompted. If
             None then the user cannot choose a default value. Defaults to None.
 
     Returns:
-        Any:
-            The value of the key, of data type `expected_type`.
+        The value of the key, of data type `expected_type`.
     """
-    # Ensure that the model_folder is a Path object
     model_folder = Path(model_folder)
 
     # Get the candidate configuration files
@@ -338,7 +326,6 @@ def get_from_config(
         # Otherwise, we prompt the user to enter the value
         else:
             if user_prompt is None:
-                # Define the base user prompt
                 base_prompt = (
                     f"The configuration did not contain the {key!r} entry. Please "
                     "specify its value"
@@ -371,32 +358,29 @@ def get_from_config(
             config_path.touch()
         config_path.write_text(json.dumps(config, indent=4))
 
-    # Return the value of the key
     return config[key]
 
 
 def get_missing_key_value_from_user(
-    user_prompt: Optional[str],
+    user_prompt: str | None,
     expected_type: type,
-    default_value: Optional[Any] = None,
+    default_value: Any | None = None,
 ):
     """Get a missing key from the user.
 
     Args:
-        user_prompt (str or None):
+        user_prompt:
             The prompt to show the user when asking for the value. If None then the
             prompt will be automatically generated.
-        expected_type (type):
+        expected_type:
             The expected type of the value.
-        default_value (Any or None, optional):
+        default_value:
             The default value that a user can press Enter to use, when prompted. If
             None then the user cannot choose a default value. Defaults to None.
 
     Returns:
-        Any:
-            The value of the key, of data type `expected_type`.
+        The value of the key, of data type `expected_type`.
     """
-    # Prompt the user to enter the value
     user_input = input(user_prompt)
 
     # If the user input is blank (i.e. they pressed Enter) and there is a default

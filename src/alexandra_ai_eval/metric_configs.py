@@ -2,6 +2,7 @@
 
 from .config import MetricConfig
 
+
 SEQEVAL_MICRO_F1 = MetricConfig(
     name="micro_f1",
     pretty_name="Micro-average F1-score",

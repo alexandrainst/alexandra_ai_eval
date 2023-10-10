@@ -48,11 +48,12 @@ coverage.xml
 *.mo
 *.pot
 
-# Django stuff:
+# Django stuff
 *.log
 
-# Sphinx documentation
+# Documentation
 docs/_build/
+docs/search.js
 
 # PyBuilder
 target/

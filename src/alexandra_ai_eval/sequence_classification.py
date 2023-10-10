@@ -1,7 +1,5 @@
 """Class for sequence classification tasks."""
 
-from typing import List, Optional, Sequence, Tuple, Union
-
 import numpy as np
 from datasets.arrow_dataset import Dataset
 from transformers.configuration_utils import PretrainedConfig
@@ -23,15 +21,15 @@ class SequenceClassification(Task):
     """Sequence classification task.
 
     Args:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
 
     Attributes:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
     """
 
@@ -52,19 +50,17 @@ class SequenceClassification(Task):
 
     def _prepare_predictions_and_labels(
         self,
-        predictions: Sequence,
+        predictions: list,
         dataset: Dataset,
         prepared_dataset: Dataset,
         **kwargs,
-    ) -> List[Tuple[list, list]]:
+    ) -> list[tuple[list, list]]:
         # Collapse the logits into single predictions for every sample
         if has_floats(predictions):
             predictions = np.argmax(predictions, axis=-1)
 
-        # Extract labels from dataset
         labels = prepared_dataset["labels"]
 
-        # Return the predictions and labels
         return [(list(predictions), list(labels))]
 
     def _load_data_collator(
@@ -91,28 +87,27 @@ class SequenceClassification(Task):
 def tokenize_and_numericalize(
     examples: BatchEncoding,
     tokenizer: PreTrainedTokenizerBase,
-    feature_column_names: List[str],
+    feature_column_names: list[str],
     label_column_name: str,
-    model_label2id: Optional[dict],
+    model_label2id: dict | None,
 ) -> BatchEncoding:
     """Tokenize and numericalize the text in the examples.
 
     Args:
-        examples (BatchEncoding):
+        examples:
             The examples to tokenize.
-        tokenizer (PreTrainedTokenizerBase):
+        tokenizer:
             The tokenizer to use.
-        feature_column_names (list of str):
+        feature_column_names:
             The names of the columns containing the features.
-        label_column_name (str):
+        label_column_name:
             The name of the column containing the labels.
-        model_label2id (dict or None):
+        model_label2id:
             The mapping from model labels to ids. If None, the mapping is not set and
             an error will be raised.
 
     Returns:
-        BatchEncoding:
-            The tokenized and numericalized examples.
+        The tokenized and numericalized examples.
 
     Raises:
         InvalidEvaluation:

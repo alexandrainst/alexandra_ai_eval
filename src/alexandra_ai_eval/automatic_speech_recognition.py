@@ -1,14 +1,10 @@
 """Class for automatic speech recognition tasks."""
 
-import re
 from dataclasses import dataclass
-from typing import Dict, List, Sequence, Tuple, Union
-from unicodedata import normalize
 
 import numpy as np
 import torch
 from datasets.arrow_dataset import Dataset
-from numpy.typing import NDArray
 from transformers import Wav2Vec2Processor, Wav2Vec2ProcessorWithLM, WhisperProcessor
 from transformers.configuration_utils import PretrainedConfig
 from transformers.models.auto.processing_auto import AutoProcessor
@@ -24,9 +20,9 @@ class DataCollatorCTCWithPadding:
     """Data collator that will dynamically pad the inputs received.
 
     Args:
-        processor (Wav2Vec2Processor)
+        processor:
             The processor used for proccessing the data.
-        padding (bool, str or PaddingStrategy, optional):
+        padding:
             Select a strategy to pad the returned sequences (according to the
             model's padding side and padding index) among:
             * True or 'longest':
@@ -43,23 +39,22 @@ class DataCollatorCTCWithPadding:
     """
 
     processor: Wav2Vec2Processor
-    padding: Union[bool, str] = True
+    padding: bool | str = True
 
-    def __call__(self, features: List[dict]) -> Dict[str, torch.Tensor]:
+    def __call__(self, features: list[dict]) -> dict[str, torch.Tensor]:
         """Collate the features.
 
         Args:
-            features (list of dict):
+            features:
                 A list of feature dicts.
 
         Returns:
-            dict:
-                A dictionary of the collated features.
+            A dictionary of the collated features.
         """
-        # Get sampling rate
         sampling_rate = self.processor.feature_extractor.sampling_rate
 
-        # Whisper and Wav2Vec2 have different input APIs which we need to take into account
+        # Whisper and Wav2Vec2 have different input APIs which we need to take into
+        # account
         if isinstance(self.processor, WhisperProcessor):
             input_features = [
                 {
@@ -83,14 +78,12 @@ class DataCollatorCTCWithPadding:
                 for feature in features
             ]
 
-        # Create batch from input_features, and pad while doing so
         batch = self.processor.feature_extractor.pad(
             input_features,
             padding=self.padding,
             return_tensors="pt",
         )
 
-        # Return the updated batch
         return batch
 
 
@@ -98,15 +91,15 @@ class AutomaticSpeechRecognition(Task):
     """Automatic Speech Recognition task.
 
     Args:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
 
     Attributes:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
     """
 
@@ -117,13 +110,13 @@ class AutomaticSpeechRecognition(Task):
         model_config: PretrainedConfig,
         task_config: TaskConfig,
     ) -> BatchEncoding:
-        # Create labels column
         examples["labels"] = examples[task_config.label_column_name]
 
         # If there is more than on feature column list raise an exception
         if len(task_config.feature_column_names) != 1:
             raise ValueError(
-                "Only one feature column is supported, for the Automatic Speech Recognition task."
+                "Only one feature column is supported, for the Automatic Speech "
+                "Recognition task."
             )
 
         # Rename the feature column to input_values
@@ -141,18 +134,17 @@ class AutomaticSpeechRecognition(Task):
         )
 
     def _load_data_collator(
-        self, tokenizer_or_processor: Union[PreTrainedTokenizerBase, AutoProcessor]
+        self, tokenizer_or_processor: PreTrainedTokenizerBase | AutoProcessor
     ) -> DataCollatorCTCWithPadding:
         return DataCollatorCTCWithPadding(processor=tokenizer_or_processor)
 
     def _prepare_predictions_and_labels(
         self,
-        predictions: Sequence,
+        predictions: list,
         dataset: Dataset,
         prepared_dataset: Dataset,
         **kwargs,
-    ) -> List[Tuple[list, list]]:
-        # Get processor
+    ) -> list[tuple[list, list]]:
         processor = kwargs["processor"]
 
         # Decode the predictions, Whisper has a different API
@@ -168,7 +160,6 @@ class AutomaticSpeechRecognition(Task):
                 predictions, skip_special_tokens=True
             )
 
-        # Get the labels
         label_str = prepared_dataset["labels"]
 
         return list(zip([predictions_str], [label_str]))

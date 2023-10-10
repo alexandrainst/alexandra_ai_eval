@@ -1,7 +1,5 @@
 """Custom exceptions used in the project."""
 
-from typing import Dict, Sequence, Union
-
 from .enums import Framework
 
 
@@ -40,7 +38,7 @@ class ModelIsPrivate(Exception):
                 f"The model ID '{model_id}' is a private model on the Hugging Face "
                 "Hub. Please make sure that you have the correct credentials, are "
                 "logged in to the Hugging Face Hub via `huggingface-cli login`, and "
-                "ensure that `use_auth_token` is set (`--use-auth-token` in the CLI)."
+                "ensure that `token` is set (`--token` in the CLI)."
             )
         )
         super().__init__(self.message)
@@ -61,7 +59,7 @@ class ModelFetchFailed(Exception):
 
 
 class InvalidFramework(Exception):
-    def __init__(self, framework: Union[Framework, str]):
+    def __init__(self, framework: Framework | str):
         self.framework = framework
         self.message = f"The framework {str(framework)} is not supported."
         super().__init__(self.message)
@@ -76,7 +74,7 @@ class PreprocessingFailed(Exception):
 
 
 class MissingLabel(Exception):
-    def __init__(self, label: str, label2id: Dict[str, int]):
+    def __init__(self, label: str, label2id: dict[str, int]):
         self.label = label
         self.label2id = label2id
         self.message = (
@@ -129,7 +127,7 @@ class MissingCountryISOCode(Exception):
 
 
 class InvalidArchitectureForTask(Exception):
-    def __init__(self, architectures: Sequence[str], supertask: str):
+    def __init__(self, architectures: list[str], supertask: str):
         self.architectures = architectures
         self.supertask = supertask
         self.message = (
@@ -143,8 +141,7 @@ class InvalidArchitectureForTask(Exception):
 
 
 class WrongFeatureColumnName(Exception):
-    def __init__(self, feature_column_names: Union[str, Sequence[str]]):
-        # Ensure that feature_column_names is a sequence
+    def __init__(self, feature_column_names: str | list[str]):
         if isinstance(feature_column_names, str):
             feature_column_names = [feature_column_names]
 
@@ -196,7 +193,7 @@ class ModelNotTrainedForTask(Exception):
 
 
 class FrameworkCannotHandleTask(Exception):
-    def __init__(self, framework: Union[Framework, str], task: str):
+    def __init__(self, framework: Framework | str, task: str):
         self.task = task
         self.framework = framework
         self.message = (

@@ -1,7 +1,5 @@
 """Utility functions related to the Hugging Face Hub."""
 
-from typing import Dict, List, Optional, Tuple, Union
-
 from huggingface_hub import HfApi, ModelFilter
 from huggingface_hub.hf_api import ModelInfo
 from huggingface_hub.utils import RepositoryNotFoundError
@@ -29,39 +27,37 @@ def load_model_from_hf_hub(
     from_flax: bool,
     task_config: TaskConfig,
     evaluation_config: EvaluationConfig,
-) -> Dict[str, PreTrainedModel]:
+) -> dict[str, PreTrainedModel]:
     """Load a PyTorch model.
 
     Args:
-        model_config (ModelConfig):
+        model_config:
             The configuration of the model.
-        from_flax (bool):
+        from_flax:
             Whether the model is a Flax model.
-        task_config (TaskConfig):
+        task_config:
             The task configuration.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The evaluation configuration.
 
     Returns:
-        dict:
-            A dictionary containing at least the key 'model', with the value being the
-            model. Can contain other objects related to the model, such as its
-            tokenizer or processor.
+        A dictionary containing at least the key 'model', with the value being the
+        model. Can contain other objects related to the model, such as its tokenizer or
+        processor.
 
     Raises:
         InvalidEvaluation:
             If the model either does not have any registered frameworks, or if the
             supertask does not correspond to a Hugging Face AutoModel class.
         ModelIsPrivate:
-            If the model is private on the Hugging Face Hub, and `use_auth_token` is
+            If the model is private on the Hugging Face Hub, and `token` is
             not set.
     """
     try:
-        # Load the configuration of the pretrained model
         config = AutoConfig.from_pretrained(
             model_config.model_id,
             revision=model_config.revision,
-            use_auth_token=evaluation_config.use_auth_token,
+            token=evaluation_config.token,
         )
 
         # Check whether the supertask is a valid one
@@ -84,6 +80,7 @@ def load_model_from_hf_hub(
                 class_name=f"auto-model-for-{supertask}",
                 module_name="transformers",
             )
+
         # If the class name is not of the form "auto-model-for-<supertask>" then
         # use fallback "architectures" from config to get the model class
         elif allowed_and_checked_architectures:
@@ -93,7 +90,8 @@ def load_model_from_hf_hub(
             )
         else:
             raise InvalidEvaluation(
-                f"Could not find a valid architecture for the model {model_config.model_id}."
+                f"Could not find a valid architecture for the model "
+                f"{model_config.model_id}."
             )
 
         # If the model class could not be found then raise an error
@@ -107,7 +105,7 @@ def load_model_from_hf_hub(
         model = model_cls.from_pretrained(  # type: ignore[attr-defined]
             model_config.model_id,
             revision=model_config.revision,
-            use_auth_token=evaluation_config.use_auth_token,
+            token=evaluation_config.token,
             config=config,
             cache_dir=evaluation_config.cache_dir,
             from_flax=from_flax,
@@ -115,16 +113,12 @@ def load_model_from_hf_hub(
 
     # If an error occured then throw an informative exception
     except (OSError, ValueError):
-        # If the model is private then raise an informative error
         private_model = model_is_private_on_hf_hub(
             model_id=model_config.model_id,
-            use_auth_token=evaluation_config.use_auth_token,
+            token=evaluation_config.token,
         )
         if private_model:
             raise ModelIsPrivate(model_id=model_config.model_id)
-
-        # Otherwise, the model does not have any frameworks registered, so raise an
-        # error
         else:
             raise InvalidEvaluation(
                 f"The model {model_config.model_id} does not have any frameworks "
@@ -146,7 +140,7 @@ def load_model_from_hf_hub(
     tokenizer = AutoTokenizer.from_pretrained(
         tokenizer_id,
         revision=model_config.revision,
-        use_auth_token=evaluation_config.use_auth_token,
+        token=evaluation_config.token,
         **params,
     )
 
@@ -157,7 +151,7 @@ def load_model_from_hf_hub(
         processor = AutoProcessor.from_pretrained(
             processor_id,
             revision=model_config.revision,
-            use_auth_token=evaluation_config.use_auth_token,
+            token=evaluation_config.token,
         )
     except OSError:
         processor = None
@@ -175,10 +169,7 @@ def load_model_from_hf_hub(
         else:
             tokenizer.model_max_length = 512
 
-    # Set the model to evaluation mode, making its predictions deterministic
     model.eval()
-
-    # Move the model to the specified device
     model.to(evaluation_config.device)
 
     return dict(
@@ -188,22 +179,21 @@ def load_model_from_hf_hub(
 
 def get_hf_hub_model_info(
     model_id: str,
-    use_auth_token: Union[bool, str],
+    token: bool | str,
 ) -> ModelInfo:
     """Fetches information about a model on the Hugging Face Hub.
 
     Args:
-        model_id (str):
+        model_id:
             The model ID to check.
-        use_auth_token (bool or str):
+        token:
             The authentication token for the Hugging Face Hub. If a boolean value is
             specified then the token will be fetched from the Hugging Face CLI, where
             the user has logged in through `huggingface-cli login`. If a string is
             specified then it will be used as the token.
 
     Returns:
-        ModelInfo:
-            The model information.
+        The model information.
 
     Raises:
         RepositoryNotFoundError:
@@ -222,11 +212,11 @@ def get_hf_hub_model_info(
 
     # Get the model info, and return it
     try:
-        token = None if isinstance(use_auth_token, bool) else use_auth_token
+        token_or_none = None if isinstance(token, bool) else token
         return hf_api.model_info(
             repo_id=model_id,
             revision=revision,
-            token=token,
+            token=token_or_none,
         )
 
     # If the repository was not found on Hugging Face Hub then raise that error
@@ -244,28 +234,25 @@ def get_hf_hub_model_info(
 
 def model_is_private_on_hf_hub(
     model_id: str,
-    use_auth_token: Union[bool, str],
-) -> Union[bool, None]:
+    token: bool | str,
+) -> bool | None:
     """Checkes whether a model is private on the Hugging Face Hub.
 
     Args:
-        model_id (str):
+        model_id:
             The model ID to check.
-        use_auth_token (bool or str):
+        token:
             The authentication token for the Hugging Face Hub. If a boolean value is
             specified then the token will be fetched from the Hugging Face CLI, where
             the user has logged in through `huggingface-cli login`. If a string is
             specified then it will be used as the token.
 
     Returns:
-        bool or None:
-            If model is private on the Hugging Face Hub or not. If model does not exist
-            on the Hub at all then it returns None.
+        If model is private on the Hugging Face Hub or not. If model does not exist on
+        the Hub at all then it returns None.
     """
     try:
-        model_info = get_hf_hub_model_info(
-            model_id=model_id, use_auth_token=use_auth_token
-        )
+        model_info = get_hf_hub_model_info(model_id=model_id, token=token)
         return model_info.private
     except RepositoryNotFoundError:
         return None
@@ -273,25 +260,24 @@ def model_is_private_on_hf_hub(
 
 def model_exists_on_hf_hub(
     model_id: str,
-    use_auth_token: Union[bool, str],
-) -> Union[bool, None]:
+    token: bool | str,
+) -> bool | None:
     """Checks whether a model exists on the Hugging Face Hub.
 
     Args:
-        model_id (str):
+        model_id:
             The model ID to check.
-        use_auth_token (bool or str):
+        token:
             The authentication token for the Hugging Face Hub. If a boolean value is
             specified then the token will be fetched from the Hugging Face CLI, where
             the user has logged in through `huggingface-cli login`. If a string is
             specified then it will be used as the token.
 
     Returns:
-        bool:
-            If model exists on the Hugging Face Hub or not.
+        If model exists on the Hugging Face Hub or not.
     """
     try:
-        get_hf_hub_model_info(model_id=model_id, use_auth_token=use_auth_token)
+        get_hf_hub_model_info(model_id=model_id, token=token)
         return True
     except RepositoryNotFoundError:
         return False
@@ -304,14 +290,13 @@ def get_model_config_from_hf_hub(
     """Function to get the model configuration from the Hugging Face Hub.
 
     Args:
-        model_id (str):
+        model_id:
             The Hugging Face ID of the model.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The evaluation configuration.
 
     Returns:
-        ModelConfig:
-            The model configuration.
+        The model configuration.
 
     Raises:
         HuggingFaceHubDown:
@@ -330,21 +315,20 @@ def get_model_config_from_hf_hub(
         revision = "main"
 
     # Extract the author and model name from the model ID
-    author: Optional[str]
+    author: str | None
     if "/" in model_id_without_revision:
         author, model_name = model_id_without_revision.split("/")
     else:
         author = None
         model_name = model_id_without_revision
 
-    # Define the Hugging Face Hub API object
     api = HfApi()
 
     # Fetch the model metadata from the Hugging Face Hub
     try:
         models = api.list_models(
             filter=ModelFilter(author=author, model_name=model_name),
-            use_auth_token=evaluation_config.use_auth_token,
+            token=evaluation_config.token,
         )
 
     # If fetching from the Hugging Face Hub failed then throw a reasonable exception
@@ -357,7 +341,6 @@ def get_model_config_from_hf_hub(
     # Filter the models to only keep the one with the specified model ID
     models = [model for model in models if model.modelId == model_id_without_revision]
 
-    # Fetch the model tags
     tags = models[0].tags
 
     # Extract the framework, which defaults to PyTorch
@@ -371,17 +354,15 @@ def get_model_config_from_hf_hub(
     elif "tf" in tags or "tensorflow" in tags or "keras" in tags:
         raise InvalidFramework("tensorflow")
 
-    # Extract the model ID
     model_id = models[0].modelId
 
     # Get the label conversions
     id2label, label2id = get_label_conversions(
         model_id=model_id,
         revision=revision,
-        use_auth_token=evaluation_config.use_auth_token,
+        token=evaluation_config.token,
     )
 
-    # Construct and return the model config
     return ModelConfig(
         model_id=model_id,
         tokenizer_id=model_id,
@@ -396,22 +377,21 @@ def get_model_config_from_hf_hub(
 def get_label_conversions(
     model_id: str,
     revision: str,
-    use_auth_token: Union[bool, str],
-) -> Tuple[Union[List[str], None], Union[Dict[str, int], None]]:
+    token: bool | str,
+) -> tuple[list[str] | None, dict[str, int] | None]:
     """Function to get the label conversions from the Hugging Face Hub.
 
     Args:
-        model_id (str):
+        model_id:
             The Hugging Face ID of the model.
-        revision (str):
+        revision:
             The revision of the model.
-        use_auth_token (bool or str):
+        token:
             Whether to use the authentication token or not, or the token itself.
 
     Returns:
-        pair of list and dict:
-            The `id2label` mapping and the `label2id` mapping. Either of them can be
-            None, if the model does not have a label mapping.
+        The `id2label` mapping and the `label2id` mapping. Either of them can be None,
+        if the model does not have a label mapping.
     """
     # Attempt to fetch the model config from the Hugging Face Hub, if it exists
     try:
@@ -419,7 +399,7 @@ def get_label_conversions(
         config = AutoConfig.from_pretrained(
             model_id,
             revision=revision,
-            use_auth_token=use_auth_token,
+            token=token,
         )
 
         # Extract the `id2label` conversion from the model config. If it doesn't exist

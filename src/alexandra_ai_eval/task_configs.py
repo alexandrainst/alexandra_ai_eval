@@ -1,7 +1,5 @@
 """All task configurations used in the project."""
 
-from typing import Dict
-
 from .config import LabelConfig, TaskConfig
 from .enums import Modality
 from .metric_configs import (
@@ -15,12 +13,11 @@ from .metric_configs import (
 )
 
 
-def get_all_task_configs() -> Dict[str, TaskConfig]:
+def get_all_task_configs() -> dict[str, TaskConfig]:
     """Get a list of all the dataset tasks.
 
     Returns:
-        dict:
-            A mapping between names of dataset tasks and their configurations.
+        A mapping between names of dataset tasks and their configurations.
     """
     return {cfg.name: cfg for cfg in globals().values() if isinstance(cfg, TaskConfig)}
 

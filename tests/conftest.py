@@ -15,7 +15,7 @@ def evaluation_config():
     yield EvaluationConfig(
         raise_error_on_invalid_model=True,
         cache_dir=".alexandra_ai_cache",
-        use_auth_token=os.environ.get("HUGGINGFACE_HUB_TOKEN", True),
+        token=os.environ.get("HUGGINGFACE_HUB_TOKEN", True),
         progress_bar=False,
         save_results=False,
         verbose=True,

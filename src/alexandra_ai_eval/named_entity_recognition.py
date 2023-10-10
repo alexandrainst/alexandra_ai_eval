@@ -2,7 +2,6 @@
 
 from copy import deepcopy
 from functools import partial
-from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
@@ -21,15 +20,15 @@ class NamedEntityRecognition(Task):
     """Named entity recognition task.
 
     Args:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
 
     Attributes:
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
     """
 
@@ -71,7 +70,6 @@ class NamedEntityRecognition(Task):
         )
         spacy_tags = list(map(get_ent_fn, processed))
 
-        # Get the aligned labels
         aligned_spacy_predictions = [spacy_tags[i] for i in aligned_spacy_tokens]
 
         return aligned_spacy_predictions
@@ -85,12 +83,11 @@ class NamedEntityRecognition(Task):
 
     def _prepare_predictions_and_labels(
         self,
-        predictions: Sequence,
+        predictions: list,
         dataset: Dataset,
         prepared_dataset: Dataset,
         **kwargs,
-    ) -> List[Tuple[list, list]]:
-        # Extract the labels from the dataset
+    ) -> list[tuple[list, list]]:
         labels = prepared_dataset["labels"]
 
         # Collapse the logits into single predictions for every sample
@@ -115,7 +112,6 @@ class NamedEntityRecognition(Task):
         predictions_no_misc = remove_misc_tags(list_of_tag_lists=predictions)
         labels_no_misc = remove_misc_tags(list_of_tag_lists=labels)
 
-        # Return the predictions and labels, both with and without MISC tags
         return [(predictions, labels), (predictions_no_misc, labels_no_misc)]
 
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
@@ -132,28 +128,27 @@ class NamedEntityRecognition(Task):
 def tokenize_and_align_labels(
     examples: BatchEncoding,
     tokenizer: PreTrainedTokenizerBase,
-    model_label2id: Optional[dict],
+    model_label2id: dict | None,
     dataset_id2label: list,
     label_column_name: str,
 ) -> BatchEncoding:
     """Tokenize all texts and align the labels with them.
 
     Args:
-        examples (BatchEncoding):
+        examples:
             The examples to be tokenized.
-        tokenizer (Hugging Face tokenizer):
+        tokenizer:
             A pretrained tokenizer.
-        model_label2id (dict or None):
+        model_label2id:
             A dictionary that converts NER tags to IDs. If None then no label
             conversion has been set up for the model and an error is raised.
-        dataset_id2label (list):
+        dataset_id2label:
             A list that maps IDs to NER tags.
-        label_column_name (str):
+        label_column_name:
             The name of the label column.
 
     Returns:
-        BatchEncoding:
-            The tokenized data as well as labels.
+        The tokenized data as well as labels.
 
     Raises:
         InvalidEvaluation:
@@ -175,7 +170,7 @@ def tokenize_and_align_labels(
         truncation=True,
         padding=True,
     )
-    all_labels: List[List[int]] = []
+    all_labels: list[list[int]] = []
     for i, ner_tags in enumerate(examples[label_column_name]):
         labels = [dataset_id2label[ner_tag] for ner_tag in ner_tags]
         try:
@@ -246,7 +241,7 @@ def tokenize_and_align_labels(
                     word_ids.append(word_idx)
 
         previous_word_idx = None
-        label_ids: List[int] = list()
+        label_ids: list[int] = list()
         for word_idx in word_ids:
             # Special tokens have a word id that is None. We set the label to -100 so
             # they are automatically ignored in the loss function
@@ -277,16 +272,15 @@ def get_ent(token: Token, dataset_id2label: list, dataset_label2id: dict) -> str
     """Extracts the entity from a SpaCy token.
 
     Args:
-        token (spaCy Token):
+        token:
             The inputted token from spaCy.
-        dataset_id2label (list):
+        dataset_id2label:
             A list that maps IDs to NER tags.
-        dataset_label2id (dict):
+        dataset_label2id:
             A dictionary that converts NER tags (and their synonyms) to IDs.
 
     Returns:
-        str:
-            The entity of the token.
+        The entity of the token.
     """
 
     # Deal with the O tag separately, as it is the only tag not of the form B-tag or
@@ -309,27 +303,26 @@ def get_ent(token: Token, dataset_id2label: list, dataset_label2id: dict) -> str
 
 
 def remove_ignored_index_from_predictions_and_labels(
-    predictions: List[list],
-    labels: List[list],
-    model_id2label: Optional[List[str]],
+    predictions: list[list],
+    labels: list[list],
+    model_id2label: list[str] | None,
     index_to_ignore: int = -100,
-) -> Tuple[List[List[str]], List[List[str]]]:
+) -> tuple[list[list[str]], list[list[str]]]:
     """Removes the ignored index from the predictions and labels.
 
     Args:
-        predictions (list of lists):
+        predictions:
             The predicted labels.
-        labels (list of lists):
+        labels:
             The true labels.
-        model_id2label (list of str, or None):
+        model_id2label:
             A list that maps IDs to NER tags. If None then the predictions and labels
             will not be modified.
-        index_to_ignore (int, optional):
+        index_to_ignore:
             The index to ignore. Defaults to -100.
 
     Returns:
-        tuple of list of list of str:
-            The predictions and labels with the ignored index removed.
+        The predictions and labels with the ignored index removed.
     """
     # If `model_id2label` is None then we simply return the predictions and labels
     if model_id2label is None:
@@ -352,14 +345,13 @@ def remove_ignored_index_from_predictions_and_labels(
         for label in labels
     ]
 
-    # Finally, we return the predictions and labels
     return predictions, labels
 
 
 def replace_unknown_tags_with_misc_tags(
-    list_of_tag_lists: List[List[str]],
-    dataset_id2label: List[str],
-) -> List[List[str]]:
+    list_of_tag_lists: list[list[str]],
+    dataset_id2label: list[str],
+) -> list[list[str]]:
     """Replaces unknown tags with MISC tags.
 
     This replaces the predicted tags with either MISC or O tags if they are not part of
@@ -368,15 +360,13 @@ def replace_unknown_tags_with_misc_tags(
     the *dataset labels* with either MISC or O tags.
 
     Args:
-        list_of_tag_lists (list of list of str):
+        list_of_tag_lists:
             A list of lists containing NER tags.
-        dataset_id2label (list of str):
+        dataset_id2label:
             The mapping from label IDs to labels.
 
     Returns:
-        list of list of str:
-            The list of lists containing NER tags with unknown tags replaced with MISC
-            tags.
+        The list of lists containing NER tags with unknown tags replaced with MISC tags.
     """
     # Use the `id2label` mapping to get a list of all the non-MISC NER tags present in
     # the dataset
@@ -394,21 +384,18 @@ def replace_unknown_tags_with_misc_tags(
                 else:
                     list_of_tag_lists[i][j] = "O"
 
-    # Return the list of lists containing NER tags with unknown tags replaced with MISC
-    # tags
     return list_of_tag_lists
 
 
-def remove_misc_tags(list_of_tag_lists: List[List[str]]) -> List[List[str]]:
+def remove_misc_tags(list_of_tag_lists: list[list[str]]) -> list[list[str]]:
     """Removes MISC tags from a list of lists of tags.
 
     Args:
-        list_of_tag_lists (list of list of str):
+        list_of_tag_lists:
             A list of lists containing NER tags.
 
     Returns:
-        list of list of str:
-            The list of lists containing NER tags with MISC tags removed.
+        The list of lists containing NER tags with MISC tags removed.
     """
     # Make a copy of the list, to ensure that we don't get any side effects
     list_of_tag_lists = deepcopy(list_of_tag_lists)
@@ -419,14 +406,13 @@ def remove_misc_tags(list_of_tag_lists: List[List[str]]) -> List[List[str]]:
             if ner_tag == "B-MISC" or ner_tag == "I-MISC":
                 list_of_tag_lists[i][j] = "O"
 
-    # Return the list of lists containing NER tags with MISC tags removed
     return list_of_tag_lists
 
 
 def align_spacy_tokens_with_gold_tokens(
-    spacy_tokens: List[Token],
-    gold_tokens: List[str],
-) -> List[int]:
+    spacy_tokens: list[Token],
+    gold_tokens: list[str],
+) -> list[int]:
     """Aligns spaCy tokens with gold tokens.
 
     This is necessary because spaCy's tokenizer is different to the tokenizer used by
@@ -434,14 +420,13 @@ def align_spacy_tokens_with_gold_tokens(
     necessary.
 
     Args:
-        spacy_tokens (list of Token):
+        spacy_tokens:
             A list of spaCy tokens.
-        gold_tokens (list of str):
+        gold_tokens:
             A list of gold tokens.
 
     Returns:
-        list of int:
-            A list of indices of `spacy_tokens` that correspond to the gold tokens.
+        A list of indices of `spacy_tokens` that correspond to the gold tokens.
     """
     # Get the alignment between the SpaCy model's tokens and the gold tokens
     gold_token_idxs = [
@@ -453,7 +438,7 @@ def align_spacy_tokens_with_gold_tokens(
     alignment = list(zip(gold_token_idxs, spacy_token_idxs))
 
     # Get the aligned predictions
-    predictions: List[int] = list()
+    predictions: list[int] = list()
     for idx, _ in enumerate(gold_tokens):
         aligned_pred_token = [
             spacy_token_idx
@@ -462,5 +447,4 @@ def align_spacy_tokens_with_gold_tokens(
         ][0]
         predictions.append(aligned_pred_token)
 
-    # Return the aligned predictions
     return predictions

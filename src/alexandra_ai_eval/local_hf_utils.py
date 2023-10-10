@@ -1,7 +1,6 @@
 """Utility functions related to loading local Hugging Face models."""
 
 from pathlib import Path
-from typing import Dict, Union
 
 import transformers
 from transformers.modeling_utils import PreTrainedModel
@@ -19,20 +18,19 @@ def load_local_hf_model(
     model_config: ModelConfig,
     task_config: TaskConfig,
     evaluation_config: EvaluationConfig,
-) -> Dict[str, Union[PreTrainedModel, PreTrainedTokenizerBase]]:
+) -> dict[str, PreTrainedModel | PreTrainedTokenizerBase]:
     """Load a local Hugging Face model from a path.
 
     Args:
-        model_config (ModelConfig):
+        model_config:
             The configuration of the model.
-        task_config (TaskConfig):
+        task_config:
             The configuration of the task.
-        evaluation_config (EvaluationConfig):
+        evaluation_config:
             The configuration of the evaluation.
 
     Returns:
-        dict:
-            A dictionary containing the model and tokenizer.
+        A dictionary containing the model and tokenizer.
     """
     # Get the config, which is used to get the name of the model class to use
     config = AutoConfig.from_pretrained(model_config.model_id)
@@ -50,7 +48,7 @@ def load_local_hf_model(
     tokenizer = AutoTokenizer.from_pretrained(
         tokenizer_id,
         revision=model_config.revision,
-        use_auth_token=evaluation_config.use_auth_token,
+        token=evaluation_config.token,
         **params,
     )
 
@@ -67,38 +65,30 @@ def load_local_hf_model(
         else:
             tokenizer.model_max_length = 512
 
-    # Set the model to evaluation mode, making its predictions deterministic
     model.eval()
-
-    # Move the model to the specified device
     model.to(evaluation_config.device)
 
-    # Adjust the model to the task
     adjust_model_to_task(
         model=model,
         model_config=model_config,
         task_config=task_config,
     )
 
-    # Return the model and tokenizer as a dict
     return dict(model=model, tokenizer=tokenizer, model_type="other")
 
 
-def hf_model_exists_locally(model_id: Union[str, Path]) -> bool:
+def hf_model_exists_locally(model_id: str | Path) -> bool:
     """Check if a Hugging Face model exists locally.
 
     Args:
-        model_id (str or Path):
+        model_id:
             Path to the model folder.
 
     Returns:
-        bool:
-            Whether the model exists locally.
+        Whether the model exists locally.
     """
-    # Ensure that `model_id` is a Path object
     model_id = Path(model_id)
 
-    # Return False if the model folder does not exist
     if not model_id.exists():
         return False
 
@@ -120,16 +110,15 @@ def hf_model_exists_locally(model_id: Union[str, Path]) -> bool:
     return True
 
 
-def get_hf_model_config_locally(model_folder: Union[str, Path]) -> ModelConfig:
+def get_hf_model_config_locally(model_folder: str | Path) -> ModelConfig:
     """Get the model configuration from a local Hugging Face model.
 
     Args:
-        model_folder (str or Path):
+        model_folder:
             Path to the model folder.
 
     Returns:
-        ModelConfig:
-            The model configuration.
+        The model configuration.
 
     Raises:
         InvalidFramework:
@@ -137,7 +126,6 @@ def get_hf_model_config_locally(model_folder: Union[str, Path]) -> ModelConfig:
         ModelDoesNotExist:
             If there is no model in the model folder.
     """
-    # Ensure that the model folder is a Path object
     model_folder = Path(model_folder)
 
     # Get the Hugging Face model config, from which we can get the model's label

@@ -1,9 +1,9 @@
-"""Script which searches the Hugging Face Hub for models fitting the supported tasks and add their results to the leaderboard."""
+"""Seach the Hub for models and add their results to the leaderboard."""
 
 import logging
 from csv import writer
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import pandas as pd
 from _csv import _writer
@@ -15,27 +15,32 @@ from alexandra_ai_eval.task_configs import get_all_task_configs
 logger = logging.getLogger(__name__)
 
 
-def define_searches(task_mapping: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """Define the searches to be performed on the huggingface_hub.
+def define_searches(task_mapping: dict[str, Any]) -> list[dict[str, Any]]:
+    """Define the searches to be performed on the Hugging Face Hub.
 
-    This function defines a list of 'searches' to be performed on the huggingface_hub.
+    This function defines a list of 'searches' to be performed on the Hugging Face Hub.
+
     Each search consists of three filters:
-     1. The search term, which is a string. If a model_id contains the string it will be added to the search.
-     2. The supertask, which is a string. If a model has the supertask it will be added to the search.
-     3. The language, which is a string. If a model has the language it will be added to the search.
+        1. The search term, which is a string. If a model_id contains the string it
+           will be added to the search.
+        2. The supertask, which is a string. If a model has the supertask it will be
+           added to the search.
+        3. The language, which is a string. If a model has the language it will be
+           added to the search.
+
     Any model which fulfills all three filters will be added to the search.
+
     Args:
-        task_mapping (dict):
+        task_mapping:
             A mapping between names of dataset tasks and their configurations.
 
-        Returns:
-            list of dict:
-                A list of searches to be performed on the huggingface_hub.
+    Returns:
+        A list of searches to be performed on the huggingface_hub.
     """
     searches = []
     languages = ["da", "multilingual", "no", "sv", "nn", "nb"]
     for task_name, task_config in task_mapping.items():
-        search: Dict[str, List[Dict[str, Any]]] = {task_name: []}
+        search: dict[str, list[dict[str, Any]]] = {task_name: []}
         for language in languages:
             # Get supertask, and check that it is correct.
             if task_config.supertask == "sequence-classification":
@@ -43,7 +48,8 @@ def define_searches(task_mapping: Dict[str, Any]) -> List[Dict[str, Any]]:
             else:
                 supertask = task_config.supertask
 
-            # Add search terms, some tasks have no search terms, as they are examples of general supertasks.
+            # Add search terms, some tasks have no search terms, as they are examples
+            # of general supertasks.
             if not task_config.search_terms:
                 search[task_name].append(
                     {
@@ -66,31 +72,27 @@ def define_searches(task_mapping: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 def prepare_cache_and_get_succeeded_and_failed_models(
     cache_dir_str: str, output_path_str: str
-) -> Tuple[_writer, bool, List[str], _writer]:
+) -> tuple[_writer, bool, list[str], _writer]:
     """Prepare cache and get succeeded and failed models.
 
     Args:
-        cache_dir_str (str): Path to cache directory.
-        output_path_str (str): Path to output directory.
+        cache_dir_str: Path to cache directory.
+        output_path_str: Path to output directory.
 
     Returns:
-        failed_models_csv_writer (csv.writer): Writer for failed_models.csv.
-        failed_models_csv_is_new (bool): True if failed_models.csv is new, False if it already existed.
-        models_ids_evaluated (list): List of model ids which have already been evaluated.
-        evaluated_models_csv_writer (csv.writer): Writer for evaluated_models.csv.
+        A tuple containing:
+            - Writer for failed_models.csv.
+            - True if failed_models.csv is new, False if it already existed.
+            - list of model ids which have already been evaluated.
+            - Writer for evaluated_models.csv.
     """
     output_path = Path(output_path_str)
     cache_dir = Path(cache_dir_str)
 
-    # check if output_path exists, if not, create it.
     if not output_path.exists():
         output_path.mkdir(parents=True)
-
-    # check if cache_dir exists, if not, create it.
     if not cache_dir.exists():
         cache_dir.mkdir(parents=True)
-
-    # make folder in cache_dir for evaluated models list
     if not (cache_dir / "evaluated_models").exists():
         (cache_dir / "evaluated_models").mkdir(parents=True)
 
@@ -137,15 +139,16 @@ def prepare_cache_and_get_succeeded_and_failed_models(
 
 
 def main(cache_dir: str = ".alexandra_ai_cache", output_path: str = "output"):
-    """
-    Searches the huggingface_hub for fitting models and their results to the leaderboard.
+    """Searches the Hub for fitting models and their results to the leaderboard.
 
-    This script will search the huggingface_hub for models which fit the search criteria, defined in the
-    `define_searches` function. It will then evaluate the models on the leaderboard, and save the results to
-    `output_path`. If a model fails to evaluate, it will be saved to `failed_models.csv` in `output_path`.
+    This script will search the huggingface_hub for models which fit the search
+    criteria, defined in the `define_searches` function. It will then evaluate the
+    models on the leaderboard, and save the results to `output_path`. If a model fails
+    to evaluate, it will be saved to `failed_models.csv` in `output_path`.
+
     Args:
-        cache_dir (str): Path to cache directory.
-        output_path (str): Path to output directory.
+        cache_dir: Path to cache directory.
+        output_path: Path to output directory.
     """
     evaluator = Evaluator()
     task_mapping = get_all_task_configs()
@@ -195,19 +198,22 @@ def main(cache_dir: str = ".alexandra_ai_cache", output_path: str = "output"):
                             evaluated_models_csv_writer.writerow([model.modelId])
                             models_ids_evaluated.append(model.modelId)
 
-                        # If we fail to evaluate the model, we add it to a list of failed models.
+                        # If we fail to evaluate the model, we add it to a list of
+                        # failed models.
                         except Exception as e:
                             logger.info(
-                                f"Failed to evaluate model: {model.modelId} with error: {e}"
+                                f"Failed to evaluate model: {model.modelId} with "
+                                f"error: {e}"
                             )
                             failed_models_csv_writer.writerow([model.modelId, e])
+
     failed_models_csv_writer.close()  # type: ignore[attr-defined]
     evaluated_models_csv_writer.close()  # type: ignore[attr-defined]
 
     # If the csv not created during this run, it might contain old failed model_ids,
     # which might have succeeded in this run. We therefore check if there is any
-    # model_ids in the csv which we have been succesfully evaluated in this run,
-    # and remove them.
+    # model_ids in the csv which we have been succesfully evaluated in this run, and
+    # remove them.
     if not failed_models_csv_is_new:
         failed_models_csv_path = Path(output_path) / "failed_models.csv"
         failed_models_df = pd.read_csv(failed_models_csv_path)
