@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.12"
+python = ">=3.8,<3.13"
 spacy = "^3.4.1"
 sentencepiece = ">=0.1.96,<1.0.0"
 protobuf = ">=3.0.0,<3.21.0"
@@ -52,7 +52,7 @@ evaluate = "alexandra_ai_eval.cli:evaluate"
 evaluate-gui = "alexandra_ai_eval.gui:main"
 
 [tool.pytest.ini_options]
-minversion = "6.0"
+minversion = "7.0"
 addopts = [
     '--verbose',
     '--durations=10',
@@ -64,7 +64,12 @@ addopts = [
     '-n 8',
 ]
 xfail_strict = true
-filterwarnings = ["ignore"]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+    "ignore::ImportWarning",
+]
 log_cli_level = "info"
 testpaths = ["tests", "src/alexandra_ai_eval"]
 
@@ -84,8 +89,11 @@ exclude = '''
 )/
 '''
 
-[tool.isort]
-profile = "black"
+[tool.ruff]
+target-version = "py311"
+
+[tool.ruff.extend-per-file-ignores]
+"__init__.py" = ["F401"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
