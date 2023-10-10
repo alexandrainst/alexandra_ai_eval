@@ -68,6 +68,7 @@ filterwarnings = [
     "ignore::UserWarning",
     "ignore::DeprecationWarning",
     "ignore::ImportWarning",
+    "ignore::FutureWarning",
 ]
 log_cli_level = "info"
 testpaths = ["tests", "src/alexandra_ai_eval"]
