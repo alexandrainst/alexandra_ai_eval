@@ -12,24 +12,14 @@ ______________________________________________________________________
 [![Code Coverage](https://img.shields.io/badge/Coverage-74%25-yellow.svg)](https://github.com/alexandrainst/AlexandraAI-eval/tree/main/tests)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg)](https://github.com/alexandrainst/AlexandraAI-eval/blob/main/CODE_OF_CONDUCT.md)
 
-## Installation
+
+## Quickstart
 
 To install the package simply write the following command in your favorite terminal:
 
 ```
 pip install alexandra-ai-eval
 ```
-
-If you're on MacOS and get an error saying something along the lines of "fatal error:
-'lzma.h' file not found" then try the following:
-
-```
-export CPPFLAGS="-I$(brew --prefix)/include"
-pip install alexandra-ai-eval
-```
-
-
-## Quickstart
 
 ### Benchmarking from the Command Line
 
