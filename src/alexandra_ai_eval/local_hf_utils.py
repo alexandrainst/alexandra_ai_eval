@@ -1,7 +1,6 @@
 """Utility functions related to loading local Hugging Face models."""
 
 from pathlib import Path
-from typing import Dict, Union
 
 import transformers
 from transformers.modeling_utils import PreTrainedModel
@@ -19,7 +18,7 @@ def load_local_hf_model(
     model_config: ModelConfig,
     task_config: TaskConfig,
     evaluation_config: EvaluationConfig,
-) -> Dict[str, Union[PreTrainedModel, PreTrainedTokenizerBase]]:
+) -> dict[str, PreTrainedModel | PreTrainedTokenizerBase]:
     """Load a local Hugging Face model from a path.
 
     Args:
@@ -83,7 +82,7 @@ def load_local_hf_model(
     return dict(model=model, tokenizer=tokenizer, model_type="other")
 
 
-def hf_model_exists_locally(model_id: Union[str, Path]) -> bool:
+def hf_model_exists_locally(model_id: str | Path) -> bool:
     """Check if a Hugging Face model exists locally.
 
     Args:
@@ -118,7 +117,7 @@ def hf_model_exists_locally(model_id: Union[str, Path]) -> bool:
     return True
 
 
-def get_hf_model_config_locally(model_folder: Union[str, Path]) -> ModelConfig:
+def get_hf_model_config_locally(model_folder: str | Path) -> ModelConfig:
     """Get the model configuration from a local Hugging Face model.
 
     Args:

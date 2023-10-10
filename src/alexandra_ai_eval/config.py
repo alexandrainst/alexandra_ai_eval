@@ -1,7 +1,7 @@
 """Configuration dataclasses."""
 
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable
 
 from .enums import CountryCode, Device, Framework, Modality
 from .utils import get_available_devices
@@ -19,7 +19,7 @@ class LabelConfig:
     """
 
     name: str
-    synonyms: List[str]
+    synonyms: list[str]
 
 
 @dataclass
@@ -51,7 +51,7 @@ class MetricConfig:
     huggingface_id: str
     results_key: str
     postprocessing_fn: Callable[[float], str]
-    compute_kwargs: Dict[str, Any] = field(default_factory=dict)
+    compute_kwargs: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -103,27 +103,27 @@ class TaskConfig:
 
     name: str
     huggingface_id: str
-    huggingface_subset: Optional[str]
+    huggingface_subset: str | None
     supertask: str
     modality: Modality
-    metrics: List[MetricConfig]
-    labels: List[LabelConfig]
-    feature_column_names: List[str]
+    metrics: list[MetricConfig]
+    labels: list[LabelConfig]
+    feature_column_names: list[str]
     label_column_name: str
-    test_name: Optional[str]
-    architectures: Optional[List[str]] = None
-    search_terms: List[str] = field(default_factory=list)
+    test_name: str | None
+    architectures: list[str] | None = None
+    search_terms: list[str] = field(default_factory=list)
 
     @property
     def pretty_name(self) -> str:
         return self.name.replace("-", " ")
 
     @property
-    def id2label(self) -> List[str]:
+    def id2label(self) -> list[str]:
         return [label.name for label in self.labels]
 
     @property
-    def label2id(self) -> Dict[str, int]:
+    def label2id(self) -> dict[str, int]:
         return {
             syn: idx
             for idx, label in enumerate(self.labels)
@@ -135,7 +135,7 @@ class TaskConfig:
         return len(self.labels)
 
     @property
-    def label_synonyms(self) -> List[List[str]]:
+    def label_synonyms(self) -> list[list[str]]:
         return [[label.name] + label.synonyms for label in self.labels]
 
 
@@ -169,7 +169,7 @@ class EvaluationConfig:
             infrastructure is hosted. Only relevant if no internet connection is
             available. Only relevant if `track_carbon_emissions` is set to True. A list
             of all such codes are available here:
-            https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
+            https://en.wikipedia.org/wiki/list_of_ISO_3166_country_codes
         prefer_device:
             The device to prefer when evaluating the model. If the device is not
             available then another device will be used. Can be "cuda", "mps" and "cpu".
@@ -190,7 +190,7 @@ class EvaluationConfig:
 
     raise_error_on_invalid_model: bool
     cache_dir: str
-    use_auth_token: Union[bool, str]
+    use_auth_token: bool | str
     progress_bar: bool
     save_results: bool
     verbose: bool
@@ -198,8 +198,8 @@ class EvaluationConfig:
     country_code: CountryCode
     prefer_device: Device
     only_return_log: bool = False
-    architecture_fname: Optional[str] = None
-    weight_fname: Optional[str] = None
+    architecture_fname: str | None = None
+    weight_fname: str | None = None
     testing: bool = False
 
     @property
@@ -255,14 +255,14 @@ class ModelConfig:
 
     model_id: str
     tokenizer_id: str
-    processor_id: Optional[str]
+    processor_id: str | None
     revision: str
     framework: Framework
-    id2label: Optional[List[str]]
-    label2id: Optional[Dict[str, int]] = None
+    id2label: list[str] | None
+    label2id: dict[str, int] | None = None
 
     @property
-    def num_labels(self) -> Union[int, None]:
+    def num_labels(self) -> int | None:
         if self.id2label is None:
             return None
         return len(self.id2label)

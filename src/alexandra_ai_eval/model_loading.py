@@ -1,6 +1,6 @@
 """Main loading functions."""
 
-from typing import Any, Dict
+from typing import Any
 
 from .config import EvaluationConfig, ModelConfig, TaskConfig
 from .enums import Framework
@@ -32,7 +32,7 @@ def load_model(
     model_config: ModelConfig,
     task_config: TaskConfig,
     evaluation_config: EvaluationConfig,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Load the model.
 
     Args:

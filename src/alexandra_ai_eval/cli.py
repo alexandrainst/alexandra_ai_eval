@@ -1,7 +1,5 @@
 """Command-line interface for evaluation of models."""
 
-from typing import Optional, Tuple, Union
-
 import click
 
 from .country_codes import ALL_COUNTRY_CODES
@@ -120,8 +118,8 @@ from .task_configs import get_all_task_configs
     help="Whether extra input should be outputted during benchmarking",
 )
 def evaluate(
-    model_id: Tuple[str],
-    task: Tuple[str],
+    model_id: tuple[str],
+    task: tuple[str],
     auth_token: str,
     use_auth_token: bool,
     track_carbon_emissions: bool,
@@ -146,9 +144,9 @@ def evaluate(
     # Set up variables
     model_ids = list(model_id)
     tasks = list(task)
-    auth: Union[str, bool] = auth_token if auth_token != "" else use_auth_token
-    architecture_fname_or_none: Optional[str] = architecture_fname
-    weight_fname_or_none: Optional[str] = weight_fname
+    auth: str | bool = auth_token if auth_token != "" else use_auth_token
+    architecture_fname_or_none: str | None = architecture_fname
+    weight_fname_or_none: str | None = weight_fname
 
     # Set `arc_fname` and `weight_fname` to None if they are "None"
     if architecture_fname_or_none == "None":

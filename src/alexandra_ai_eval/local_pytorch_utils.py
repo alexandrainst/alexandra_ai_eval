@@ -6,7 +6,7 @@ import logging
 import sys
 from importlib import import_module
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Type, Union, get_type_hints
+from typing import Any, Type, get_type_hints
 
 import torch
 import torch.nn as nn
@@ -24,7 +24,7 @@ def load_local_pytorch_model(
     model_config: ModelConfig,
     task_config: TaskConfig,
     evaluation_config: EvaluationConfig,
-) -> Dict[str, Union[nn.Module, PreTrainedTokenizerBase]]:
+) -> dict[str, nn.Module | PreTrainedTokenizerBase]:
     """Load a local PyTorch model from a path.
 
     Args:
@@ -184,9 +184,9 @@ def load_local_pytorch_model(
 
 
 def pytorch_model_exists_locally(
-    model_id: Union[str, Path],
-    architecture_fname: Optional[Union[str, Path]] = None,
-    weight_fname: Optional[Union[str, Path]] = None,
+    model_id: str | Path,
+    architecture_fname: str | Path | None = None,
+    weight_fname: str | Path | None = None,
 ) -> bool:
     """Check if a PyTorch model exists locally.
 
@@ -231,8 +231,8 @@ def pytorch_model_exists_locally(
 
 
 def get_pytorch_model_config_locally(
-    model_folder: Union[str, Path],
-    dataset_id2label: List[str],
+    model_folder: str | Path,
+    dataset_id2label: list[str],
 ) -> ModelConfig:
     """Get the model configuration from a local PyTorch model.
 
@@ -240,7 +240,7 @@ def get_pytorch_model_config_locally(
         model_folder:
             Path to the model folder.
         dataset_id2label:
-            List of labels in the dataset.
+            list of labels in the dataset.
 
     Returns:
         The model configuration.
@@ -276,10 +276,10 @@ def get_pytorch_model_config_locally(
 def get_from_config(
     key: str,
     expected_type: Type,
-    model_folder: Union[str, Path],
-    default_value: Optional[Any] = None,
-    user_prompt: Optional[str] = None,
-    user_prompt_default_value: Optional[Any] = None,
+    model_folder: str | Path,
+    default_value: Any | None = None,
+    user_prompt: str | None = None,
+    user_prompt_default_value: Any | None = None,
 ) -> Any:
     """Get an attribute from the local model configuration.
 
@@ -372,9 +372,9 @@ def get_from_config(
 
 
 def get_missing_key_value_from_user(
-    user_prompt: Optional[str],
+    user_prompt: str | None,
     expected_type: type,
-    default_value: Optional[Any] = None,
+    default_value: Any | None = None,
 ):
     """Get a missing key from the user.
 

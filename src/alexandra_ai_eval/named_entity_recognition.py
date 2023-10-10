@@ -2,7 +2,6 @@
 
 from copy import deepcopy
 from functools import partial
-from typing import List, Optional, Sequence, Tuple
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
@@ -85,11 +84,11 @@ class NamedEntityRecognition(Task):
 
     def _prepare_predictions_and_labels(
         self,
-        predictions: Sequence,
+        predictions: list,
         dataset: Dataset,
         prepared_dataset: Dataset,
         **kwargs,
-    ) -> List[Tuple[list, list]]:
+    ) -> list[tuple[list, list]]:
         # Extract the labels from the dataset
         labels = prepared_dataset["labels"]
 
@@ -132,7 +131,7 @@ class NamedEntityRecognition(Task):
 def tokenize_and_align_labels(
     examples: BatchEncoding,
     tokenizer: PreTrainedTokenizerBase,
-    model_label2id: Optional[dict],
+    model_label2id: dict | None,
     dataset_id2label: list,
     label_column_name: str,
 ) -> BatchEncoding:
@@ -174,7 +173,7 @@ def tokenize_and_align_labels(
         truncation=True,
         padding=True,
     )
-    all_labels: List[List[int]] = []
+    all_labels: list[list[int]] = []
     for i, ner_tags in enumerate(examples[label_column_name]):
         labels = [dataset_id2label[ner_tag] for ner_tag in ner_tags]
         try:
@@ -245,7 +244,7 @@ def tokenize_and_align_labels(
                     word_ids.append(word_idx)
 
         previous_word_idx = None
-        label_ids: List[int] = list()
+        label_ids: list[int] = list()
         for word_idx in word_ids:
             # Special tokens have a word id that is None. We set the label to -100 so
             # they are automatically ignored in the loss function
@@ -307,11 +306,11 @@ def get_ent(token: Token, dataset_id2label: list, dataset_label2id: dict) -> str
 
 
 def remove_ignored_index_from_predictions_and_labels(
-    predictions: List[list],
-    labels: List[list],
-    model_id2label: Optional[List[str]],
+    predictions: list[list],
+    labels: list[list],
+    model_id2label: list[str] | None,
     index_to_ignore: int = -100,
-) -> Tuple[List[List[str]], List[List[str]]]:
+) -> tuple[list[list[str]], list[list[str]]]:
     """Removes the ignored index from the predictions and labels.
 
     Args:
@@ -354,9 +353,9 @@ def remove_ignored_index_from_predictions_and_labels(
 
 
 def replace_unknown_tags_with_misc_tags(
-    list_of_tag_lists: List[List[str]],
-    dataset_id2label: List[str],
-) -> List[List[str]]:
+    list_of_tag_lists: list[list[str]],
+    dataset_id2label: list[str],
+) -> list[list[str]]:
     """Replaces unknown tags with MISC tags.
 
     This replaces the predicted tags with either MISC or O tags if they are not part of
@@ -394,7 +393,7 @@ def replace_unknown_tags_with_misc_tags(
     return list_of_tag_lists
 
 
-def remove_misc_tags(list_of_tag_lists: List[List[str]]) -> List[List[str]]:
+def remove_misc_tags(list_of_tag_lists: list[list[str]]) -> list[list[str]]:
     """Removes MISC tags from a list of lists of tags.
 
     Args:
@@ -418,9 +417,9 @@ def remove_misc_tags(list_of_tag_lists: List[List[str]]) -> List[List[str]]:
 
 
 def align_spacy_tokens_with_gold_tokens(
-    spacy_tokens: List[Token],
-    gold_tokens: List[str],
-) -> List[int]:
+    spacy_tokens: list[Token],
+    gold_tokens: list[str],
+) -> list[int]:
     """Aligns spaCy tokens with gold tokens.
 
     This is necessary because spaCy's tokenizer is different to the tokenizer used by
@@ -446,7 +445,7 @@ def align_spacy_tokens_with_gold_tokens(
     alignment = list(zip(gold_token_idxs, spacy_token_idxs))
 
     # Get the aligned predictions
-    predictions: List[int] = list()
+    predictions: list[int] = list()
     for idx, _ in enumerate(gold_tokens):
         aligned_pred_token = [
             spacy_token_idx

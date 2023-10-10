@@ -5,7 +5,6 @@ import random
 import warnings
 from abc import ABC, abstractmethod
 from functools import partial
-from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import evaluate as evaluate_hf
 import numpy as np
@@ -68,7 +67,7 @@ class Task(ABC):
             for metric_cfg in task_config.metrics
         }
 
-    def evaluate(self, model_id: str) -> Union[Dict[str, Dict[str, float]], str]:
+    def evaluate(self, model_id: str) -> dict[str, dict[str, float]] | str:
         """Evaluate a model.
 
         Args:
@@ -214,14 +213,14 @@ class Task(ABC):
     def _evaluate_single_iteration(
         self,
         idx: int,
-        model: Union[nn.Module, Language],
+        model: nn.Module | Language,
         model_config: ModelConfig,
-        tokenizer: Optional[PreTrainedTokenizerBase],
-        processor: Optional[DataProcessor],
+        tokenizer: PreTrainedTokenizerBase | None,
+        processor: DataProcessor | None,
         dataset: Dataset,
         prepared_dataset: Dataset,
         framework: Framework,
-    ) -> Union[dict, Exception]:
+    ) -> dict | Exception:
         """Run a single iteration of a PyTorch/JAX benchmark.
 
         Args:
@@ -349,8 +348,8 @@ class Task(ABC):
 
     def _compute_metrics(
         self,
-        predictions_and_labels: List[Tuple[list, list]],
-    ) -> Dict[str, float]:
+        predictions_and_labels: list[tuple[list, list]],
+    ) -> dict[str, float]:
         """Compute the metrics needed for evaluation.
 
         Args:
@@ -447,9 +446,9 @@ class Task(ABC):
 
     def _get_model_predictions(
         self,
-        model: Union[nn.Module, Language],
-        tokenizer: Optional[PreTrainedTokenizerBase],
-        processor: Optional[DataProcessor],
+        model: nn.Module | Language,
+        tokenizer: PreTrainedTokenizerBase | None,
+        processor: DataProcessor | None,
         prepared_dataset: Dataset,
         batch_size: int,
         framework: Framework,
@@ -668,11 +667,11 @@ class Task(ABC):
     @abstractmethod
     def _prepare_predictions_and_labels(
         self,
-        predictions: Sequence,
+        predictions: list,
         dataset: Dataset,
         prepared_dataset: Dataset,
         **kwargs,
-    ) -> List[Tuple[list, list]]:
+    ) -> list[tuple[list, list]]:
         """Prepare predictions and labels for output.
 
         Args:
@@ -751,7 +750,7 @@ class Task(ABC):
 
     @abstractmethod
     def _load_data_collator(
-        self, tokenizer_or_processor: Union[PreTrainedTokenizerBase, DataProcessor]
+        self, tokenizer_or_processor: PreTrainedTokenizerBase | DataProcessor
     ) -> DataCollator:
         """Load the data collator used to prepare samples during finetuning.
 

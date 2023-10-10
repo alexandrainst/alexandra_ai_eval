@@ -3,7 +3,7 @@
 import logging
 from csv import writer
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import pandas as pd
 from _csv import _writer
@@ -15,7 +15,7 @@ from alexandra_ai_eval.task_configs import get_all_task_configs
 logger = logging.getLogger(__name__)
 
 
-def define_searches(task_mapping: Dict[str, Any]) -> List[Dict[str, Any]]:
+def define_searches(task_mapping: dict[str, Any]) -> list[dict[str, Any]]:
     """Define the searches to be performed on the Hugging Face Hub.
 
     This function defines a list of 'searches' to be performed on the Hugging Face Hub.
@@ -40,7 +40,7 @@ def define_searches(task_mapping: Dict[str, Any]) -> List[Dict[str, Any]]:
     searches = []
     languages = ["da", "multilingual", "no", "sv", "nn", "nb"]
     for task_name, task_config in task_mapping.items():
-        search: Dict[str, List[Dict[str, Any]]] = {task_name: []}
+        search: dict[str, list[dict[str, Any]]] = {task_name: []}
         for language in languages:
             # Get supertask, and check that it is correct.
             if task_config.supertask == "sequence-classification":
@@ -72,7 +72,7 @@ def define_searches(task_mapping: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 def prepare_cache_and_get_succeeded_and_failed_models(
     cache_dir_str: str, output_path_str: str
-) -> Tuple[_writer, bool, List[str], _writer]:
+) -> tuple[_writer, bool, list[str], _writer]:
     """Prepare cache and get succeeded and failed models.
 
     Args:
@@ -83,7 +83,7 @@ def prepare_cache_and_get_succeeded_and_failed_models(
         A tuple containing:
             - Writer for failed_models.csv.
             - True if failed_models.csv is new, False if it already existed.
-            - List of model ids which have already been evaluated.
+            - list of model ids which have already been evaluated.
             - Writer for evaluated_models.csv.
     """
     output_path = Path(output_path_str)

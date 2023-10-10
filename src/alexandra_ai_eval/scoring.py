@@ -2,7 +2,6 @@
 
 import logging
 import warnings
-from typing import Dict, List, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -13,19 +12,19 @@ logger = logging.getLogger(__name__)
 
 def log_scores(
     task_name: str,
-    metric_configs: Sequence[MetricConfig],
-    scores: Sequence[Dict[str, float]],
+    metric_configs: list[MetricConfig],
+    scores: list[dict[str, float]],
     model_id: str,
     only_return_log: bool = False,
     model_type: str = "other",
-) -> Union[dict, str]:
+) -> dict | str:
     """Log the scores.
 
     Args:
         task_name:
             Name of the dataset.
         metric_configs:
-            Sequence of metrics to log.
+            list of metrics to log.
         scores:
             The scores that are to be logged.
         model_id:
@@ -46,7 +45,7 @@ def log_scores(
 
     # Initialise the total dict
     total_dict = dict()
-    logging_strings: List[str] = list()
+    logging_strings: list[str] = list()
 
     # Logging of the aggregated scores
     for metric_cfg in metric_configs:
@@ -75,13 +74,13 @@ def log_scores(
 
 
 def aggregate_scores(
-    scores: Sequence[Dict[str, float]], metric_config: MetricConfig
-) -> Tuple[float, float]:
+    scores: list[dict[str, float]], metric_config: MetricConfig
+) -> tuple[float, float]:
     """Helper function to compute the mean with confidence intervals.
 
     Args:
         scores:
-            List of dictionaries with the names of the metrics as keys, of the form
+            list of dictionaries with the names of the metrics as keys, of the form
             "<metric_name>", such as "f1", and values the metric values.
         metric_config:
             The configuration of the metric, which is used to collect the correct

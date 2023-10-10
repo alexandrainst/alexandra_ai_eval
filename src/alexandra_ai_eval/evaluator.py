@@ -5,7 +5,6 @@ import logging
 import warnings
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Optional, Sequence, Union
 
 import pandas as pd
 from requests.exceptions import ConnectionError, RequestException
@@ -52,7 +51,7 @@ class Evaluator:
             infrastructure is hosted. Only relevant if no internet connection is
             available. Only relevant if `track_carbon_emissions` is set to True.
             Defaults to the empty string. A list of all such codes are available here:
-            https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
+            https://en.wikipedia.org/wiki/list_of_ISO_3166_country_codes
         prefer_device:
             The device to prefer when evaluating the model. If the device is not
             available then another device will be used. Can be "cuda", "mps" and "cpu".
@@ -87,15 +86,14 @@ class Evaluator:
         leaderboard_url: str = "https://api.aiai.alexandrainst.dk",
         raise_error_on_invalid_model: bool = False,
         cache_dir: str = ".alexandra_ai_cache",
-        use_auth_token: Union[bool, str] = False,
+        use_auth_token: bool | str = False,
         track_carbon_emissions: bool = False,
-        country_code: Union[str, CountryCode] = (
-            CountryCode.EMPTY  # type: ignore[attr-defined]
-        ),
+        country_code: str
+        | CountryCode = (CountryCode.EMPTY),  # type: ignore[attr-defined]
         prefer_device: Device = Device.CUDA,
         only_return_log: bool = False,
-        architecture_fname: Optional[str] = None,
-        weight_fname: Optional[str] = None,
+        architecture_fname: str | None = None,
+        weight_fname: str | None = None,
         verbose: bool = False,
     ):
         # If `country_code` is a string then convert it to a `CountryCode` enum
@@ -121,11 +119,11 @@ class Evaluator:
         )
 
         # Initialise variable storing model lists, so we only have to fetch it once
-        self._model_lists: Union[Dict[str, Sequence[str]], None] = None
+        self._model_lists: dict[str, list[str]] | None = None
 
         # Initialise variable storing all evaluation results, which will be
         # updated as more models are evaluated
-        self.evaluation_results: Dict[str, dict] = defaultdict(dict)
+        self.evaluation_results: dict[str, dict] = defaultdict(dict)
 
         # Set logging level based on verbosity
         logging_level = logging.DEBUG if verbose else logging.INFO
@@ -150,9 +148,9 @@ class Evaluator:
 
     def evaluate(
         self,
-        model_id: Union[Sequence[str], str],
-        task: Union[Sequence[str], str],
-    ) -> Dict[str, dict]:
+        model_id: list[str] | str,
+        task: list[str] | str,
+    ) -> dict[str, dict]:
         """Evaluates models on datasets.
 
         Args:
@@ -237,8 +235,8 @@ class Evaluator:
 
     def _prepare_model_ids(
         self,
-        model_id: Union[Sequence[str], str],
-    ) -> List[str]:
+        model_id: list[str] | str,
+    ) -> list[str]:
         """Prepare the model ID(s) to be evaluated.
 
         Args:
@@ -248,7 +246,7 @@ class Evaluator:
         Returns:
             The prepared list of model IDs.
         """
-        model_ids: Sequence[str]
+        model_ids: list[str]
         if isinstance(model_id, str):
             model_ids = [model_id]
         else:
@@ -257,8 +255,8 @@ class Evaluator:
 
     def _prepare_task_configs(
         self,
-        task_name: Union[Sequence[str], str],
-    ) -> List[TaskConfig]:
+        task_name: list[str] | str,
+    ) -> list[TaskConfig]:
         """Prepare the model ID(s) to be evaluated.
 
         Args:
@@ -318,7 +316,7 @@ class Evaluator:
             )
             logger.debug(f'The error message was "{e}".')
 
-    def _send_results_to_leaderboard(self) -> List[bool]:
+    def _send_results_to_leaderboard(self) -> list[bool]:
         """Send the evaluation results to the leaderboard.
 
         Args:
@@ -339,7 +337,7 @@ class Evaluator:
         self.leaderboard_client.check_connection()
 
         # Initialize a list of status bools
-        status: List[bool] = []
+        status: list[bool] = []
 
         # Loop through the evaluation results and send each one to the leaderboard
         for task_name in self.evaluation_results.keys():
@@ -435,7 +433,7 @@ class Evaluator:
 
     def __call__(
         self,
-        model_id: Union[Sequence[str], str],
-        task: Union[Sequence[str], str],
-    ) -> Dict[str, dict]:
+        model_id: list[str] | str,
+        task: list[str] | str,
+    ) -> dict[str, dict]:
         return self.evaluate(model_id=model_id, task=task)

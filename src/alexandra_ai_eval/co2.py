@@ -1,7 +1,5 @@
 """Functions related to carbon emission measurement."""
 
-from typing import Union
-
 from codecarbon import EmissionsTracker, OfflineEmissionsTracker
 
 from .enums import CountryCode
@@ -14,7 +12,7 @@ def get_carbon_tracker(
     country_code: CountryCode,
     verbose: bool,
     prefer_offline: bool = False,
-) -> Union[EmissionsTracker, OfflineEmissionsTracker]:
+) -> EmissionsTracker | OfflineEmissionsTracker:
     """Prepares a carbon emissions tracker.
 
     Args:

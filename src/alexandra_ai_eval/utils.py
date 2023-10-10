@@ -7,7 +7,6 @@ import os
 import random
 import re
 import warnings
-from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pkg_resources
@@ -24,7 +23,7 @@ from .exceptions import InvalidArchitectureForTask
 logger = logging.getLogger(__name__)
 
 
-def has_integers(seq: Sequence) -> bool:
+def has_integers(seq: list) -> bool:
     """Checks if a sequence contains only integers.
 
     Args:
@@ -37,7 +36,7 @@ def has_integers(seq: Sequence) -> bool:
     return np.asarray(seq).dtype.kind == "i"
 
 
-def has_floats(seq: Sequence) -> bool:
+def has_floats(seq: list) -> bool:
     """Checks if a sequence contains only floats.
 
     Args:
@@ -162,7 +161,7 @@ def internet_connection_available() -> bool:
         return False
 
 
-def get_available_devices() -> List[Device]:
+def get_available_devices() -> list[Device]:
     """Gets the available devices.
 
     This will check whether a CUDA GPU and MPS GPU is available.
@@ -189,10 +188,10 @@ def get_available_devices() -> List[Device]:
 
 
 def check_supertask(
-    architectures: Sequence[str],
+    architectures: list[str],
     supertask: str,
-    allowed_architectures: Optional[Sequence[str]],
-) -> Tuple[bool, Sequence[str]]:
+    allowed_architectures: list[str] | None,
+) -> tuple[bool, list[str]]:
     """Checks if the supertask corresponds to the architectures.
 
     Args:
@@ -241,9 +240,9 @@ def check_supertask(
 
 
 def get_class_by_name(
-    class_name: Union[str, Sequence[str]],
-    module_name: Optional[str] = None,
-) -> Union[None, type]:
+    class_name: str | list[str],
+    module_name: str | None = None,
+) -> type | None:
     """Get a class by its name.
 
     Args:

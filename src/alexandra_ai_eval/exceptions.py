@@ -1,7 +1,5 @@
 """Custom exceptions used in the project."""
 
-from typing import Dict, Sequence, Union
-
 from .enums import Framework
 
 
@@ -61,7 +59,7 @@ class ModelFetchFailed(Exception):
 
 
 class InvalidFramework(Exception):
-    def __init__(self, framework: Union[Framework, str]):
+    def __init__(self, framework: Framework | str):
         self.framework = framework
         self.message = f"The framework {str(framework)} is not supported."
         super().__init__(self.message)
@@ -76,7 +74,7 @@ class PreprocessingFailed(Exception):
 
 
 class MissingLabel(Exception):
-    def __init__(self, label: str, label2id: Dict[str, int]):
+    def __init__(self, label: str, label2id: dict[str, int]):
         self.label = label
         self.label2id = label2id
         self.message = (
@@ -129,7 +127,7 @@ class MissingCountryISOCode(Exception):
 
 
 class InvalidArchitectureForTask(Exception):
-    def __init__(self, architectures: Sequence[str], supertask: str):
+    def __init__(self, architectures: list[str], supertask: str):
         self.architectures = architectures
         self.supertask = supertask
         self.message = (
@@ -143,7 +141,7 @@ class InvalidArchitectureForTask(Exception):
 
 
 class WrongFeatureColumnName(Exception):
-    def __init__(self, feature_column_names: Union[str, Sequence[str]]):
+    def __init__(self, feature_column_names: str | list[str]):
         # Ensure that feature_column_names is a sequence
         if isinstance(feature_column_names, str):
             feature_column_names = [feature_column_names]
@@ -196,7 +194,7 @@ class ModelNotTrainedForTask(Exception):
 
 
 class FrameworkCannotHandleTask(Exception):
-    def __init__(self, framework: Union[Framework, str], task: str):
+    def __init__(self, framework: Framework | str, task: str):
         self.task = task
         self.framework = framework
         self.message = (

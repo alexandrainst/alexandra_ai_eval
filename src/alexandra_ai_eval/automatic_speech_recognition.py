@@ -1,7 +1,6 @@
 """Class for automatic speech recognition tasks."""
 
 from dataclasses import dataclass
-from typing import Dict, List, Sequence, Tuple, Union
 
 import numpy as np
 import torch
@@ -40,9 +39,9 @@ class DataCollatorCTCWithPadding:
     """
 
     processor: Wav2Vec2Processor
-    padding: Union[bool, str] = True
+    padding: bool | str = True
 
-    def __call__(self, features: List[dict]) -> Dict[str, torch.Tensor]:
+    def __call__(self, features: list[dict]) -> dict[str, torch.Tensor]:
         """Collate the features.
 
         Args:
@@ -139,17 +138,17 @@ class AutomaticSpeechRecognition(Task):
         )
 
     def _load_data_collator(
-        self, tokenizer_or_processor: Union[PreTrainedTokenizerBase, AutoProcessor]
+        self, tokenizer_or_processor: PreTrainedTokenizerBase | AutoProcessor
     ) -> DataCollatorCTCWithPadding:
         return DataCollatorCTCWithPadding(processor=tokenizer_or_processor)
 
     def _prepare_predictions_and_labels(
         self,
-        predictions: Sequence,
+        predictions: list,
         dataset: Dataset,
         prepared_dataset: Dataset,
         **kwargs,
-    ) -> List[Tuple[list, list]]:
+    ) -> list[tuple[list, list]]:
         # Get processor
         processor = kwargs["processor"]
 

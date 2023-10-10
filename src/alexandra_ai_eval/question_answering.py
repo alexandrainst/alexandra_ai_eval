@@ -1,7 +1,6 @@
 """Class for question-answering tasks."""
 
 from collections import defaultdict
-from typing import List, Sequence, Tuple, Union
 
 import numpy as np
 from datasets.arrow_dataset import Dataset
@@ -43,17 +42,17 @@ class QuestionAnswering(Task):
         )
 
     def _load_data_collator(
-        self, tokenizer_or_processor: Union[PreTrainedTokenizerBase, AutoProcessor]
+        self, tokenizer_or_processor: PreTrainedTokenizerBase | AutoProcessor
     ) -> DataCollator:
         return default_data_collator
 
     def _prepare_predictions_and_labels(
         self,
-        predictions: Sequence,
+        predictions: list,
         dataset: Dataset,
         prepared_dataset: Dataset,
         **kwargs,
-    ) -> List[Tuple[list, list]]:
+    ) -> list[tuple[list, list]]:
         # Extract the predictions and labels
         predictions = postprocess_predictions(
             predictions=predictions,
@@ -153,11 +152,11 @@ def prepare_test_examples(
 
 
 def postprocess_predictions(
-    predictions: Sequence,
+    predictions: list,
     dataset: Dataset,
     prepared_dataset: Dataset,
     cls_token_index: int,
-) -> List[dict]:
+) -> list[dict]:
     """Postprocess the predictions, to allow easier metric computation.
 
     Args:
@@ -221,7 +220,7 @@ def find_best_answer(
     all_start_logits: np.ndarray,
     all_end_logits: np.ndarray,
     prepared_dataset: Dataset,
-    feature_indices: List[int],
+    feature_indices: list[int],
     context: str,
     max_answer_length: int,
     num_best_logits: int,
@@ -295,12 +294,12 @@ def find_best_answer(
 def find_valid_answers(
     start_logits: np.ndarray,
     end_logits: np.ndarray,
-    offset_mapping: List[Tuple[int, int]],
+    offset_mapping: list[tuple[int, int]],
     context: str,
     max_answer_length: int,
     num_best_logits: int,
     min_null_score: float,
-) -> List[dict]:
+) -> list[dict]:
     """Find the valid answers from the start and end indexes.
 
     Args:
@@ -368,7 +367,7 @@ def find_valid_answers(
     return valid_answers
 
 
-def postprocess_labels(dataset: Dataset) -> List[dict]:
+def postprocess_labels(dataset: Dataset) -> list[dict]:
     """Postprocess the labels, to allow easier metric computation.
 
     Args:

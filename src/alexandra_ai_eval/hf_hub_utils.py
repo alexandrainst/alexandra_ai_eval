@@ -1,7 +1,5 @@
 """Utility functions related to the Hugging Face Hub."""
 
-from typing import Dict, List, Optional, Tuple, Union
-
 from huggingface_hub import HfApi, ModelFilter
 from huggingface_hub.hf_api import ModelInfo
 from huggingface_hub.utils import RepositoryNotFoundError
@@ -29,7 +27,7 @@ def load_model_from_hf_hub(
     from_flax: bool,
     task_config: TaskConfig,
     evaluation_config: EvaluationConfig,
-) -> Dict[str, PreTrainedModel]:
+) -> dict[str, PreTrainedModel]:
     """Load a PyTorch model.
 
     Args:
@@ -188,7 +186,7 @@ def load_model_from_hf_hub(
 
 def get_hf_hub_model_info(
     model_id: str,
-    use_auth_token: Union[bool, str],
+    use_auth_token: bool | str,
 ) -> ModelInfo:
     """Fetches information about a model on the Hugging Face Hub.
 
@@ -243,8 +241,8 @@ def get_hf_hub_model_info(
 
 def model_is_private_on_hf_hub(
     model_id: str,
-    use_auth_token: Union[bool, str],
-) -> Union[bool, None]:
+    use_auth_token: bool | str,
+) -> bool | None:
     """Checkes whether a model is private on the Hugging Face Hub.
 
     Args:
@@ -271,8 +269,8 @@ def model_is_private_on_hf_hub(
 
 def model_exists_on_hf_hub(
     model_id: str,
-    use_auth_token: Union[bool, str],
-) -> Union[bool, None]:
+    use_auth_token: bool | str,
+) -> bool | None:
     """Checks whether a model exists on the Hugging Face Hub.
 
     Args:
@@ -326,7 +324,7 @@ def get_model_config_from_hf_hub(
         revision = "main"
 
     # Extract the author and model name from the model ID
-    author: Optional[str]
+    author: str | None
     if "/" in model_id_without_revision:
         author, model_name = model_id_without_revision.split("/")
     else:
@@ -392,8 +390,8 @@ def get_model_config_from_hf_hub(
 def get_label_conversions(
     model_id: str,
     revision: str,
-    use_auth_token: Union[bool, str],
-) -> Tuple[Union[List[str], None], Union[Dict[str, int], None]]:
+    use_auth_token: bool | str,
+) -> tuple[list[str] | None, dict[str, int] | None]:
     """Function to get the label conversions from the Hugging Face Hub.
 
     Args:

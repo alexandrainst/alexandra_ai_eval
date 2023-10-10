@@ -4,7 +4,6 @@ import datetime as dt
 import re
 import subprocess
 from pathlib import Path
-from typing import Tuple
 
 
 def bump_major():
@@ -71,7 +70,7 @@ def set_new_version(major: int, minor: int, patch: int):
     subprocess.run(["git", "push", "--tags"])
 
 
-def get_current_version() -> Tuple[int, int, int]:
+def get_current_version() -> tuple[int, int, int]:
     """Fetch the current version of the package.
 
     Returns:

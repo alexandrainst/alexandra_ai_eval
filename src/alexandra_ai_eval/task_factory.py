@@ -1,6 +1,6 @@
 """Factory that produces tasks from a task configuration."""
 
-from typing import Optional, Type, Union
+from typing import Type
 
 from .config import EvaluationConfig, TaskConfig
 from .exceptions import InvalidTask
@@ -24,7 +24,7 @@ class TaskFactory:
     def __init__(self, evaluation_config: EvaluationConfig):
         self.evaluation_config = evaluation_config
 
-    def build_task(self, task_name_or_config: Union[str, TaskConfig]) -> Task:
+    def build_task(self, task_name_or_config: str | TaskConfig) -> Task:
         """Build a evaluation task from a configuration or a name.
 
         Args:
@@ -46,7 +46,7 @@ class TaskFactory:
             task_config = task_name_or_config
 
         # Get the evaluation class based on the task
-        evaluation_cls: Optional[Type[Task]] = get_class_by_name(
+        evaluation_cls: Type[Task] | None = get_class_by_name(
             [task_config.name, task_config.supertask]
         )
         if not evaluation_cls:

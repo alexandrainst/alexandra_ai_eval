@@ -1,7 +1,5 @@
 """All task configurations used in the project."""
 
-from typing import Dict
-
 from .config import LabelConfig, TaskConfig
 from .enums import Modality
 from .metric_configs import (
@@ -15,7 +13,7 @@ from .metric_configs import (
 )
 
 
-def get_all_task_configs() -> Dict[str, TaskConfig]:
+def get_all_task_configs() -> dict[str, TaskConfig]:
     """Get a list of all the dataset tasks.
 
     Returns:

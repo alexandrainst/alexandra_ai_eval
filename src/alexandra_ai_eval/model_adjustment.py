@@ -1,7 +1,6 @@
 """Adjusting a model's configuration, to make it suitable for a task."""
 
 from copy import deepcopy
-from typing import Optional, Union
 
 import torch
 import torch.nn as nn
@@ -40,7 +39,7 @@ def adjust_model_to_task(
             If there is a gap in the indexing dictionary of the model.
     """
     # Define the model's label conversion
-    model_id2label: Optional[Union[dict, list]]
+    model_id2label: dict | list | None
 
     # If the model does not have label conversions, then use the defaults
     if model_config.id2label is None:

@@ -2,7 +2,6 @@
 
 import warnings
 from subprocess import CalledProcessError
-from typing import Dict
 
 import spacy
 from spacy.cli.download import download as download_spacy
@@ -18,7 +17,7 @@ from .utils import is_module_installed
 warnings.filterwarnings("ignore", module="spacy*")
 
 
-def load_spacy_model(model_id: str) -> Dict[str, Language]:
+def load_spacy_model(model_id: str) -> dict[str, Language]:
     """Load a spaCy model.
 
     Args:
