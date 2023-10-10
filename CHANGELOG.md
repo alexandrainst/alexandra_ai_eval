@@ -5,10 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this
 project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+
+## [Unreleased]
+### Changed
+- Now requires Python 3.11 and above.
+
+
 ## [v0.1.0] - 2023-02-22
-
 ### Added
-
 - Support for evaluation of local Hugging Face models.
 - Tests for the `question_answering`-task.
 - The `automatic_speech_recognition`-task.
@@ -18,9 +22,7 @@ project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 - Support for integer labels.
 
 ## [v0.0.1] - 2022-08-29
-
 ### Added
-
 - First release, which includes evaluation of sentiment models from the Hugging Face
   Hub. This can be run with the CLI using the `evaluate` command, or via a script using
   the `Evaluator` class.
