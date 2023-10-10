@@ -17,8 +17,8 @@ from .task import Task
 from .utils import has_floats
 
 
-class listClassification(Task):
-    """list classification task.
+class SequenceClassification(Task):
+    """Sequence classification task.
 
     Args:
         task_config:
