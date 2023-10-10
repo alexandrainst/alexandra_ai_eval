@@ -36,19 +36,17 @@ gradio = "^3.41.0"
 fastapi = ">=0.103.2,<1.0.0"
 colorama = ">=0.4.6,<1.0.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest-xdist = "^3.3.1"
 pytest-cov = "^4.1.0"
 pre-commit = "^3.4.0"
 readme-coverage-badger = ">=0.1.2,<1.0.0"
+pytest = "^7.4.2"
+pdoc = "^14.1.0"
 
 [tool.poetry.scripts]
 evaluate = "alexandra_ai_eval.cli:evaluate"
 evaluate-gui = "alexandra_ai_eval.gui:main"
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.2"
-pdoc = "^14.1.0"
 
 [tool.pytest.ini_options]
 minversion = "7.0"
