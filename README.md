@@ -100,20 +100,21 @@ The following are the core maintainers of the `alexandra_ai_eval` package:
 
 ```
 .
-├── .flake8
 ├── .github
+│   ├── ISSUE_TEMPLATE
+│   │   ├── bug_report.md
+│   │   └── feature_request.md
 │   └── workflows
 │       ├── ci.yaml
 │       └── docs.yaml
 ├── .gitignore
 ├── .pre-commit-config.yaml
+├── CHANGELOG.md
+├── CODE_OF_CONDUCT.md
+├── CONTRIBUTING.md
 ├── LICENSE
 ├── README.md
-├── gfx
-│   └── alexandra-ai-eval-logo.png
 ├── makefile
-├── models
-├── notebooks
 ├── poetry.toml
 ├── pyproject.toml
 ├── src
@@ -124,19 +125,28 @@ The following are the core maintainers of the `alexandra_ai_eval` package:
 │   │   ├── co2.py
 │   │   ├── config.py
 │   │   ├── country_codes.py
+│   │   ├── enums.py
 │   │   ├── evaluator.py
 │   │   ├── exceptions.py
-│   │   ├── hf_hub.py
-│   │   ├── image_to_text.py
+│   │   ├── gui.py
+│   │   ├── hf_hub_utils.py
+│   │   ├── leaderboard_utils.py
+│   │   ├── local_hf_utils.py
+│   │   ├── local_pytorch_utils.py
+│   │   ├── metric_configs.py
+│   │   ├── model_adjustment.py
+│   │   ├── model_loading.py
 │   │   ├── named_entity_recognition.py
 │   │   ├── question_answering.py
 │   │   ├── scoring.py
+│   │   ├── sequence_classification.py
+│   │   ├── spacy_utils.py
 │   │   ├── task.py
 │   │   ├── task_configs.py
 │   │   ├── task_factory.py
-│   │   ├── text_classification.py
 │   │   └── utils.py
 │   └── scripts
+│       ├── add_models_to_leaderboard.py
 │       ├── fix_dot_env_file.py
 │       └── versioning.py
 └── tests
@@ -146,16 +156,24 @@ The following are the core maintainers of the `alexandra_ai_eval` package:
     ├── test_co2.py
     ├── test_config.py
     ├── test_country_codes.py
+    ├── test_enums.py
     ├── test_evaluator.py
     ├── test_exceptions.py
-    ├── test_hf_hub.py
-    ├── test_image_to_text.py
+    ├── test_gui.py
+    ├── test_hf_hub_utils.py
+    ├── test_leaderboard_utils.py
+    ├── test_local_hf_utils.py
+    ├── test_local_pytorch_utils.py
+    ├── test_metric_configs.py
+    ├── test_model_adjustment.py
+    ├── test_model_loading.py
     ├── test_named_entity_recognition.py
     ├── test_question_answering.py
     ├── test_scoring.py
+    ├── test_sequence_classification.py
+    ├── test_spacy_utils.py
     ├── test_task.py
     ├── test_task_configs.py
     ├── test_task_factory.py
-    ├── test_text_classification.py
     └── test_utils.py
 ```
