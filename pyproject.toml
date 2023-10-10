@@ -24,10 +24,13 @@ fsspec = "^2023.9.2"
 termcolor = "^2.3.0"
 jiwer = "^3.0.3"
 transformers = "^4.34.0"
-soundfile = ">=0.12.1,<1.0.0"
+soundfile = [
+    { version = ">=0.11.0,<1.0.0", markers = "sys_platform == 'linux'" },
+    { version = ">=0.11.0,<1.0.0", markers = "sys_platform == 'windows'" },
+    { version = "^0.11.0", markers = "sys_platform == 'darwin'" },
+]
 evaluate = ">=0.4.0,<1.0.0"
 pyctcdecode = ">=0.5.0,<1.0.0"
-librosa = ">=0.9.2,<0.10.0"
 torch = "2.0.0"
 tabulate = ">=0.9.0,<1.0.0"
 requests = "^2.31.0"
