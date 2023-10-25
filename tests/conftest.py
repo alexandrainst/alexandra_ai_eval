@@ -82,6 +82,12 @@ def model_total_scores(model_configs):
             "mcc": 1.0,
             "mcc_se": 0.0,
         },
+        "alexandrainst/da-sentiment-base": {
+            "macro_f1": 1.0,
+            "macro_f1_se": 0.0,
+            "mcc": 1.0,
+            "mcc_se": 0.0,
+        },
         "Maltehb/aelaectra-danish-electra-small-cased-ner-dane": {
             "micro_f1": 0.22222222222222224,
             "micro_f1_se": 0.4355555555555556,
