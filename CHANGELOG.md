@@ -14,6 +14,9 @@ project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 - Now catches a new `HFValidationError` caused when attempting to check if a model
   exists on the Hugging Face Hub.
 
+### Security
+- Updated `urllib3` to 2.0.7 due to a security update.
+
 
 ## [v0.1.0] - 2023-02-22
 ### Added
