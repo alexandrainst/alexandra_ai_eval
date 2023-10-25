@@ -76,13 +76,13 @@ def model_configs(evaluation_config, task_config):
 @pytest.fixture(scope="session")
 def model_total_scores(model_configs):
     score_mapping = {
-        "pin/senda": {
+        "alexandrainst/da-sentiment-base": {
             "macro_f1": 1.0,
             "macro_f1_se": 0.0,
-            "mcc": 1.0,
-            "mcc_se": 0.0,
+            "mcc": 0.5,
+            "mcc_se": 0.98,
         },
-        "alexandrainst/da-sentiment-base": {
+        "pin/senda": {
             "macro_f1": 1.0,
             "macro_f1_se": 0.0,
             "mcc": 1.0,
