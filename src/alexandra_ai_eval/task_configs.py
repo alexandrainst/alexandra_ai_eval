@@ -22,8 +22,8 @@ def get_all_task_configs() -> dict[str, TaskConfig]:
     return {cfg.name: cfg for cfg in globals().values() if isinstance(cfg, TaskConfig)}
 
 
-SENT = TaskConfig(
-    name="sentiment-classification",
+SENT_TRINARY = TaskConfig(
+    name="sentiment-trinary-classification",
     huggingface_id="DDSC/angry-tweets",
     huggingface_subset=None,
     supertask="sequence-classification",
@@ -41,6 +41,30 @@ SENT = TaskConfig(
         LabelConfig(
             name="POSITIVE",
             synonyms=["POS", "POSITIV", "LABEL_2"],
+        ),
+    ],
+    feature_column_names=["text"],
+    label_column_name="label",
+    test_name="test",
+    search_terms=["sent"],
+)
+
+
+SENT_BINARY = TaskConfig(
+    name="sentiment-binary-classification",
+    huggingface_id="DDSC/angry-tweets-binary",
+    huggingface_subset=None,
+    supertask="sequence-classification",
+    modality=Modality("text"),
+    metrics=[MCC, MACRO_F1],
+    labels=[
+        LabelConfig(
+            name="NEGATIVE",
+            synonyms=["NEG", "NEGATIV", "LABEL_0"],
+        ),
+        LabelConfig(
+            name="POSITIVE",
+            synonyms=["POS", "POSITIV", "LABEL_1"],
         ),
     ],
     feature_column_names=["text"],
