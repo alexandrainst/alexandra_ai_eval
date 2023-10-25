@@ -48,7 +48,7 @@ def task_config(request):
 @pytest.fixture(scope="session")
 def model_configs(evaluation_config, task_config):
     model_id_mapping = {
-        "sentiment-classification": ["pin/senda"],
+        "sentiment-trinary-classification": ["pin/senda"],
         "discourse-coherence-classification": [
             "alexandrainst/da-discourse-coherence-base"
         ],
