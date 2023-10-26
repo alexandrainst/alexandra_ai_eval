@@ -51,7 +51,7 @@ def log_scores(
         test_score_str = metric_cfg.postprocessing_fn(test_score)
         test_se_str = metric_cfg.postprocessing_fn(test_se)
 
-        msg = f"{metric_cfg.pretty_name}:\n↳  {test_score_str} ± {test_se_str}"
+        msg = f"{metric_cfg.pretty_name}: {test_score_str} ± {test_se_str}"
         logging_strings.append(msg)
 
         # Store the aggregated test scores

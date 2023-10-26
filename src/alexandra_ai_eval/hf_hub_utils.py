@@ -3,6 +3,7 @@
 from huggingface_hub import HfApi, ModelFilter
 from huggingface_hub.hf_api import ModelInfo
 from huggingface_hub.utils import RepositoryNotFoundError
+from huggingface_hub.utils import HFValidationError
 from requests.exceptions import RequestException
 from transformers.modeling_utils import PreTrainedModel
 from transformers.models.auto.configuration_auto import AutoConfig
@@ -279,7 +280,7 @@ def model_exists_on_hf_hub(
     try:
         get_hf_hub_model_info(model_id=model_id, token=token)
         return True
-    except RepositoryNotFoundError:
+    except (RepositoryNotFoundError, HFValidationError):
         return False
 
 

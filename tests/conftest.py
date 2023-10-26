@@ -48,7 +48,8 @@ def task_config(request):
 @pytest.fixture(scope="session")
 def model_configs(evaluation_config, task_config):
     model_id_mapping = {
-        "sentiment-classification": ["pin/senda"],
+        "sentiment-binary-classification": ["alexandrainst/da-sentiment-base"],
+        "sentiment-trinary-classification": ["pin/senda"],
         "discourse-coherence-classification": [
             "alexandrainst/da-discourse-coherence-base"
         ],
@@ -75,6 +76,12 @@ def model_configs(evaluation_config, task_config):
 @pytest.fixture(scope="session")
 def model_total_scores(model_configs):
     score_mapping = {
+        "alexandrainst/da-sentiment-base": {
+            "macro_f1": 1.0,
+            "macro_f1_se": 0.0,
+            "mcc": 0.5,
+            "mcc_se": 0.98,
+        },
         "pin/senda": {
             "macro_f1": 1.0,
             "macro_f1_se": 0.0,

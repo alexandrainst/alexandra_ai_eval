@@ -6,7 +6,7 @@ from datasets import load_dataset
 from transformers import AutoConfig, AutoTokenizer, DataCollatorWithPadding
 
 from alexandra_ai_eval.sequence_classification import SequenceClassification
-from alexandra_ai_eval.task_configs import SENT
+from alexandra_ai_eval.task_configs import SENT_TRINARY
 
 
 @pytest.fixture(scope="module")
@@ -16,7 +16,9 @@ def dataset():
 
 @pytest.fixture(scope="module")
 def seq_clf(evaluation_config):
-    yield SequenceClassification(task_config=SENT, evaluation_config=evaluation_config)
+    yield SequenceClassification(
+        task_config=SENT_TRINARY, evaluation_config=evaluation_config
+    )
 
 
 @pytest.fixture(scope="module")
