@@ -183,9 +183,6 @@ def tokenize_and_align_labels(
     )
     all_labels: list[list[int]] = []
     for i, ner_tags in enumerate(examples[label_column_name]):
-        # TEMP
-        ner_tags = list(map(str, ner_tags))
-
         if isinstance(ner_tags[0], str):
             ner_tags = [dataset_label2id[ner_tag.upper()] for ner_tag in ner_tags]
         labels = [dataset_id2label[ner_tag] for ner_tag in ner_tags]

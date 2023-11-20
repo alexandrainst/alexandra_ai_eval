@@ -80,8 +80,8 @@ SENT_BINARY = TaskConfig(
 
 NER = TaskConfig(
     name="named-entity-recognition",
-    huggingface_id="norne",  # TEMP
-    huggingface_subset="combined",
+    huggingface_id="dane",
+    huggingface_subset="nynorsk",
     supertask="token-classification",
     modality=Modality("text"),
     metrics=[
@@ -95,15 +95,15 @@ NER = TaskConfig(
     labels=[
         LabelConfig(
             name="O",
-            synonyms=["0"],
+            synonyms=[],
         ),
         LabelConfig(
             name="B-PER",
-            synonyms=["B-PERSON", "1"],
+            synonyms=["B-PERSON"],
         ),
         LabelConfig(
             name="I-PER",
-            synonyms=["I-PERSON", "2"],
+            synonyms=["I-PERSON"],
         ),
         LabelConfig(
             name="B-ORG",
@@ -129,8 +129,6 @@ NER = TaskConfig(
                 "B-ORGOBJ",
                 "B-ORG_OBJ",
                 "B-ORG/OBJ",
-                "3",
-                "11",
             ],
         ),
         LabelConfig(
@@ -157,8 +155,6 @@ NER = TaskConfig(
                 "I-ORGOBJ",
                 "I-ORG_OBJ",
                 "I-ORG/OBJ",
-                "4",
-                "12",
             ],
         ),
         LabelConfig(
@@ -184,8 +180,6 @@ NER = TaskConfig(
                 "B-PRSLOC",
                 "B-PRS_LOC",
                 "B-PRS/LOC",
-                "5",
-                "9",
             ],
         ),
         LabelConfig(
@@ -211,17 +205,15 @@ NER = TaskConfig(
                 "I-PRSLOC",
                 "I-PRS_LOC",
                 "I-PRS/LOC",
-                "6",
-                "10",
             ],
         ),
         LabelConfig(
             name="B-MISC",
-            synonyms=["B-MISCELLANEOUS", "17", "7", "13", "15"],
+            synonyms=["B-MISCELLANEOUS"],
         ),
         LabelConfig(
             name="I-MISC",
-            synonyms=["I-MISCELLANEOUS", "18", "8", "14", "16"],
+            synonyms=["I-MISCELLANEOUS"],
         ),
     ],
     feature_column_names=["text"],
