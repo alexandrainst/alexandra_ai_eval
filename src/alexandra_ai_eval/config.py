@@ -49,7 +49,7 @@ class MetricConfig:
     name: str
     pretty_name: str
     huggingface_id: str
-    results_key: str
+    results_key: str | tuple[str, ...]
     postprocessing_fn: Callable[[float], str]
     compute_kwargs: dict[str, Any] = field(default_factory=dict)
 

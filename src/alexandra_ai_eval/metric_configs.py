@@ -23,6 +23,46 @@ SEQEVAL_MICRO_F1_NO_MISC = MetricConfig(
 )
 
 
+SEQEVAL_PER_F1 = MetricConfig(
+    name="per_f1",
+    pretty_name="Person F1-score",
+    huggingface_id="seqeval",
+    results_key=("PER", "f1"),
+    compute_kwargs=dict(zero_division=1),
+    postprocessing_fn=lambda raw_score: f"{100 * raw_score:.2f}%",
+)
+
+
+SEQEVAL_LOC_F1 = MetricConfig(
+    name="loc_f1",
+    pretty_name="Location F1-score",
+    huggingface_id="seqeval",
+    results_key=("LOC", "f1"),
+    compute_kwargs=dict(zero_division=1),
+    postprocessing_fn=lambda raw_score: f"{100 * raw_score:.2f}%",
+)
+
+
+SEQEVAL_ORG_F1 = MetricConfig(
+    name="org_f1",
+    pretty_name="Organisation F1-score",
+    huggingface_id="seqeval",
+    results_key=("ORG", "f1"),
+    compute_kwargs=dict(zero_division=1),
+    postprocessing_fn=lambda raw_score: f"{100 * raw_score:.2f}%",
+)
+
+
+SEQEVAL_MISC_F1 = MetricConfig(
+    name="misc_f1",
+    pretty_name="Miscellaneous F1-score",
+    huggingface_id="seqeval",
+    results_key=("MISC", "f1"),
+    compute_kwargs=dict(zero_division=1),
+    postprocessing_fn=lambda raw_score: f"{100 * raw_score:.2f}%",
+)
+
+
 MCC = MetricConfig(
     name="mcc",
     pretty_name="Matthew's Correlation Coefficient",

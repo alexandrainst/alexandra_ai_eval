@@ -369,7 +369,21 @@ class Task(ABC):
                     score_dict = {metric_cfg.huggingface_id: score_dict}
 
             if score_dict is not None:
-                results[metric_cfg.name] = score_dict[metric_cfg.results_key]
+                raw_results_keys = metric_cfg.results_key
+                results_keys: tuple[str, ...]
+                if isinstance(raw_results_keys, str):
+                    results_keys = (raw_results_keys,)
+                elif isinstance(raw_results_keys, tuple):
+                    results_keys = raw_results_keys
+                else:
+                    raise ValueError(
+                        f"Metric {metric_cfg.name} has an invalid results key. "
+                        f"Received {raw_results_keys}"
+                    )
+
+                for results_key in results_keys:
+                    score_dict = score_dict[results_key]
+                results[metric_cfg.name] = score_dict
 
         return results
 

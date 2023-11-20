@@ -7,8 +7,12 @@ from .metric_configs import (
     MACRO_F1,
     MCC,
     QA_F1,
+    SEQEVAL_LOC_F1,
     SEQEVAL_MICRO_F1,
     SEQEVAL_MICRO_F1_NO_MISC,
+    SEQEVAL_MISC_F1,
+    SEQEVAL_ORG_F1,
+    SEQEVAL_PER_F1,
     WER,
 )
 
@@ -76,23 +80,30 @@ SENT_BINARY = TaskConfig(
 
 NER = TaskConfig(
     name="named-entity-recognition",
-    huggingface_id="dane",
-    huggingface_subset=None,
+    huggingface_id="norne",  # TEMP
+    huggingface_subset="combined",
     supertask="token-classification",
     modality=Modality("text"),
-    metrics=[SEQEVAL_MICRO_F1, SEQEVAL_MICRO_F1_NO_MISC],
+    metrics=[
+        SEQEVAL_MICRO_F1,
+        SEQEVAL_MICRO_F1_NO_MISC,
+        SEQEVAL_PER_F1,
+        SEQEVAL_LOC_F1,
+        SEQEVAL_ORG_F1,
+        SEQEVAL_MISC_F1,
+    ],
     labels=[
         LabelConfig(
             name="O",
-            synonyms=[],
+            synonyms=["0"],
         ),
         LabelConfig(
             name="B-PER",
-            synonyms=["B-PERSON"],
+            synonyms=["B-PERSON", "1"],
         ),
         LabelConfig(
             name="I-PER",
-            synonyms=["I-PERSON"],
+            synonyms=["I-PERSON", "2"],
         ),
         LabelConfig(
             name="B-ORG",
@@ -118,6 +129,8 @@ NER = TaskConfig(
                 "B-ORGOBJ",
                 "B-ORG_OBJ",
                 "B-ORG/OBJ",
+                "3",
+                "11",
             ],
         ),
         LabelConfig(
@@ -144,6 +157,8 @@ NER = TaskConfig(
                 "I-ORGOBJ",
                 "I-ORG_OBJ",
                 "I-ORG/OBJ",
+                "4",
+                "12",
             ],
         ),
         LabelConfig(
@@ -169,6 +184,8 @@ NER = TaskConfig(
                 "B-PRSLOC",
                 "B-PRS_LOC",
                 "B-PRS/LOC",
+                "5",
+                "9",
             ],
         ),
         LabelConfig(
@@ -194,15 +211,17 @@ NER = TaskConfig(
                 "I-PRSLOC",
                 "I-PRS_LOC",
                 "I-PRS/LOC",
+                "6",
+                "10",
             ],
         ),
         LabelConfig(
             name="B-MISC",
-            synonyms=["B-MISCELLANEOUS"],
+            synonyms=["B-MISCELLANEOUS", "17", "7", "13", "15"],
         ),
         LabelConfig(
             name="I-MISC",
-            synonyms=["I-MISCELLANEOUS"],
+            synonyms=["I-MISCELLANEOUS", "18", "8", "14", "16"],
         ),
     ],
     feature_column_names=["text"],

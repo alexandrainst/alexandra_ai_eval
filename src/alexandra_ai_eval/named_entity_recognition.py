@@ -44,6 +44,7 @@ class NamedEntityRecognition(Task):
             tokenizer=tokenizer,
             model_label2id=model_config.label2id,
             dataset_id2label=task_config.id2label,
+            dataset_label2id=task_config.label2id,
             label_column_name=task_config.label_column_name,
         )
 
@@ -90,13 +91,18 @@ class NamedEntityRecognition(Task):
     ) -> list[tuple[list, list]]:
         labels = prepared_dataset["labels"]
 
-        # Collapse the logits into single predictions for every sample
+        # Collapse the logits into single predictions for every sample. We deal with
+        # each document separately rather than computing an argmax over all documents,
+        # as the documents can vary in sequence length.
         if any(has_floats(pred) for pred in predictions):
-            predictions = np.argmax(predictions, axis=-1)
+            predictions = [
+                list(np.argmax(prediction_arr, axis=-1))
+                for prediction_arr in predictions
+            ]
 
         # Remove ignored index from predictions and labels
         predictions, labels = remove_ignored_index_from_predictions_and_labels(
-            predictions=list(predictions),
+            predictions=predictions,
             labels=labels,
             model_id2label=kwargs.get("model_id2label"),
             index_to_ignore=-100,
@@ -104,7 +110,7 @@ class NamedEntityRecognition(Task):
 
         # Replace unknown tags present in the predictions to corresponding MISC tags
         predictions = replace_unknown_tags_with_misc_tags(
-            list_of_tag_lists=list(predictions),
+            list_of_tag_lists=predictions,
             dataset_id2label=self.task_config.id2label,
         )
 
@@ -112,7 +118,9 @@ class NamedEntityRecognition(Task):
         predictions_no_misc = remove_misc_tags(list_of_tag_lists=predictions)
         labels_no_misc = remove_misc_tags(list_of_tag_lists=labels)
 
-        return [(predictions, labels), (predictions_no_misc, labels_no_misc)]
+        return [(predictions, labels), (predictions_no_misc, labels_no_misc)] + [
+            (predictions, labels)
+        ] * 4  # PER, LOC, ORG & MISC
 
     def _check_if_model_is_trained_for_task(self, model_predictions: list) -> bool:
         sample_preds = model_predictions[0]
@@ -130,6 +138,7 @@ def tokenize_and_align_labels(
     tokenizer: PreTrainedTokenizerBase,
     model_label2id: dict | None,
     dataset_id2label: list,
+    dataset_label2id: dict[str, int],
     label_column_name: str,
 ) -> BatchEncoding:
     """Tokenize all texts and align the labels with them.
@@ -144,6 +153,8 @@ def tokenize_and_align_labels(
             conversion has been set up for the model and an error is raised.
         dataset_id2label:
             A list that maps IDs to NER tags.
+        dataset_label2id:
+            A dictionary that converts NER tags (and their synonyms) to IDs.
         label_column_name:
             The name of the label column.
 
@@ -172,6 +183,11 @@ def tokenize_and_align_labels(
     )
     all_labels: list[list[int]] = []
     for i, ner_tags in enumerate(examples[label_column_name]):
+        # TEMP
+        ner_tags = list(map(str, ner_tags))
+
+        if isinstance(ner_tags[0], str):
+            ner_tags = [dataset_label2id[ner_tag.upper()] for ner_tag in ner_tags]
         labels = [dataset_id2label[ner_tag] for ner_tag in ner_tags]
         try:
             word_ids = tokenized_inputs.word_ids(batch_index=i)
