@@ -137,6 +137,7 @@ def block_terminal_output():
     logging.getLogger("absl").setLevel(logging.ERROR)
     logging.getLogger("datasets").setLevel(logging.ERROR)
     logging.getLogger("codecarbon").setLevel(logging.ERROR)
+    logging.getLogger("urllib3").setLevel(logging.ERROR)
 
     # Disable `wasabi` logging, used in spaCy
     wasabi_msg.no_print = True

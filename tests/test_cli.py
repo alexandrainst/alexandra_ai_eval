@@ -22,6 +22,7 @@ def test_cli_param_names(params):
         "country_code",
         "no_progress_bar",
         "no_save_results",
+        "no_send_results_to_leaderboard",
         "raise_error_on_invalid_model",
         "cache_dir",
         "prefer_device",
@@ -41,6 +42,7 @@ def test_cli_param_types(params):
     assert isinstance(params["country_code"], Choice)
     assert params["no_progress_bar"] == BOOL
     assert params["no_save_results"] == BOOL
+    assert params["no_send_results_to_leaderboard"] == BOOL
     assert params["raise_error_on_invalid_model"] == BOOL
     assert params["cache_dir"] == STRING
     assert isinstance(params["prefer_device"], Choice)
