@@ -15,7 +15,7 @@ jobs:
   pytest:
     strategy:
       matrix:
-        os: [macos-latest-xlarge, ubuntu-latest]
+        os: [windows-latest, macos-latest-xlarge, ubuntu-latest]
         python-version: ["3.11"]
     runs-on: ${{ matrix.os }}
     steps:
