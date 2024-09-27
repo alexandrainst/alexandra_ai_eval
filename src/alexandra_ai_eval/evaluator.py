@@ -7,7 +7,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import pandas as pd
-from requests.exceptions import ConnectionError, RequestException
+from requests.exceptions import ConnectionError
 from tabulate import tabulate
 
 from .config import EvaluationConfig, TaskConfig
@@ -131,9 +131,7 @@ class Evaluator:
         self.send_results_to_leaderboard = send_results_to_leaderboard
         self.leaderboard_url = leaderboard_url
         self.leaderboard_client = (
-            Session(
-                base_url=self.leaderboard_url,
-            )
+            Session(base_url=self.leaderboard_url, num_retries=1)
             if self.send_results_to_leaderboard
             else None
         )
@@ -210,7 +208,7 @@ class Evaluator:
                 if all(self._send_results_to_leaderboard()):
                     logger.info("Successfully sent results to leaderboard.")
                 else:
-                    raise RequestException("Failed to send result(s) to leaderboard.")
+                    logger.warning("Failed to send results to leaderboard.")
 
             return self.evaluation_results
 
@@ -322,7 +320,10 @@ class Evaluator:
         )
         assert self.leaderboard_client is not None, error_if_client_is_none
 
-        self.leaderboard_client.check_connection()
+        try:
+            self.leaderboard_client.check_connection(timeout=2)
+        except ConnectionError:
+            return [False]
 
         status: list[bool] = list()
 

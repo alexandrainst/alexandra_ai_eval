@@ -5,18 +5,26 @@ from json import JSONDecodeError
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+import time
+import sys
 
 from .task_configs import get_all_task_configs
 
 
 class Session(requests.Session):
-    """A requests session that automatically adds the API key to the headers."""
+    """A requests session that automatically adds the API key to the headers.
 
-    def __init__(self, base_url: str):
+    Args:
+        base_url:
+            The base url of the leaderboard.
+        num_retries:
+            The number of retries to make if the connection fails.
+    """
+
+    def __init__(self, base_url: str, num_retries: int):
         super().__init__()
         self.base_url = base_url
-        retry = Retry(connect=3, backoff_factor=0.5)
-        adapter = HTTPAdapter(max_retries=retry)
+        adapter = HTTPAdapter(max_retries=Retry(total=num_retries))
         self.mount("http://", adapter)
         self.mount("https://", adapter)
 
@@ -170,17 +178,34 @@ class Session(requests.Session):
         response.close()
         return response_json
 
-    def check_connection(self, timeout: int = 5):
+    def check_connection(self, timeout: int):
         """Checks whether we can establish a connection to the leaderboard.
 
         Args:
             timeout:
-                Timeout in seconds. Defaults to 5.
+                Timeout in seconds.
 
         Raises:
             requests.exceptions.ConnectionError: Failed to establish a connection.
             requests.exceptions.ReadTimeout: Connection timed out after 5 seconds.
             requests.exceptions.HTTPError: Non 200 response.
         """
-        response = self.get(self.base_url, timeout=timeout)
-        response.raise_for_status()
+
+        def trace_function(frame, event, arg):
+            """Trace function that raises TimeoutError if the connection times out."""
+            if time.time() - start > timeout:
+                raise TimeoutError("Connection to leaderboard timed out.")
+            return trace_function
+
+        # We need to set a trace function to raise a TimeoutError if the connection
+        # times out. See https://stackoverflow.com/a/71453648/3154226
+        start = time.time()
+        sys.settrace(trace_function)
+
+        try:
+            response = self.get(url=self.base_url, timeout=timeout)
+            response.raise_for_status()
+        except Exception as e:
+            raise e
+        finally:
+            sys.settrace(None)

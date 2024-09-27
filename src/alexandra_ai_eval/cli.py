@@ -68,10 +68,15 @@ from .task_configs import get_all_task_configs
 )
 @click.option(
     "--no-save-results",
-    "-ns",
     is_flag=True,
     show_default=True,
     help="Whether results should not be stored to disk.",
+)
+@click.option(
+    "--no-send-results-to-leaderboard",
+    is_flag=True,
+    show_default=True,
+    help="Whether results should not be sent to the leaderboard.",
 )
 @click.option(
     "--raise-error-on-invalid-model",
@@ -126,6 +131,7 @@ def evaluate(
     country_code: str,
     no_progress_bar: bool,
     no_save_results: bool,
+    no_send_results_to_leaderboard: bool,
     raise_error_on_invalid_model: bool,
     cache_dir: str,
     prefer_device: str,
@@ -155,6 +161,7 @@ def evaluate(
     evaluator = Evaluator(
         progress_bar=(not no_progress_bar),
         save_results=(not no_save_results),
+        send_results_to_leaderboard=(not no_send_results_to_leaderboard),
         raise_error_on_invalid_model=raise_error_on_invalid_model,
         cache_dir=cache_dir,
         token=auth,
