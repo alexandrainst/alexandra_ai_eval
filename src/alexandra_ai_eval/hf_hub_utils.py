@@ -1,6 +1,6 @@
 """Utility functions related to the Hugging Face Hub."""
 
-from huggingface_hub import HfApi, ModelFilter
+from huggingface_hub import HfApi
 from huggingface_hub.hf_api import ModelInfo
 from huggingface_hub.utils import RepositoryNotFoundError
 from huggingface_hub.utils import HFValidationError
@@ -328,7 +328,7 @@ def get_model_config_from_hf_hub(
     # Fetch the model metadata from the Hugging Face Hub
     try:
         models = api.list_models(
-            filter=ModelFilter(author=author, model_name=model_name),
+            author=author, model_name=model_name,
             token=evaluation_config.token,
         )
 
